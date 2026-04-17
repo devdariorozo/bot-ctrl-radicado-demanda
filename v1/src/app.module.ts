@@ -1,0 +1,118 @@
+// Responsabilidad: módulo principal de la aplicación.
+
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { HealthModule } from './interfaces/modules/health.module';
+import { StateTypeEntity } from './infrastructure/persistence/entities/stateType.entities';
+import { StateTypeModule } from './interfaces/modules/stateType.module';
+import { PortfolioTypeEntity } from './infrastructure/persistence/entities/portfolioType.entities';
+import { PortfolioTypeModule } from './interfaces/modules/portfolioType.module';
+import { EnvironmentTypeEntity } from './infrastructure/persistence/entities/environmentType.entities';
+import { EnvironmentTypeModule } from './interfaces/modules/environmentType.module';
+import { EnvironmentTypeMigration1771978729001 } from '@infrastructure/persistence/migrations/1771978729001_environmentType.migrations';
+import { StateTypeMigration1771978729002 } from '@infrastructure/persistence/migrations/1771978729002_stateType.migrations';
+import { PortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_portfolioType.migrations';
+import { DataBasesEntity } from './infrastructure/persistence/entities/dataBases.entities';
+import { DataBasesMigration1771978729004 } from '@infrastructure/persistence/migrations/1771978729004_dataBases.migrations';
+import { DataBasesModule } from './interfaces/modules/dataBases.module';
+import { AttentionScheduleEntity } from './infrastructure/persistence/entities/attentionSchedule.entities';
+import { AttentionScheduleMigration1771978729005 } from '@infrastructure/persistence/migrations/1771978729005_attentionSchedule.migrations';
+import { AttentionScheduleModule } from './interfaces/modules/attentionSchedule.module';
+import { PortfolioCityConfigEntity } from './infrastructure/persistence/entities/portfolioCityConfig.entities';
+import { PortfolioCityConfigMigration1771978729006 } from '@infrastructure/persistence/migrations/1771978729006_portfolioCityConfig.migrations';
+import { PortfolioCityConfigModule } from './interfaces/modules/portfolioCityConfig.module';
+import { AmountTypeEntity } from './infrastructure/persistence/entities/amountType.entities';
+import { AmountTypeMigration1771978729007 } from '@infrastructure/persistence/migrations/1771978729007_amountType.migrations';
+import { AlterAmountTypeJson1771978729010 } from '@infrastructure/persistence/migrations/1771978729010_alterAmountTypeJson.migrations';
+import { AmountTypeModule } from './interfaces/modules/amountType.module';
+import { CompanyTypeEntity } from './infrastructure/persistence/entities/companyType.entities';
+import { CompanyTypeMigration1771978729008 } from '@infrastructure/persistence/migrations/1771978729008_companyType.migrations';
+import { LawyerDataEntity } from './infrastructure/persistence/entities/lawyerData.entities';
+import { LawyerDataMigration1771978729013 } from '@infrastructure/persistence/migrations/1771978729013_lawyerData.migrations';
+import { HolidayEntity } from './infrastructure/persistence/entities/holiday.entities';
+import { HolidayMigration1771978729015 } from '@infrastructure/persistence/migrations/1771978729015_holiday.migrations';
+import { CompanyTypeModule } from './interfaces/modules/companyType.module';
+import { LawyerDataModule } from './interfaces/modules/lawyerData.module';
+import { HolidayModule } from './interfaces/modules/holiday.module';
+import { ManagementDemandsOnlineEntity } from './infrastructure/persistence/entities/managementDemandsOnline.entities';
+import { ManagementDemandsOnlineMigration1771978729008 } from '@infrastructure/persistence/migrations/1771978729008_managementDemandsOnline.migrations';
+import { ManagementDemandsOnlineModule } from './interfaces/modules/managementDemandsOnline.module';
+import { BotControlEntity } from './infrastructure/persistence/entities/botControl.entities';
+import { BotControlMigration1771978729009 } from '@infrastructure/persistence/migrations/1771978729009_botControl.migrations';
+import { DemandsPendingSyncModule } from './interfaces/modules/demandsPendingSync.module';
+import { BotControlModule } from './interfaces/modules/botControl.module';
+import { LoggerModule } from './infrastructure/logging/logger.module';
+import { DemandsOnlineAutomationModule } from './interfaces/modules/demandsOnlineAutomation.module';
+import { LogsModule } from './interfaces/modules/logs.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({  
+      isGlobal: true,
+      envFilePath: ['.env', '.env.local'],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DB_CONFIG_HOST', 'localhost'),
+        port: config.get<number>('DB_CONFIG_PORT', 3306),
+        username: config.get('DB_CONFIG_USER', 'root'),
+        password: config.get('DB_CONFIG_PASSWORD', ''),
+        database: config.get('DB_CONFIG_DATABASE', 'dbd_demands_online'),
+        entities: [
+          EnvironmentTypeEntity,
+          StateTypeEntity,
+          PortfolioTypeEntity,
+          DataBasesEntity,
+          AttentionScheduleEntity,
+          PortfolioCityConfigEntity,
+          AmountTypeEntity,
+          CompanyTypeEntity,
+          LawyerDataEntity,
+          HolidayEntity,
+          ManagementDemandsOnlineEntity,
+          BotControlEntity,
+        ],
+        migrations: [
+          EnvironmentTypeMigration1771978729001,
+          StateTypeMigration1771978729002,
+          PortfolioTypeMigration1771978729003,
+          DataBasesMigration1771978729004,
+          AttentionScheduleMigration1771978729005,
+          PortfolioCityConfigMigration1771978729006,
+          AmountTypeMigration1771978729007,
+          AlterAmountTypeJson1771978729010,
+          CompanyTypeMigration1771978729008,
+          LawyerDataMigration1771978729013,
+          HolidayMigration1771978729015,
+          ManagementDemandsOnlineMigration1771978729008,
+          BotControlMigration1771978729009,
+        ],
+        migrationsTableName: 'migrations',
+        synchronize: false,
+        logging: config.get('DB_CONFIG_LOGGING') === 'true',
+      }),
+      inject: [ConfigService],
+    }),
+    LoggerModule,
+    HealthModule,
+    EnvironmentTypeModule,
+    StateTypeModule,
+    PortfolioTypeModule,
+    DataBasesModule,
+    AttentionScheduleModule,
+    PortfolioCityConfigModule,
+    AmountTypeModule,
+    CompanyTypeModule,
+    LawyerDataModule,
+    HolidayModule,
+    ManagementDemandsOnlineModule,
+    BotControlModule,
+    DemandsPendingSyncModule,
+    DemandsOnlineAutomationModule,
+    LogsModule,
+  ],
+})
+export class AppModule {}

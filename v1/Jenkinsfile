@@ -1,0 +1,32 @@
+@Library('legacyLibrary:v1') _
+
+def config = [
+    imageName       : "bot-demandas-enlinea-qa",
+    Repo            : "back-end",
+    bucket          : "qaer",
+    baseimage       : "node:22-alpine",
+    manifest        : "eks_demandas-enlinea-qa",
+    cloud_manifest  : "https://MontecheloCloud@dev.azure.com/MontecheloCloud/soul_manifiestos/_git/soul_manifiestos",
+    branch_manifest : "quality",
+    app             : "bot-demandas-enlinea-qa"
+]
+
+builBotDemandasLinea(
+    imageName: config.imageName,
+    baseimage: config.baseimage,
+    env      : config.branch_manifest,
+    bucket   : config.bucket
+)
+
+gitOpsCodeFix2(
+    imageName : config.imageName,
+    manifest  : config.manifest,
+    branch    : config.branch_manifest,
+    Repo      : config.Repo,
+    IMAGE_TAG : env.IMAGE_TAG,
+    gitUrl    : config.cloud_manifest
+)
+
+deployToK8sv2(
+    APP: config.app
+)
