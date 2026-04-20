@@ -23,7 +23,7 @@ export class LawyerDataRepositoryImpl implements LawyerDataRepository {
       ...data,
       created_at: data.created_at ?? now,
       updated_at: data.updated_at ?? now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     };
     const saved = await this.repo.save(entity as LawyerDataEntity);
     return saved;
@@ -74,6 +74,7 @@ export class LawyerDataRepositoryImpl implements LawyerDataRepository {
       ])
       .addSelect('pt.type', 'portfolio_type_name')
       .addSelect('st.type', 'state_type_name')
+      .orderBy('ld.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({

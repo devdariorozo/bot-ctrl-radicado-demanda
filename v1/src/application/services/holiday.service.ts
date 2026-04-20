@@ -52,7 +52,7 @@ export class HolidayService {
       name: this.normalizeName(input.name),
       detail: this.normalizeDetail(input.detail),
       country_code: (input.country_code ?? 'CO').toUpperCase(),
-      responsible: input.responsible ?? 'BOT demands online',
+      responsible: input.responsible ?? 'BOT ctrl filed demand',
     };
 
     try {
@@ -102,7 +102,7 @@ export class HolidayService {
       name: this.normalizeName(holiday.name),
       detail: this.normalizeDetail(holiday.detail),
       country_code: (holiday.country_code ?? 'CO').toUpperCase(),
-      responsible: holiday.responsible ?? 'BOT demands online',
+      responsible: holiday.responsible ?? 'BOT ctrl filed demand',
     };
 
     const hasChanges =

@@ -12,14 +12,14 @@ import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils'
 const createExampleSchema = {
     type: 'Active',
     detail: 'Registro activo',
-    responsible: 'BOT demands online',
+    responsible: 'BOT ctrl filed demand',
 };
 
 /** Ejemplo JSON para actualizar. El id va solo en la URL (path), no en el body. */
 const updateExampleSchema = {
     type: 'Active',
     detail: 'Registro activo',
-    responsible: 'BOT demands online',
+    responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('stateType')

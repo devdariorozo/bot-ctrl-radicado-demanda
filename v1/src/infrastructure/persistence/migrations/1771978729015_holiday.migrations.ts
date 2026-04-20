@@ -16,7 +16,7 @@ export class HolidayMigration1771978729015 implements MigrationInterface {
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_holiday_country_date_type UNIQUE (country_code, date, type),
         CONSTRAINT FK_holiday_state_type
           FOREIGN KEY (state_type_id) REFERENCES state_type(id)

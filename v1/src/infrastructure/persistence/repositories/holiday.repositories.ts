@@ -47,6 +47,7 @@ export class HolidayRepositoryImpl implements HolidayRepository {
         'h.responsible',
       ])
       .addSelect('st.type', 'state_type_name')
+      .orderBy('h.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({

@@ -73,7 +73,7 @@ export class LogsResponseDto {
   log_date: string;
 
   @ApiProperty({
-    example: '2026-03-18-logs-bot-demands-online.log',
+    example: '2026-03-18-logs-bot-ctrl-filed-demand.log',
     description: 'Nombre físico del archivo de log',
   })
   file_name: string;

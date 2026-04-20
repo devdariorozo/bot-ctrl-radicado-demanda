@@ -12,7 +12,7 @@ export class HealthController {
   @Get('health')
   @ApiOperation({ summary: 'Verificación de que el servicio está vivo' })
   check() {
-    const projectName = this.configService.get<string>('PROJECT_NAME', 'bot-demands-online');
+    const projectName = this.configService.get<string>('PROJECT_NAME', 'bot-ctrl-filed-demand');
     const versionApi = this.configService.get<string>('VERSION_API', 'v1');
     const service = `${projectName}-${versionApi}`;
     return {

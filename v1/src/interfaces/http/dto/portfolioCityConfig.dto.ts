@@ -78,7 +78,7 @@ export class PortfolioCityConfigDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable del registro' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del registro' })
   @IsString()
   @IsNotEmpty()
   responsible: string;
@@ -134,7 +134,7 @@ export class UpdatePortfolioCityConfigDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable del registro' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del registro' })
   @IsString()
   @IsNotEmpty()
   responsible: string;

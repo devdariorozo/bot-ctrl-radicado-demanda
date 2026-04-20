@@ -22,7 +22,7 @@ export const companyTypeSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
       portfolio_type_id: 1,
@@ -38,7 +38,7 @@ export const companyTypeSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
       portfolio_type_id: 2,
@@ -54,7 +54,7 @@ export const companyTypeSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
   ]);
 };

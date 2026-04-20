@@ -64,7 +64,7 @@ export class ManagementDemandsOnlineDto {
   @IsOptional()
   user_id?: number;
 
-  @ApiPropertyOptional({ example: 'BOT demands online', description: 'Nombre de usuario' })
+  @ApiPropertyOptional({ example: 'BOT ctrl filed demand', description: 'Nombre de usuario' })
   @IsString()
   @IsOptional()
   user_name?: string;
@@ -102,7 +102,7 @@ export class ManagementDemandsOnlineDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiPropertyOptional({ example: 'BOT demands online', description: 'Responsable' })
+  @ApiPropertyOptional({ example: 'BOT ctrl filed demand', description: 'Responsable' })
   @IsString()
   @IsOptional()
   responsible?: string;
@@ -165,7 +165,7 @@ export class UpdateManagementDemandsOnlineDto {
   @IsOptional()
   user_id?: number;
 
-  @ApiPropertyOptional({ example: 'BOT demands online', description: 'Nombre de usuario' })
+  @ApiPropertyOptional({ example: 'BOT ctrl filed demand', description: 'Nombre de usuario' })
   @IsString()
   @IsOptional()
   user_name?: string;

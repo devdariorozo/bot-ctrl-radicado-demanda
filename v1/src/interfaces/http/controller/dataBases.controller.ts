@@ -29,7 +29,7 @@ const createExampleSchema = {
   },
   detail: 'Bases de datos para entorno dev, cartera Propias',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 /** Ejemplo JSON para actualizar. El id va solo en la URL (path), no en el body. */
@@ -46,7 +46,7 @@ const updateExampleSchema = {
   },
   detail: 'Bases de datos para entorno dev, cartera Propias',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('dataBases')
@@ -83,6 +83,7 @@ export class DataBasesController {
   @ApiOperation({ summary: 'Obtener todos los registros de bases' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
+  @ApiQuery({ name: 'data_bases_id', required: false, type: Number, description: 'Filtrar por data_bases_id (opcional)' })
   @ApiQuery({ name: 'environment_type_id', required: false, type: Number, description: 'Filtrar por environment_type_id (opcional)' })
   @ApiQuery({ name: 'portfolio_type_id', required: false, type: Number, description: 'Filtrar por portfolio_type_id (opcional)' })
   @ApiQuery({ name: 'state_type_id', required: false, type: Number, description: 'Filtrar por state_type_id (opcional)' })
@@ -91,6 +92,7 @@ export class DataBasesController {
   async findAll(
     @Query('start_date') start_date?: string,
     @Query('end_date') end_date?: string,
+    @Query('data_bases_id') data_bases_id?: number,
     @Query('environment_type_id') environment_type_id?: number,
     @Query('portfolio_type_id') portfolio_type_id?: number,
     @Query('state_type_id') state_type_id?: number,
@@ -104,6 +106,7 @@ export class DataBasesController {
       return Math.floor(n);
     };
 
+    const dbId = normalizeFilterId(data_bases_id);
     const envId = normalizeFilterId(environment_type_id);
     const portfId = normalizeFilterId(portfolio_type_id);
     const stateId = normalizeFilterId(state_type_id);
@@ -127,11 +130,12 @@ export class DataBasesController {
       return true;
     });
 
+    const hasDbFilter = dbId !== undefined;
     const hasEnvFilter = envId !== undefined;
     const hasPortfFilter = portfId !== undefined;
     const hasStateFilter = stateId !== undefined;
 
-    const hasAnyIdFilter = hasEnvFilter || hasPortfFilter || hasStateFilter;
+    const hasAnyIdFilter = hasDbFilter || hasEnvFilter || hasPortfFilter || hasStateFilter;
 
     // Si NO viene ningún filtro de IDs, devolvemos todo lo filtrado solo por fecha.
     if (!hasAnyIdFilter) {
@@ -139,24 +143,19 @@ export class DataBasesController {
     }
 
     const filtered = byDate.filter((item) => {
-      if (
-        hasEnvFilter &&
-        Number(item.environment_type_id) !== Number(envId)
-      ) {
+      if (hasDbFilter && Number(item.id) !== Number(dbId)) {
         return false;
       }
 
-      if (
-        hasPortfFilter &&
-        Number(item.portfolio_type_id) !== Number(portfId)
-      ) {
+      if (hasEnvFilter && Number(item.environment_type_id) !== Number(envId)) {
         return false;
       }
 
-      if (
-        hasStateFilter &&
-        Number(item.state_type_id) !== Number(stateId)
-      ) {
+      if (hasPortfFilter && Number(item.portfolio_type_id) !== Number(portfId)) {
+        return false;
+      }
+
+      if (hasStateFilter && Number(item.state_type_id) !== Number(stateId)) {
         return false;
       }
 

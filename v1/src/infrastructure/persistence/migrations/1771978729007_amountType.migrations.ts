@@ -14,7 +14,7 @@ export class AmountTypeMigration1771978729007 implements MigrationInterface {
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_amount_type UNIQUE (type),
         CONSTRAINT FK_amount_type_state_type
           FOREIGN KEY (state_type_id) REFERENCES state_type(id)

@@ -12,28 +12,21 @@ export const environmentTypeSeeds = async (dataSource: DataSource) => {
       detail: 'Ambiente de desarrollo',
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
-    },
-    {
-      type: 'docker',
-      detail: 'Ambiente Docker',
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
       type: 'qa',
       detail: 'Ambiente de pruebas (QA)',
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
       type: 'pro',
       detail: 'Ambiente de producción',
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
   ]);
 };

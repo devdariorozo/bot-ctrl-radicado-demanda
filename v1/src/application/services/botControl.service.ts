@@ -340,7 +340,7 @@ export class BotControlService implements OnModuleInit {
           running: false,
           reason: 'Bot detenido',
           timestamp: this.formatDateTime(now),
-          responsible: 'BOT demands online',
+          responsible: 'BOT ctrl filed demand',
         };
         return [fallback];
       }
@@ -533,7 +533,7 @@ export class BotControlService implements OnModuleInit {
       await this.botControlRepository.upsertForDataBases({
         data_bases_id,
         running,
-        responsible: 'BOT demands online',
+        responsible: 'BOT ctrl filed demand',
         reason,
         ...(running ? { last_started_at: now } : { last_stopped_at: now }),
       });

@@ -45,6 +45,7 @@ export class PortfolioTypeRepositoryImpl implements PortfolioTypeRepository {
                 'pt.responsible',
             ])
             .addSelect('st.type', 'state_type_name')
+            .orderBy('pt.id', 'DESC')
             .getRawMany();
         return raw.map((row: Record<string, unknown>) => ({
             id: row.pt_id,

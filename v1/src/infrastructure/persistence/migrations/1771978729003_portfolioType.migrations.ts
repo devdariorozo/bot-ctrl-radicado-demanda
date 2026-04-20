@@ -12,7 +12,7 @@ export class PortfolioTypeMigration1771978729003 implements MigrationInterface {
           state_type_id INT NOT NULL,
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+          responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
           CONSTRAINT UQ_portfolio_type UNIQUE (type),
           CONSTRAINT FK_portfolio_type_state_type
             FOREIGN KEY (state_type_id) REFERENCES state_type(id)

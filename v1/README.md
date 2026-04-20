@@ -1,9 +1,9 @@
-# bot-demandas-enlinea
+# bot-ctrl-filed-demand
 
 **Autor:** Ramón Dario Rozo Torres
 **Versión:** 1.0.0
 
-Bot de radicación automática de demandas en línea ante la Rama Judicial de Colombia ([demandaenlinea](https://procesojudicial.ramajudicial.gov.co/demandaenlinea)). Simula el flujo humano completo: acepta términos, diligencia los 6 bloques del formulario, adjunta el PDF de la demanda, resuelve el reCAPTCHA vía Browserless y envía. Opera exclusivamente en horario laboral configurable, excluyendo fines de semana y festivos de Colombia.
+Bot para **controlar y actualizar el número de radicado** de demandas a partir de fuentes operativas (correo) y del portal unificado de consultas de la Rama Judicial de Colombia ([consultaprocesos](https://consultaprocesos.ramajudicial.gov.co/Procesos/Index)). Orquesta la lectura de registros pendientes en `management_ctrl_filed_demand`, automatiza la consulta/validación del radicado en el portal, persiste el resultado y la trazabilidad (incluyendo novedades) y opera en horario laboral configurable, excluyendo fines de semana y dias feriados o no laborables.
 
 ---
 

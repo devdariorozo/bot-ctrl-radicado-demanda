@@ -22,7 +22,7 @@ interface LogPayload {
   stack?: string;
 }
 
-const DEFAULT_SYSTEM_NAME = 'bot-demands-online';
+const DEFAULT_SYSTEM_NAME = 'bot-ctrl-filed-demand';
 const DEFAULT_RETENTION_DAYS = 30;
 const LOG_FILE_PATTERN = /^(\d{4}-\d{2}-\d{2})-logs-.+\.log$/;
 

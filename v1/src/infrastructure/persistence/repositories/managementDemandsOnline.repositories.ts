@@ -39,12 +39,12 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
       lawsuit_status: input.lawsuit_status,
       amount_type_id: input.amount_type_id,
       user_id: input.user_id === 0 || input.user_id == null ? 1 : input.user_id,
-      user_name: input.user_name ?? 'BOT demands online',
+      user_name: input.user_name ?? 'BOT ctrl filed demand',
       number_filed: input.number_filed ?? '-',
       management_status: input.management_status ?? 'Abierta',
       detail: input.detail ?? 'Demanda pendiente para ser gestionada por el bot demands online',
       state_type_id: input.state_type_id ?? 1,
-      responsible: input.responsible ?? 'BOT demands online',
+      responsible: input.responsible ?? 'BOT ctrl filed demand',
       created_at: input.created_at ?? now,
       updated_at: input.updated_at ?? now,
     };
@@ -115,6 +115,7 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
       qb.andWhere('m.created_at <= :end_date', { end_date: endOfDay });
     }
 
+    qb.orderBy('m.id', 'DESC');
     const raw = await qb.getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({
@@ -237,7 +238,7 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
     const toSave = {
       ...record,
       user_id: record.user_id === 0 || record.user_id == null ? 1 : record.user_id,
-      user_name: record.user_name ?? 'BOT demands online',
+      user_name: record.user_name ?? 'BOT ctrl filed demand',
       management_status: record.management_status ?? 'Abierta',
     };
     return this.repo.save(toSave);

@@ -25,12 +25,12 @@ const createExampleSchema = {
   lawsuit_status: 'Pendiente',
   amount_type_id: 1,
   user_id: 1,
-  user_name: 'BOT demands online',
+  user_name: 'BOT ctrl filed demand',
   number_filed: '-',
   management_status: 'Abierta',
   detail: 'Demanda pendiente para ser gestionada por el bot demands online',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 const updateExampleSchema = {
@@ -45,12 +45,12 @@ const updateExampleSchema = {
   lawsuit_status: 'Pendiente',
   amount_type_id: 1,
   user_id: 1,
-  user_name: 'BOT demands online',
+  user_name: 'BOT ctrl filed demand',
   number_filed: '-',
   management_status: 'Abierta',
   detail: 'Demanda pendiente para ser gestionada por el bot demands online',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('managementDemandsOnline')

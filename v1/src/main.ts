@@ -1,6 +1,7 @@
 // Responsabilidad: punto de entrada de la aplicación.
 
 import { NestFactory } from '@nestjs/core';
+import { description, version } from '../package.json';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -96,20 +97,14 @@ async function bootstrap() {
   const port = process.env.PORT_API ?? 5006;
   const urlApi = process.env.URL_API ?? `http://localhost:${port}`;
 
-  const projectName = process.env.PROJECT_NAME ?? 'bot-demands-online';
+  const projectName = process.env.PROJECT_NAME ?? 'bot-ctrl-filed-demand';
   const swaggerTitle = `${projectName}-${versionApi}`;
 
   const config = new DocumentBuilder()
     .setTitle(swaggerTitle)
     .addServer(urlApi)
-    .setDescription(
-      `Este proyecto es un bot desarrollado en Node.js que automatiza la radicación de demandas en línea en el portal oficial de la Rama Judicial de Colombia (https://procesojudicial.ramajudicial.gov.co/demandaenlinea). El bot simula el flujo que hoy realiza un usuario humano: acepta los términos y condiciones del modal inicial, diligencia los campos de los 6 bloques del formulario (selects, textos, sujetos procesales, adjuntos), interactúa con el reCAPTCHA (resolución vía Browserless) y finalmente envía la demanda, minimizando errores manuales y tiempos operativos.
-
-La ejecución se realiza únicamente en horarios y días laborales configurados: inicialmente lunes a viernes de 08:00 a 12:00 y de 14:00 a 16:00, excluyendo fines de semana y festivos en Colombia. Un módulo de configuración de horarios y días laborales centraliza esta lógica y permitirá ajustes desde un frontend en versiones posteriores.
-
-El sistema está pensado para ser escalable por carteras. En el MVP se trabaja con un primer tipo de cartera: Carteras Propias. Posteriormente se incorporarán otras carteras (por ejemplo Carteras Sudameris) con sus propias estrategias de radicación y fuentes de datos, sin modificar el núcleo del sistema gracias a la arquitectura hexagonal y al uso de estrategias por cartera.`,
-    )
-    .setVersion('1.0')
+    .setDescription(description)
+    .setVersion(version)
     .addTag('api', 'Verificación del servicio')
     .addTag('environmentType', 'Tipo de entorno que se puede tener en el sistema')
     .addTag('stateType', 'Tipo de estado que puede tener un registro')

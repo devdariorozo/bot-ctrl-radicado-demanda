@@ -117,8 +117,8 @@ export class CompanyTypeDto {
   updated_at?: Date;
 
   @ApiPropertyOptional({
-    example: 'BOT demands online',
-    description: 'Responsable (siempre se forzará a BOT demands online)',
+    example: 'BOT ctrl filed demand',
+    description: 'Responsable (siempre se forzará a BOT ctrl filed demand)',
   })
   @IsString()
   @IsOptional()
@@ -214,8 +214,8 @@ export class UpdateCompanyTypeDto {
   updated_at?: Date;
 
   @ApiPropertyOptional({
-    example: 'BOT demands online',
-    description: 'Responsable (siempre se forzará a BOT demands online)',
+    example: 'BOT ctrl filed demand',
+    description: 'Responsable (siempre se forzará a BOT ctrl filed demand)',
   })
   @IsString()
   @IsOptional()

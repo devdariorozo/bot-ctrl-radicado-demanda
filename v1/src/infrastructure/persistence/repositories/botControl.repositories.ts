@@ -46,7 +46,7 @@ export class BotControlRepositoryImpl implements BotControlRepository {
       input.reason ??
       existing?.reason ??
       (input.running ? 'Bot en ejecución' : 'Bot detenido');
-    entity.responsible = input.responsible ?? existing?.responsible ?? 'BOT demands online';
+    entity.responsible = input.responsible ?? existing?.responsible ?? 'BOT ctrl filed demand';
     entity.created_at = existing?.created_at ?? input.created_at ?? now;
     entity.updated_at = input.updated_at ?? now;
 
@@ -66,7 +66,7 @@ export class BotControlRepositoryImpl implements BotControlRepository {
   }
 
   async findAll(): Promise<BotControl[]> {
-    const list = await this.repo.find();
+    const list = await this.repo.find({ order: { id: 'DESC' } });
     return list.map((e) => this.toDomain(e));
   }
 

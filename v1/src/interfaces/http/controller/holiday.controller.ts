@@ -17,7 +17,7 @@ const createExampleSchema = {
   is_working_day: false,
   detail: 'Festivo oficial en Colombia',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 const updateExampleSchema = {

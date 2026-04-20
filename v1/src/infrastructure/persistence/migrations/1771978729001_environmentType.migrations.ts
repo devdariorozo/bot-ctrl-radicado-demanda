@@ -11,7 +11,7 @@ export class EnvironmentTypeMigration1771978729001 implements MigrationInterface
           detail VARCHAR(100) NOT NULL,
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+          responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
           CONSTRAINT UQ_environment_type UNIQUE (type)
         )
       `);

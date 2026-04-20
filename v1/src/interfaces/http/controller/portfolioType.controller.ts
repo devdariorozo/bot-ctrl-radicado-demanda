@@ -14,7 +14,7 @@ const createExampleSchema = {
     type: 'Propias',
     detail: 'Propias registered',
     state_type_id: 1,
-    responsible: 'BOT demands online',
+    responsible: 'BOT ctrl filed demand',
 };
 
 /** Ejemplo JSON para actualizar. El id va solo en la URL (path), no en el body. */
@@ -22,7 +22,7 @@ const updateExampleSchema = {
     type: 'Propias',
     detail: 'Propias registered',
     state_type_id: 1,
-    responsible: 'BOT demands online',
+    responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('portfolioType')

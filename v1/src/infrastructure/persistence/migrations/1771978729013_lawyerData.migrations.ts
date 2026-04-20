@@ -22,7 +22,7 @@ export class LawyerDataMigration1771978729013 implements MigrationInterface {
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_lawyer_data_portfolio_type_document UNIQUE (portfolio_type_id, document_type, document_number),
         CONSTRAINT FK_lawyer_data_portfolio_type
           FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),

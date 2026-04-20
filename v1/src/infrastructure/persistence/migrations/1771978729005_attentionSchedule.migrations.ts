@@ -17,7 +17,7 @@ export class AttentionScheduleMigration1771978729005 implements MigrationInterfa
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_attention_schedule UNIQUE (portfolio_type_id, start_time, end_time),
         CONSTRAINT FK_attention_schedule_portfolio_type
           FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),

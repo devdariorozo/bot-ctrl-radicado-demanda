@@ -16,7 +16,7 @@ export class PortfolioCityConfigMigration1771978729006 implements MigrationInter
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_portfolio_city_config_data_bases_city UNIQUE (id_data_bases, id_city_views),
         CONSTRAINT FK_portfolio_city_config_data_bases
           FOREIGN KEY (id_data_bases) REFERENCES data_bases(id),

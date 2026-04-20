@@ -19,7 +19,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Reyes Magos (trasladado por Ley Emiliani)
     {
@@ -32,7 +32,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Día de San José (trasladado a lunes)
     {
@@ -45,7 +45,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Jueves Santo
     {
@@ -58,7 +58,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Viernes Santo
     {
@@ -71,7 +71,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Día del Trabajo
     {
@@ -84,7 +84,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Ascensión del Señor (trasladado a lunes)
     {
@@ -97,7 +97,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Corpus Christi (trasladado a lunes)
     {
@@ -110,7 +110,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Sagrado Corazón de Jesús (trasladado a lunes)
     {
@@ -123,7 +123,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // San Pedro y San Pablo (trasladado a lunes)
     {
@@ -136,7 +136,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Día de la Independencia
     {
@@ -149,7 +149,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Batalla de Boyacá
     {
@@ -162,7 +162,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Asunción de la Virgen (trasladado a lunes)
     {
@@ -175,7 +175,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Día de la Raza (trasladado a lunes)
     {
@@ -188,7 +188,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Todos los Santos (trasladado a lunes)
     {
@@ -201,7 +201,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Independencia de Cartagena (trasladado a lunes)
     {
@@ -214,7 +214,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Inmaculada Concepción
     {
@@ -227,7 +227,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     // Navidad
     {
@@ -240,7 +240,7 @@ export const holidaySeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
   ]);
 };

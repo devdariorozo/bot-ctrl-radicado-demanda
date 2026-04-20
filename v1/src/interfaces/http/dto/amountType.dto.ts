@@ -56,7 +56,7 @@ export class AmountTypeDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable del registro' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del registro' })
   @IsString()
   @IsNotEmpty()
   responsible: string;
@@ -111,7 +111,7 @@ export class UpdateAmountTypeDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable del registro' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del registro' })
   @IsString()
   @IsNotEmpty()
   responsible: string;

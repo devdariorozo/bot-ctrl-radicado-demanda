@@ -29,7 +29,7 @@ export class EnvironmentTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable del entorno' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del entorno' })
     @IsString()
     @IsNotEmpty()
     responsible: string;
@@ -57,7 +57,7 @@ export class UpdateEnvironmentTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable del entorno' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del entorno' })
     @IsString()
     @IsNotEmpty()
     responsible: string;

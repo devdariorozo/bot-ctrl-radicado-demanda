@@ -47,8 +47,8 @@ export class LogsService {
   constructor(private readonly configService: ConfigService) {
     this.logsDir = path.join(process.cwd(), 'logs');
     this.systemName =
-      this.configService.get<string>('PROJECT_NAME', 'bot-demands-online') ||
-      'bot-demands-online';
+      this.configService.get<string>('PROJECT_NAME', 'bot-ctrl-filed-demand') ||
+      'bot-ctrl-filed-demand';
   }
 
   /** Devuelve el resumen de logs para una fecha dada, tomando N líneas desde la más reciente. */
@@ -135,7 +135,7 @@ export class LogsService {
       log_date: normalizedDate,
       file_name: path.basename(filePath),
       number_lines: lines.length,
-      lines,
+      lines: lines.reverse(),
       totals: {
         success,
         error,

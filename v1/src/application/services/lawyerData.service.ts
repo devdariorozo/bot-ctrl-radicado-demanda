@@ -43,7 +43,7 @@ export class LawyerDataService {
   }
 
   private normalizeResponsible(): string {
-    return 'BOT demands online';
+    return 'BOT ctrl filed demand';
   }
 
   async create(input: CreateLawyerDataInput): Promise<LawyerData> {

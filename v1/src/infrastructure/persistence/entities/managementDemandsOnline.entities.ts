@@ -40,7 +40,7 @@ export class ManagementDemandsOnlineEntity {
   @Column({ default: 0 })
   user_id: number;
 
-  @Column({ length: 100, default: 'BOT demands online' })
+  @Column({ length: 100, default: 'BOT ctrl filed demand' })
   user_name: string;
 
   @Column({ length: 100, default: '-' })
@@ -61,6 +61,6 @@ export class ManagementDemandsOnlineEntity {
   @Column()
   updated_at: Date;
 
-  @Column({ length: 100, default: 'BOT demands online' })
+  @Column({ length: 100, default: 'BOT ctrl filed demand' })
   responsible: string;
 }

@@ -34,7 +34,7 @@ export class HolidayEntity {
   @Column()
   updated_at: Date;
 
-  @Column({ length: 100, default: 'BOT demands online' })
+  @Column({ length: 100, default: 'BOT ctrl filed demand' })
   responsible: string;
 }
 

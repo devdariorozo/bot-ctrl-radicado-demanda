@@ -32,7 +32,7 @@ export class StateTypeRepositoryImpl implements StateTypeRepository {
     }
         // Obtener todos los tipos de estado
         async findAll(): Promise<StateType[]> {
-            return this.stateTypeRepository.find();
+            return this.stateTypeRepository.find({ order: { id: 'DESC' } });
     }
     // Obtener un tipo de estado por su id
     async findById(id: number): Promise<StateType> {

@@ -34,7 +34,7 @@ export class PortfolioTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable de la cartera' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable de la cartera' })
     @IsString()
     @IsNotEmpty()
     responsible: string;
@@ -67,7 +67,7 @@ export class UpdatePortfolioTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable de la cartera' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable de la cartera' })
     @IsString()
     @IsNotEmpty()
     responsible: string;

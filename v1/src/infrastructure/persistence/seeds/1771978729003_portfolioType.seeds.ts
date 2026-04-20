@@ -13,7 +13,7 @@ export const portfolioTypeSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
       type: 'Sudameris',
@@ -21,7 +21,7 @@ export const portfolioTypeSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
   ]);
 };

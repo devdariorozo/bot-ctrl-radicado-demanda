@@ -24,7 +24,7 @@ export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {
       ...data,
       created_at: data.created_at ?? now,
       updated_at: data.updated_at ?? now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     };
     const saved = await this.companyTypeRepository.save(entity as CompanyTypeEntity);
     return saved;
@@ -79,6 +79,7 @@ export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {
       ])
       .addSelect('pt.type', 'portfolio_type_name')
       .addSelect('st.type', 'state_type_name')
+      .orderBy('ct.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({

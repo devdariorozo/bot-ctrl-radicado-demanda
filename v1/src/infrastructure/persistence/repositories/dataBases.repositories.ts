@@ -61,6 +61,7 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
       .addSelect('env.type', 'environment_type_name')
       .addSelect('pf.type', 'portfolio_type_name')
       .addSelect('st.type', 'state_type_name')
+      .orderBy('db.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({
@@ -164,5 +165,6 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
     const rows = await this.repo.manager.query(sql, params);
     return (rows ?? []) as Record<string, unknown>[];
   }
+
 }
 

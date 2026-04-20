@@ -538,7 +538,7 @@ export class DemandsOnlineAutomationService {
             updatedDemanda.path_law_doc ?? '',
             updatedDemanda.lawsuit_status ?? 'Presentada por aplicativo',
             updatedDemanda.user_id ?? 1,
-            updatedDemanda.user_name ?? 'BOT demands online',
+            updatedDemanda.user_name ?? 'BOT ctrl filed demand',
             updatedDemanda.lawsuit_id,
           ]);
         }

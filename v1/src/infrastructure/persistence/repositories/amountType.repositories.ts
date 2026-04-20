@@ -49,6 +49,7 @@ export class AmountTypeRepositoryImpl implements AmountTypeRepository {
         'at.responsible',
       ])
       .addSelect('st.type', 'state_type_name')
+      .orderBy('at.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({

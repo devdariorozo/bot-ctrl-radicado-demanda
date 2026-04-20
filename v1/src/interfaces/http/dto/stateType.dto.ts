@@ -29,7 +29,7 @@ export class StateTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable del estado' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del estado' })
     @IsString()
     @IsNotEmpty()
     responsible: string;
@@ -57,7 +57,7 @@ export class UpdateStateTypeDto {
     @IsOptional()
     updated_at?: Date;
 
-    @ApiProperty({ example: 'BOT demands online', description: 'Responsable del estado' })
+    @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable del estado' })
     @IsString()
     @IsNotEmpty()
     responsible: string;

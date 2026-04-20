@@ -18,7 +18,7 @@ const createExampleSchema = {
   end_time: '16:00',
   detail: 'Horario laboral estándar L-V 08:00-12:00 y 14:00-16:00',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 const updateExampleSchema = {
@@ -30,7 +30,7 @@ const updateExampleSchema = {
   end_time: '16:00',
   detail: 'Horario laboral estándar L-V 08:00-12:00 y 14:00-16:00',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('attentionSchedule')

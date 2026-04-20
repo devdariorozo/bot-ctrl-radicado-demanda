@@ -65,6 +65,7 @@ export class PortfolioCityConfigRepositoryImpl implements PortfolioCityConfigRep
       .addSelect('env.type', 'environment_type_name')
       .addSelect('st.type', 'state_type_name')
       .addSelect('pf.type', 'portfolio_type_name')
+      .orderBy('pcc.id', 'DESC')
       .getRawMany();
 
     return raw.map((row: Record<string, unknown>) => ({

@@ -16,7 +16,7 @@ const createExampleSchema = {
   class_process: ['31-03-07 PROCESOS EJECUTIVOS', '40-89-08 EJECUTIVO DE MÍNIMA CUANTÍA '],
   detail: 'Demanda con mayor cuantia',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 const updateExampleSchema = {
@@ -25,7 +25,7 @@ const updateExampleSchema = {
   class_process: ['31-03-07 PROCESOS EJECUTIVOS', '40-89-08 EJECUTIVO DE MÍNIMA CUANTÍA '],
   detail: 'Demanda con mayor cuantia',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('amountType')

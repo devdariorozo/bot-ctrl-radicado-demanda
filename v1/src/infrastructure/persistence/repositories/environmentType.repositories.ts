@@ -38,7 +38,7 @@ export class EnvironmentTypeRepositoryImpl implements EnvironmentTypeRepository 
     }
     // Obtener todos los tipos de entorno
     async findAll(): Promise<EnvironmentType[]> {
-        return this.environmentTypeRepository.find();
+        return this.environmentTypeRepository.find({ order: { id: 'DESC' } });
     }
     // Obtener un tipo de entorno por su id
     async findById(id: number): Promise<EnvironmentType> {

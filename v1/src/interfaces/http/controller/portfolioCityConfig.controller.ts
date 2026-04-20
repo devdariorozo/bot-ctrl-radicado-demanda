@@ -17,7 +17,7 @@ const createExampleSchema = {
   city: 'BOGOTÁ - BOGOTÁ',
   detail: 'Configuración cartera propia Bogotá',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 const updateExampleSchema = {
@@ -28,7 +28,7 @@ const updateExampleSchema = {
   city: 'BOGOTÁ - BOGOTÁ',
   detail: 'Configuración cartera propia Bogotá',
   state_type_id: 1,
-  responsible: 'BOT demands online',
+  responsible: 'BOT ctrl filed demand',
 };
 
 @ApiTags('portfolioCityConfig')

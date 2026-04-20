@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { DataBasesEntity } from '../entities/dataBases.entities';
 import { BasesConfig } from '@domain/entities/dataBases.entities';
 
-// Bases no productivas (dev, docker, qa) — cartera propia
+// Bases no productivas (dev, qa) — cartera propia
 const BASES_PROPIAS_NO_PRO: BasesConfig = {
   miosv2_carteras_QA: {
     generate_pdf_demand_service: {
@@ -187,8 +187,7 @@ export const dataBasesSeeds = async (dataSource: DataSource) => {
   const now = new Date();
 
   await repo.save([
-    // Primero cartera 1 ordenada por ambientes 1,2,3,4
-    // Ambientes 1, 2, 3 (dev, docker, qa) — portfolio 1: bases no productivas
+    // Cartera 1 — ambientes 1 (dev), 2 (qa), 3 (pro)
     {
       environment_type_id: 1, // dev
       portfolio_type_id: 1,
@@ -197,82 +196,59 @@ export const dataBasesSeeds = async (dataSource: DataSource) => {
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
-      environment_type_id: 2, // docker
+      environment_type_id: 2, // qa
       portfolio_type_id: 1,
       bases: BASES_PROPIAS_NO_PRO,
       detail: 'Listado base de datos correspondiente a la cartera propia',
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
-      environment_type_id: 3, // qa
-      portfolio_type_id: 1,
-      bases: BASES_PROPIAS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera propia',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT demands online',
-    },
-    // Ambiente 4 (pro) — portfolio 1: listado completo de cartera propia con URLs de producción
-    {
-      environment_type_id: 4, // pro
+      environment_type_id: 3, // pro
       portfolio_type_id: 1,
       bases: CARTERA_PROPIA_BASES_PRO,
       detail: 'Listado base de datos correspondiente a la cartera propia',
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
 
-    // Luego cartera 2 ordenada por ambientes 1,2,3,4
-    // Ambientes 1, 2, 3 — portfolio 2: Sudameris QA
+    // Cartera 2 — ambientes 1 (dev), 2 (qa), 3 (pro)
     {
-      environment_type_id: 1,
+      environment_type_id: 1, // dev
       portfolio_type_id: 2,
       bases: BASES_SUDAMERIS_NO_PRO,
       detail: 'Listado base de datos correspondiente a la cartera sudameris',
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
-      environment_type_id: 2,
+      environment_type_id: 2, // qa
       portfolio_type_id: 2,
       bases: BASES_SUDAMERIS_NO_PRO,
       detail: 'Listado base de datos correspondiente a la cartera sudameris',
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
     {
-      environment_type_id: 3,
-      portfolio_type_id: 2,
-      bases: BASES_SUDAMERIS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera sudameris',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT demands online',
-    },
-    // Ambiente 4 (pro) — portfolio 2: bases de ejemplo
-    {
-      environment_type_id: 4,
+      environment_type_id: 3, // pro
       portfolio_type_id: 2,
       bases: BASES_SUDAMERIS_PRO_EJEMPLO,
       detail: 'Listado base de datos correspondiente a la cartera sudameris',
       state_type_id: 1,
       created_at: now,
       updated_at: now,
-      responsible: 'BOT demands online',
+      responsible: 'BOT ctrl filed demand',
     },
   ]);
 };

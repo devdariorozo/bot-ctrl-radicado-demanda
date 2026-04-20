@@ -65,7 +65,7 @@ export class CreateAttentionScheduleDto {
   @IsNotEmpty()
   state_type_id: number;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable' })
   @IsString()
   @IsNotEmpty()
   responsible: string;
@@ -137,7 +137,7 @@ export class AttentionScheduleDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online' })
+  @ApiProperty({ example: 'BOT ctrl filed demand' })
   @IsString()
   responsible: string;
 }
@@ -200,7 +200,7 @@ export class UpdateAttentionScheduleDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online' })
+  @ApiProperty({ example: 'BOT ctrl filed demand' })
   @IsString()
   @IsNotEmpty()
   responsible: string;

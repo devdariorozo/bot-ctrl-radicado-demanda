@@ -1,7 +1,7 @@
 // Responsabilidad: insertar datos iniciales (semilla) para bot_control.
 //
-// Se crean tres registros asociados a data_bases_id 1, 2 y 3,
-// todos con el bot detenido (running = 0).
+// Se crean tres registros asociados a data_bases_id 1 (dev), 2 (qa) y 3 (pro) de la cartera propia,
+// todos con el bot detenido (running = false).
 
 import { DataSource } from 'typeorm';
 import { BotControlEntity } from '../entities/botControl.entities';
@@ -17,7 +17,7 @@ export const botControlSeeds = async (dataSource: DataSource) => {
     reason: 'Bot detenido',
     created_at: now,
     updated_at: now,
-    responsible: 'BOT demands online',
+    responsible: 'BOT ctrl filed demand',
   };
 
   await repo.save([

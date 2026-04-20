@@ -18,14 +18,14 @@ export class ManagementDemandsOnlineMigration1771978729008 implements MigrationI
         lawsuit_status VARCHAR(100) NOT NULL,
         amount_type_id INT NOT NULL,
         user_id INT NOT NULL DEFAULT 0,
-        user_name VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        user_name VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         number_filed VARCHAR(100) NOT NULL DEFAULT '-',
         management_status VARCHAR(100) NOT NULL DEFAULT 'Abierta',
         detail VARCHAR(500) NOT NULL DEFAULT 'Demanda pendiente para ser gestionada por el bot demands online',
         state_type_id INT NOT NULL DEFAULT 1,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT FK_management_demands_online_portfolio_type
           FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),
         CONSTRAINT FK_management_demands_online_portfolio_city_config

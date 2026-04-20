@@ -57,7 +57,7 @@ export class CompanyTypeService {
   }
 
   private normalizeResponsible(): string {
-    return 'BOT demands online';
+    return 'BOT ctrl filed demand';
   }
 
   // Crear un nuevo registro en company_type

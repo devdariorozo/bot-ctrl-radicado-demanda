@@ -60,7 +60,7 @@ export class HolidayDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable' })
   @IsString()
   @IsNotEmpty()
   responsible: string;
@@ -111,7 +111,7 @@ export class UpdateHolidayDto {
   @IsOptional()
   updated_at?: Date;
 
-  @ApiProperty({ example: 'BOT demands online', description: 'Responsable' })
+  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable' })
   @IsString()
   @IsNotEmpty()
   responsible: string;

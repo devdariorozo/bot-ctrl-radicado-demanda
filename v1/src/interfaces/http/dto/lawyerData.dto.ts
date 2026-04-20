@@ -124,8 +124,8 @@ export class LawyerDataDto {
   updated_at?: Date;
 
   @ApiPropertyOptional({
-    example: 'BOT demands online',
-    description: 'Responsable (se forzará siempre a BOT demands online)',
+    example: 'BOT ctrl filed demand',
+    description: 'Responsable (se forzará siempre a BOT ctrl filed demand)',
   })
   @IsString()
   @IsOptional()
@@ -235,8 +235,8 @@ export class UpdateLawyerDataDto {
   updated_at?: Date;
 
   @ApiPropertyOptional({
-    example: 'BOT demands online',
-    description: 'Responsable (se forzará siempre a BOT demands online)',
+    example: 'BOT ctrl filed demand',
+    description: 'Responsable (se forzará siempre a BOT ctrl filed demand)',
   })
   @IsString()
   @IsOptional()

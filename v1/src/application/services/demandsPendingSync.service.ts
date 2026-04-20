@@ -245,11 +245,11 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
               amount_type_id: amountType.id,
               state_type_id: DEFAULT_STATE_TYPE_ID,
               user_id: 1,
-              user_name: 'BOT demands online',
+              user_name: 'BOT ctrl filed demand',
               number_filed: '-',
               management_status: 'Abierta',
               detail: 'Demanda pendiente para registro en linea',
-              responsible: 'BOT demands online',
+              responsible: 'BOT ctrl filed demand',
             };
             this.appLogger.structured({
               level: 'debug',

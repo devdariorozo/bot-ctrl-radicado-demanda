@@ -14,7 +14,7 @@ export class DataBasesMigration1771978729004 implements MigrationInterface {
         state_type_id INT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT demands online',
+        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_data_bases_env_port UNIQUE (environment_type_id, portfolio_type_id),
         CONSTRAINT FK_data_bases_environment_type
           FOREIGN KEY (environment_type_id) REFERENCES environment_type(id),
