@@ -19,7 +19,7 @@ export class DataBasesMigration1771978729004 implements MigrationInterface {
         CONSTRAINT FK_data_bases_environment_type
           FOREIGN KEY (environment_type_id) REFERENCES environment_type(id),
         CONSTRAINT FK_data_bases_portfolio_type
-          FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),
+          FOREIGN KEY (portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
         CONSTRAINT FK_data_bases_state_type
           FOREIGN KEY (state_type_id) REFERENCES state_type(id)
       )

@@ -13,8 +13,8 @@ import {
   HolidayRepository,
   CreateHolidayInput,
 } from '@domain/ports/holiday.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -22,8 +22,8 @@ export class HolidayService {
   constructor(
     @Inject(HOLIDAY_REPOSITORY)
     private readonly holidayRepository: HolidayRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   private normalizeName(name: string): string {
@@ -36,7 +36,7 @@ export class HolidayService {
 
   async create(input: CreateHolidayInput): Promise<Holiday> {
     try {
-      StateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }
@@ -76,7 +76,7 @@ export class HolidayService {
       const state = await this.stateTypeRepository.findById(holiday.state_type_id);
       return {
         ...holiday,
-        state_type_name: state.type,
+        state_type_name: state.stty_type,
       };
     } catch {
       throw new NotFoundException('No data found for the given id');
@@ -85,7 +85,7 @@ export class HolidayService {
 
   async update(holiday: Holiday): Promise<Holiday> {
     try {
-      StateTypeId.create(holiday.state_type_id);
+      TblStateTypeId.create(holiday.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }

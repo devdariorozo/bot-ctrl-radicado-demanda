@@ -14,10 +14,10 @@ import {
   CompanyTypeRepository,
   CreateCompanyTypeInput,
 } from '@domain/ports/companyType.ports';
-import { PORTFOLIO_TYPE_REPOSITORY, PortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { PortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -25,10 +25,10 @@ export class CompanyTypeService {
   constructor(
     @Inject(COMPANY_TYPE_REPOSITORY)
     private readonly companyTypeRepository: CompanyTypeRepository,
-    @Inject(PORTFOLIO_TYPE_REPOSITORY)
-    private readonly portfolioTypeRepository: PortfolioTypeRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_PORTFOLIO_TYPE_REPOSITORY)
+    private readonly portfolioTypeRepository: TblPortfolioTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   private normalizeDetail(detail: string): string {
@@ -64,14 +64,14 @@ export class CompanyTypeService {
   async create(input: CreateCompanyTypeInput): Promise<CompanyType> {
     // Validar portfolio_type_id
     try {
-      PortfolioTypeId.create(input.portfolio_type_id);
+      TblPortfolioTypeId.create(input.portfolio_type_id);
     } catch {
       throw new BadRequestException('portfolio_type_id must be a positive integer');
     }
 
     // Validar state_type_id
     try {
-      StateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }
@@ -140,7 +140,7 @@ export class CompanyTypeService {
       return {
         id: company.id,
         portfolio_type_id: company.portfolio_type_id,
-        portfolio_type_name: portfolio.type,
+        portfolio_type_name: portfolio.porty_type,
         campaings_format: company.campaings_format,
         document_type: company.document_type,
         document_name: company.document_name,
@@ -151,7 +151,7 @@ export class CompanyTypeService {
         email_notifications: company.email_notifications,
         detail: company.detail,
         state_type_id: company.state_type_id,
-        state_type_name: stateType.type,
+        state_type_name: stateType.stty_type,
         created_at: company.created_at,
         updated_at: company.updated_at,
         responsible: company.responsible,
@@ -165,13 +165,13 @@ export class CompanyTypeService {
   async update(company: CompanyType): Promise<CompanyType> {
     // Validar ids
     try {
-      PortfolioTypeId.create(company.portfolio_type_id);
+      TblPortfolioTypeId.create(company.portfolio_type_id);
     } catch {
       throw new BadRequestException('portfolio_type_id must be a positive integer');
     }
 
     try {
-      StateTypeId.create(company.state_type_id);
+      TblStateTypeId.create(company.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }

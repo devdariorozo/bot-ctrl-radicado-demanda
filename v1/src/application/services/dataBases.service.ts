@@ -3,12 +3,12 @@
 import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { DataBases } from '@domain/entities/dataBases.entities';
 import { CreateDataBasesInput, DataBasesRepository, DATABASES_REPOSITORY } from '@domain/ports/dataBases.ports';
-import { ENVIRONMENT_TYPE_REPOSITORY, EnvironmentTypeRepository } from '@domain/ports/environmentType.ports';
-import { PORTFOLIO_TYPE_REPOSITORY, PortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { EnvironmentTypeId } from '@domain/value-objects/environmentType.valueobjects';
-import { PortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from '@domain/ports/tblEnvironmentType.ports';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblEnvironmentTypeId } from '@domain/value-objects/tblEnvironmentType.valueobjects';
+import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 /** Construye label_data_base: si environment es "pro" solo portfolio, sino "portfolio environment". */
@@ -23,21 +23,21 @@ export class DataBasesService {
   constructor(
     @Inject(DATABASES_REPOSITORY)
     private readonly dataBasesRepository: DataBasesRepository,
-    @Inject(ENVIRONMENT_TYPE_REPOSITORY)
-    private readonly environmentTypeRepository: EnvironmentTypeRepository,
-    @Inject(PORTFOLIO_TYPE_REPOSITORY)
-    private readonly portfolioTypeRepository: PortfolioTypeRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_ENVIRONMENT_TYPE_REPOSITORY)
+    private readonly environmentTypeRepository: TblEnvironmentTypeRepository,
+    @Inject(TBL_PORTFOLIO_TYPE_REPOSITORY)
+    private readonly portfolioTypeRepository: TblPortfolioTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   // Crear un nuevo registro de bases
   async create(input: CreateDataBasesInput): Promise<DataBases> {
     // Validar que los IDs sean enteros positivos
     try {
-      EnvironmentTypeId.create(input.environment_type_id);
-      PortfolioTypeId.create(input.portfolio_type_id);
-      StateTypeId.create(input.state_type_id);
+      TblEnvironmentTypeId.create(input.environment_type_id);
+      TblPortfolioTypeId.create(input.portfolio_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('All foreign keys must be positive integers');
     }
@@ -83,16 +83,16 @@ export class DataBasesService {
         this.portfolioTypeRepository.findAll(),
         this.stateTypeRepository.findAll(),
       ]);
-      const envMap = new Map(envTypes.map((e) => [e.id, e]));
-      const portfolioMap = new Map(portfolioTypes.map((p) => [p.id, p]));
-      const stateMap = new Map(stateTypes.map((s) => [s.id, s]));
+      const envMap = new Map(envTypes.map((e) => [e.env_id, e]));
+      const portfolioMap = new Map(portfolioTypes.map((p) => [p.porty_id, p]));
+      const stateMap = new Map(stateTypes.map((s) => [s.stty_id, s]));
       return dbs.map((db) => {
         const env = envMap.get(db.environment_type_id);
         const portfolio = portfolioMap.get(db.portfolio_type_id);
         const state = stateMap.get(db.state_type_id);
-        const envType = env?.type ?? '';
-        const portfolioType = portfolio?.type ?? '';
-        const stateType = state?.type ?? '';
+        const envType = env?.env_type ?? '';
+        const portfolioType = portfolio?.porty_type ?? '';
+        const stateType = state?.stty_type ?? '';
         return {
           id: db.id,
           environment_type_id: db.environment_type_id,
@@ -144,14 +144,14 @@ export class DataBasesService {
       return {
         id: db.id,
         environment_type_id: db.environment_type_id,
-        environment_type_name: env.type,
+        environment_type_name: env.env_type,
         portfolio_type_id: db.portfolio_type_id,
-        portfolio_type_name: portfolio.type,
-        label_data_base: buildLabelDataBase(portfolio.type, env.type),
+        portfolio_type_name: portfolio.porty_type,
+        label_data_base: buildLabelDataBase(portfolio.porty_type, env.env_type),
         bases: db.bases,
         detail: db.detail,
         state_type_id: db.state_type_id,
-        state_type_name: state.type,
+        state_type_name: state.stty_type,
         created_at: db.created_at,
         updated_at: db.updated_at,
         responsible: db.responsible,
@@ -165,9 +165,9 @@ export class DataBasesService {
   async update(dataBases: DataBases): Promise<DataBases> {
     // Validar que los IDs sean enteros positivos
     try {
-      EnvironmentTypeId.create(dataBases.environment_type_id);
-      PortfolioTypeId.create(dataBases.portfolio_type_id);
-      StateTypeId.create(dataBases.state_type_id);
+      TblEnvironmentTypeId.create(dataBases.environment_type_id);
+      TblPortfolioTypeId.create(dataBases.portfolio_type_id);
+      TblStateTypeId.create(dataBases.state_type_id);
     } catch {
       throw new BadRequestException('All foreign keys must be positive integers');
     }

@@ -11,9 +11,9 @@ import {
   CreateDataBasesInput,
   VCitiesRow,
 } from '@domain/ports/dataBases.ports';
-import { EnvironmentTypeEntity } from '../entities/environmentType.entities';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class DataBasesRepositoryImpl implements DataBasesRepository {
@@ -44,9 +44,9 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
   async findAll(): Promise<DataBases[]> {
     const raw = await this.repo
       .createQueryBuilder('db')
-      .leftJoin(EnvironmentTypeEntity, 'env', 'env.id = db.environment_type_id')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = db.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = db.state_type_id')
+      .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = db.state_type_id')
       .select([
         'db.id',
         'db.environment_type_id',
@@ -58,9 +58,9 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
         'db.updated_at',
         'db.responsible',
       ])
-      .addSelect('env.type', 'environment_type_name')
-      .addSelect('pf.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('env.env_type', 'environment_type_name')
+      .addSelect('pf.porty_type', 'portfolio_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('db.id', 'DESC')
       .getRawMany();
 
@@ -84,10 +84,10 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
   async findById(id: number): Promise<DataBases> {
     const raw = await this.repo
       .createQueryBuilder('db')
-      .leftJoin(EnvironmentTypeEntity, 'env', 'env.id = db.environment_type_id')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = db.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = db.state_type_id')
-      .leftJoin(StateTypeEntity, 'st_pf', 'st_pf.id = pf.state_type_id')
+      .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = db.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st_pf', 'st_pf.stty_id = pf.state_type_id')
       .select([
         'db.id',
         'db.environment_type_id',
@@ -99,10 +99,10 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
         'db.updated_at',
         'db.responsible',
       ])
-      .addSelect('env.type', 'environment_type_name')
-      .addSelect('pf.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
-      .addSelect('st_pf.type', 'portfolio_state_type_name')
+      .addSelect('env.env_type', 'environment_type_name')
+      .addSelect('pf.porty_type', 'portfolio_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
+      .addSelect('st_pf.stty_type', 'portfolio_state_type_name')
       .where('db.id = :id', { id })
       .getRawOne<Record<string, unknown> | undefined>();
 

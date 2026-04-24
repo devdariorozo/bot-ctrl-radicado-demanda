@@ -6,8 +6,8 @@ import { DataSource, Repository } from 'typeorm';
 import { LawyerDataEntity } from '../entities/lawyerData.entities';
 import { LawyerData } from '@domain/entities/lawyerData.entities';
 import { CreateLawyerDataInput, LawyerDataRepository } from '@domain/ports/lawyerData.ports';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class LawyerDataRepositoryImpl implements LawyerDataRepository {
@@ -51,8 +51,8 @@ export class LawyerDataRepositoryImpl implements LawyerDataRepository {
   async findAll(): Promise<LawyerData[]> {
     const raw = await this.repo
       .createQueryBuilder('ld')
-      .leftJoin(PortfolioTypeEntity, 'pt', 'pt.id = ld.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = ld.state_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pt', 'pt.id = ld.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = ld.state_type_id')
       .select([
         'ld.id',
         'ld.portfolio_type_id',
@@ -73,7 +73,7 @@ export class LawyerDataRepositoryImpl implements LawyerDataRepository {
         'ld.responsible',
       ])
       .addSelect('pt.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('ld.id', 'DESC')
       .getRawMany();
 

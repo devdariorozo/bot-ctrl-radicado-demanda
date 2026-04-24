@@ -2,12 +2,12 @@
 
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { EnvironmentTypeEntity } from './entities/environmentType.entities';
-import { EnvironmentTypeMigration1771978729001 } from './migrations/1771978729001_environmentType.migrations';
-import { StateTypeEntity } from './entities/stateType.entities';
-import { StateTypeMigration1771978729002 } from './migrations/1771978729002_stateType.migrations';
-import { PortfolioTypeEntity } from './entities/portfolioType.entities';
-import { PortfolioTypeMigration1771978729003 } from './migrations/1771978729003_portfolioType.migrations';
+import { TblEnvironmentTypeEntity } from './entities/tblEnvironmentType.entities';
+import { TblEnvironmentTypeMigration1771978729001 } from './migrations/1771978729001_tblEnvironmentType.migrations';
+import { TblStateTypeEntity } from './entities/tblStateType.entities';
+import { TblStateTypeMigration1771978729002 } from './migrations/1771978729002_tblStateType.migrations';
+import { TblPortfolioTypeEntity } from './entities/tblPortfolioType.entities';
+import { TblPortfolioTypeMigration1771978729003 } from './migrations/1771978729003_tblPortfolioType.migrations';
 import { DataBasesEntity } from './entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from './migrations/1771978729004_dataBases.migrations';
 import { AttentionScheduleEntity } from './entities/attentionSchedule.entities';
@@ -38,9 +38,9 @@ export const dataSource = new DataSource({
   password: process.env.DB_CONFIG_PASSWORD ?? '',
   database: process.env.DB_CONFIG_DATABASE ?? 'bot_demandas_online',
   entities: [
-    EnvironmentTypeEntity,
-    StateTypeEntity,
-    PortfolioTypeEntity,
+    TblEnvironmentTypeEntity,
+    TblStateTypeEntity,
+    TblPortfolioTypeEntity,
     DataBasesEntity,
     AttentionScheduleEntity,
     PortfolioCityConfigEntity,
@@ -52,9 +52,9 @@ export const dataSource = new DataSource({
     BotControlEntity,
   ],
   migrations: [
-    EnvironmentTypeMigration1771978729001,
-    StateTypeMigration1771978729002,
-    PortfolioTypeMigration1771978729003,
+    TblEnvironmentTypeMigration1771978729001,
+    TblStateTypeMigration1771978729002,
+    TblPortfolioTypeMigration1771978729003,
     DataBasesMigration1771978729004,
     AttentionScheduleMigration1771978729005,
     PortfolioCityConfigMigration1771978729006,

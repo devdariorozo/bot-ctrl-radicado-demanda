@@ -27,7 +27,7 @@ export class ManagementDemandsOnlineMigration1771978729008 implements MigrationI
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT FK_management_demands_online_portfolio_type
-          FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),
+          FOREIGN KEY (portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
         CONSTRAINT FK_management_demands_online_portfolio_city_config
           FOREIGN KEY (portfolio_city_config_id) REFERENCES portfolio_city_config(id),
         CONSTRAINT FK_management_demands_online_amount_type

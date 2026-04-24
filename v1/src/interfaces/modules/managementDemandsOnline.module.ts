@@ -5,7 +5,7 @@ import { ManagementDemandsOnlineController } from '../http/controller/management
 import { ManagementDemandsOnlineService } from '@application/services/managementDemandsOnline.service';
 import { ManagementDemandsOnlineRepositoryImpl } from '@infrastructure/persistence/repositories/managementDemandsOnline.repositories';
 import { MANAGEMENT_DEMANDS_ONLINE_REPOSITORY } from '@domain/ports/managementDemandsOnline.ports';
-import { StateTypeModule } from './stateType.module';
+import { TblStateTypeModule } from './tblStateType.module';
 import { AmountTypeModule } from './amountType.module';
 import { PortfolioCityConfigModule } from './portfolioCityConfig.module';
 
@@ -18,7 +18,7 @@ import { PortfolioCityConfigModule } from './portfolioCityConfig.module';
       useClass: ManagementDemandsOnlineRepositoryImpl,
     },
   ],
-  imports: [StateTypeModule, AmountTypeModule, PortfolioCityConfigModule],
+  imports: [TblStateTypeModule, AmountTypeModule, PortfolioCityConfigModule],
   exports: [
     ManagementDemandsOnlineService,
     {

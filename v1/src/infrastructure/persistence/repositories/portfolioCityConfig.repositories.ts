@@ -10,10 +10,10 @@ import {
   PortfolioCityConfigRepository,
   CreatePortfolioCityConfigInput,
 } from '@domain/ports/portfolioCityConfig.ports';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 import { DataBasesEntity } from '../entities/dataBases.entities';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
-import { EnvironmentTypeEntity } from '../entities/environmentType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
 
 @Injectable()
 export class PortfolioCityConfigRepositoryImpl implements PortfolioCityConfigRepository {
@@ -44,10 +44,10 @@ export class PortfolioCityConfigRepositoryImpl implements PortfolioCityConfigRep
   async findAll(): Promise<PortfolioCityConfig[]> {
     const raw = await this.repo
       .createQueryBuilder('pcc')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = pcc.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = pcc.state_type_id')
       .leftJoin(DataBasesEntity, 'db', 'db.id = pcc.id_data_bases')
-      .leftJoin(EnvironmentTypeEntity, 'env', 'env.id = db.environment_type_id')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = db.portfolio_type_id')
+      .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
       .select([
         'pcc.id',
         'pcc.id_data_bases',
@@ -62,9 +62,9 @@ export class PortfolioCityConfigRepositoryImpl implements PortfolioCityConfigRep
         'pcc.updated_at',
         'pcc.responsible',
       ])
-      .addSelect('env.type', 'environment_type_name')
-      .addSelect('st.type', 'state_type_name')
-      .addSelect('pf.type', 'portfolio_type_name')
+      .addSelect('env.env_type', 'environment_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
+      .addSelect('pf.porty_type', 'portfolio_type_name')
       .orderBy('pcc.id', 'DESC')
       .getRawMany();
 

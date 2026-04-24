@@ -7,7 +7,7 @@ import { DataSource, Repository } from 'typeorm';
 import { AmountType } from '@domain/entities/amountType.entities';
 import { CreateAmountTypeInput, AmountTypeRepository } from '@domain/ports/amountType.ports';
 import { AmountTypeEntity } from '../entities/amountType.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class AmountTypeRepositoryImpl implements AmountTypeRepository {
@@ -36,7 +36,7 @@ export class AmountTypeRepositoryImpl implements AmountTypeRepository {
   async findAll(): Promise<AmountType[]> {
     const raw = await this.repo
       .createQueryBuilder('at')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = at.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = at.state_type_id')
       .select([
         'at.id',
         'at.type',
@@ -48,7 +48,7 @@ export class AmountTypeRepositoryImpl implements AmountTypeRepository {
         'at.updated_at',
         'at.responsible',
       ])
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('at.id', 'DESC')
       .getRawMany();
 

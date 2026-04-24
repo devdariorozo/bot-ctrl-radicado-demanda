@@ -5,9 +5,9 @@ import { DataBasesController } from '../http/controller/dataBases.controller';
 import { DataBasesService } from '@application/services/dataBases.service';
 import { DataBasesRepositoryImpl } from '@infrastructure/persistence/repositories/dataBases.repositories';
 import { DATABASES_REPOSITORY } from '@domain/ports/dataBases.ports';
-import { EnvironmentTypeModule } from './environmentType.module';
-import { StateTypeModule } from './stateType.module';
-import { PortfolioTypeModule } from './portfolioType.module';
+import { TblEnvironmentTypeModule } from './tblEnvironmentType.module';
+import { TblStateTypeModule } from './tblStateType.module';
+import { TblPortfolioTypeModule } from './tblPortfolioType.module';
 
 @Module({
   controllers: [DataBasesController],
@@ -18,7 +18,7 @@ import { PortfolioTypeModule } from './portfolioType.module';
       useClass: DataBasesRepositoryImpl,
     },
   ],
-  imports: [EnvironmentTypeModule, StateTypeModule, PortfolioTypeModule],
+  imports: [TblEnvironmentTypeModule, TblStateTypeModule, TblPortfolioTypeModule],
   exports: [
     DataBasesService,
     { provide: DATABASES_REPOSITORY, useClass: DataBasesRepositoryImpl },

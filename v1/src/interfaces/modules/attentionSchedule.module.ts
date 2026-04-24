@@ -5,8 +5,8 @@ import { AttentionScheduleController } from '../http/controller/attentionSchedul
 import { AttentionScheduleService } from '@application/services/attentionSchedule.service';
 import { AttentionScheduleRepositoryImpl } from '@infrastructure/persistence/repositories/attentionSchedule.repositories';
 import { ATTENTION_SCHEDULE_REPOSITORY } from '@domain/ports/attentionSchedule.ports';
-import { PortfolioTypeModule } from './portfolioType.module';
-import { StateTypeModule } from './stateType.module';
+import { TblPortfolioTypeModule } from './tblPortfolioType.module';
+import { TblStateTypeModule } from './tblStateType.module';
 
 @Module({
   controllers: [AttentionScheduleController],
@@ -17,7 +17,7 @@ import { StateTypeModule } from './stateType.module';
       useClass: AttentionScheduleRepositoryImpl,
     },
   ],
-  imports: [PortfolioTypeModule, StateTypeModule],
+  imports: [TblPortfolioTypeModule, TblStateTypeModule],
   exports: [
     AttentionScheduleService,
     { provide: ATTENTION_SCHEDULE_REPOSITORY, useClass: AttentionScheduleRepositoryImpl },

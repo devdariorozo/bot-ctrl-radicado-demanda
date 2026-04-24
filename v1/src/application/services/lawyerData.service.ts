@@ -14,10 +14,10 @@ import {
   LawyerDataRepository,
   CreateLawyerDataInput,
 } from '@domain/ports/lawyerData.ports';
-import { PORTFOLIO_TYPE_REPOSITORY, PortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { PortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -25,10 +25,10 @@ export class LawyerDataService {
   constructor(
     @Inject(LAWYER_DATA_REPOSITORY)
     private readonly lawyerDataRepository: LawyerDataRepository,
-    @Inject(PORTFOLIO_TYPE_REPOSITORY)
-    private readonly portfolioTypeRepository: PortfolioTypeRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_PORTFOLIO_TYPE_REPOSITORY)
+    private readonly portfolioTypeRepository: TblPortfolioTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   private normalizeUpper(value: string | undefined): string {
@@ -49,14 +49,14 @@ export class LawyerDataService {
   async create(input: CreateLawyerDataInput): Promise<LawyerData> {
     // Validar portfolio_type_id
     try {
-      PortfolioTypeId.create(input.portfolio_type_id);
+      TblPortfolioTypeId.create(input.portfolio_type_id);
     } catch {
       throw new BadRequestException('portfolio_type_id must be a positive integer');
     }
 
     // Validar state_type_id
     try {
-      StateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }
@@ -123,7 +123,7 @@ export class LawyerDataService {
       return {
         id: lawyer.id,
         portfolio_type_id: lawyer.portfolio_type_id,
-        portfolio_type_name: portfolio.type,
+        portfolio_type_name: portfolio.porty_type,
         document_type: lawyer.document_type,
         document_name: lawyer.document_name,
         document_number: lawyer.document_number,
@@ -136,7 +136,7 @@ export class LawyerDataService {
         email_notifications: lawyer.email_notifications,
         detail: lawyer.detail,
         state_type_id: lawyer.state_type_id,
-        state_type_name: stateType.type,
+        state_type_name: stateType.stty_type,
         created_at: lawyer.created_at,
         updated_at: lawyer.updated_at,
         responsible: lawyer.responsible,
@@ -148,13 +148,13 @@ export class LawyerDataService {
 
   async update(lawyer: LawyerData): Promise<LawyerData> {
     try {
-      PortfolioTypeId.create(lawyer.portfolio_type_id);
+      TblPortfolioTypeId.create(lawyer.portfolio_type_id);
     } catch {
       throw new BadRequestException('portfolio_type_id must be a positive integer');
     }
 
     try {
-      StateTypeId.create(lawyer.state_type_id);
+      TblStateTypeId.create(lawyer.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id must be a positive integer');
     }

@@ -10,8 +10,8 @@ import {
   CreateAttentionScheduleInput,
 } from '@domain/ports/attentionSchedule.ports';
 import { AttentionScheduleEntity } from '../entities/attentionSchedule.entities';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class AttentionScheduleRepositoryImpl implements AttentionScheduleRepository {
@@ -61,8 +61,8 @@ export class AttentionScheduleRepositoryImpl implements AttentionScheduleReposit
   async findAll(): Promise<AttentionSchedule[]> {
     const raw = await this.repo
       .createQueryBuilder('sc')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = sc.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = sc.state_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.id = sc.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = sc.state_type_id')
       .select([
         'sc.id',
         'sc.portfolio_type_id',
@@ -78,7 +78,7 @@ export class AttentionScheduleRepositoryImpl implements AttentionScheduleReposit
         'sc.responsible',
       ])
       .addSelect('pf.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('sc.id', 'DESC')
       .getRawMany();
 
@@ -115,8 +115,8 @@ export class AttentionScheduleRepositoryImpl implements AttentionScheduleReposit
   async findByPortfolio(portfolio_type_id: number, day?: string): Promise<AttentionSchedule[]> {
     const qb = this.repo
       .createQueryBuilder('sc')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = sc.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = sc.state_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.id = sc.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = sc.state_type_id')
       .select([
         'sc.id',
         'sc.portfolio_type_id',
@@ -132,7 +132,7 @@ export class AttentionScheduleRepositoryImpl implements AttentionScheduleReposit
         'sc.responsible',
       ])
       .addSelect('pf.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .where('sc.portfolio_type_id = :portfolio_type_id', { portfolio_type_id });
 
     if (day !== undefined) {

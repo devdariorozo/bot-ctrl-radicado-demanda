@@ -4,15 +4,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './interfaces/modules/health.module';
-import { StateTypeEntity } from './infrastructure/persistence/entities/stateType.entities';
-import { StateTypeModule } from './interfaces/modules/stateType.module';
-import { PortfolioTypeEntity } from './infrastructure/persistence/entities/portfolioType.entities';
-import { PortfolioTypeModule } from './interfaces/modules/portfolioType.module';
-import { EnvironmentTypeEntity } from './infrastructure/persistence/entities/environmentType.entities';
-import { EnvironmentTypeModule } from './interfaces/modules/environmentType.module';
-import { EnvironmentTypeMigration1771978729001 } from '@infrastructure/persistence/migrations/1771978729001_environmentType.migrations';
-import { StateTypeMigration1771978729002 } from '@infrastructure/persistence/migrations/1771978729002_stateType.migrations';
-import { PortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_portfolioType.migrations';
+import { TblStateTypeEntity } from './infrastructure/persistence/entities/tblStateType.entities';
+import { TblStateTypeModule } from './interfaces/modules/tblStateType.module';
+import { TblPortfolioTypeEntity } from './infrastructure/persistence/entities/tblPortfolioType.entities';
+import { TblPortfolioTypeModule } from './interfaces/modules/tblPortfolioType.module';
+import { TblEnvironmentTypeEntity } from './infrastructure/persistence/entities/tblEnvironmentType.entities';
+import { TblEnvironmentTypeModule } from './interfaces/modules/tblEnvironmentType.module';
+import { TblEnvironmentTypeMigration1771978729001 } from '@infrastructure/persistence/migrations/1771978729001_tblEnvironmentType.migrations';
+import { TblStateTypeMigration1771978729002 } from '@infrastructure/persistence/migrations/1771978729002_tblStateType.migrations';
+import { TblPortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_tblPortfolioType.migrations';
 import { DataBasesEntity } from './infrastructure/persistence/entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from '@infrastructure/persistence/migrations/1771978729004_dataBases.migrations';
 import { DataBasesModule } from './interfaces/modules/dataBases.module';
@@ -62,9 +62,9 @@ import { LogsModule } from './interfaces/modules/logs.module';
         password: config.get('DB_CONFIG_PASSWORD', ''),
         database: config.get('DB_CONFIG_DATABASE', 'dbd_demands_online'),
         entities: [
-          EnvironmentTypeEntity,
-          StateTypeEntity,
-          PortfolioTypeEntity,
+          TblEnvironmentTypeEntity,
+          TblStateTypeEntity,
+          TblPortfolioTypeEntity,
           DataBasesEntity,
           AttentionScheduleEntity,
           PortfolioCityConfigEntity,
@@ -76,9 +76,9 @@ import { LogsModule } from './interfaces/modules/logs.module';
           BotControlEntity,
         ],
         migrations: [
-          EnvironmentTypeMigration1771978729001,
-          StateTypeMigration1771978729002,
-          PortfolioTypeMigration1771978729003,
+          TblEnvironmentTypeMigration1771978729001,
+          TblStateTypeMigration1771978729002,
+          TblPortfolioTypeMigration1771978729003,
           DataBasesMigration1771978729004,
           AttentionScheduleMigration1771978729005,
           PortfolioCityConfigMigration1771978729006,
@@ -98,9 +98,9 @@ import { LogsModule } from './interfaces/modules/logs.module';
     }),
     LoggerModule,
     HealthModule,
-    EnvironmentTypeModule,
-    StateTypeModule,
-    PortfolioTypeModule,
+    TblEnvironmentTypeModule,
+    TblStateTypeModule,
+    TblPortfolioTypeModule,
     DataBasesModule,
     AttentionScheduleModule,
     PortfolioCityConfigModule,

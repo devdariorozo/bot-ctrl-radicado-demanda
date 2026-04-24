@@ -6,7 +6,7 @@ import { DataSource, Repository } from 'typeorm';
 import { HolidayEntity } from '../entities/holiday.entities';
 import { Holiday } from '@domain/entities/holiday.entities';
 import { CreateHolidayInput, HolidayRepository } from '@domain/ports/holiday.ports';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class HolidayRepositoryImpl implements HolidayRepository {
@@ -32,7 +32,7 @@ export class HolidayRepositoryImpl implements HolidayRepository {
   async findAll(): Promise<Holiday[]> {
     const raw = await this.repo
       .createQueryBuilder('h')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = h.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = h.state_type_id')
       .select([
         'h.id',
         'h.date',
@@ -46,7 +46,7 @@ export class HolidayRepositoryImpl implements HolidayRepository {
         'h.updated_at',
         'h.responsible',
       ])
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('h.id', 'DESC')
       .getRawMany();
 

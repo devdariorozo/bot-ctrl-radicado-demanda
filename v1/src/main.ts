@@ -9,9 +9,9 @@ import { AppModule } from './app.module';
 import { AppLogger } from './infrastructure/logging/appLogger.service';
 import { JsonParseExceptionFilter } from './interfaces/http/filters/jsonParseException.filter';
 import { StandardResponseInterceptor } from './interfaces/http/interceptors/standardResponse.interceptor';
-import { EnvironmentTypeDto, UpdateEnvironmentTypeDto } from '@interfaces/http/dto/environmentType.dto';
-import { StateTypeDto, UpdateStateTypeDto } from '@interfaces/http/dto/stateType.dto';
-import { PortfolioTypeDto, UpdatePortfolioTypeDto } from '@interfaces/http/dto/portfolioType.dto';
+import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '@interfaces/http/dto/tblEnvironmentType.dto';
+import { TblStateTypeDto, UpdateTblStateTypeDto } from '@interfaces/http/dto/tblStateType.dto';
+import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '@interfaces/http/dto/tblPortfolioType.dto';
 import { DataBasesDto, UpdateDataBasesDto } from '@interfaces/http/dto/dataBases.dto';
 import { CreateAttentionScheduleDto, AttentionScheduleDto, UpdateAttentionScheduleDto } from '@interfaces/http/dto/attentionSchedule.dto';
 import { PortfolioCityConfigDto, UpdatePortfolioCityConfigDto } from '@interfaces/http/dto/portfolioCityConfig.dto';
@@ -106,9 +106,9 @@ async function bootstrap() {
     .setDescription(description)
     .setVersion(version)
     .addTag('api', 'Verificación del servicio')
-    .addTag('environmentType', 'Tipo de entorno que se puede tener en el sistema')
-    .addTag('stateType', 'Tipo de estado que puede tener un registro')
-    .addTag('portfolioType', 'Tipo de cartera que se puede tener en el sistema')
+    .addTag('tbl_environment_type', 'Tipo de entorno que se puede tener en el sistema')
+    .addTag('tbl_state_type', 'Tipo de estado que puede tener un registro')
+    .addTag('tbl_portfolio_type', 'Tipo de cartera que se puede tener en el sistema')
     .addTag('dataBases', 'Configuración de bases de datos por entorno y cartera')
     .addTag('attentionSchedule', 'Horarios de atención por cartera')
     .addTag('holiday', 'Días festivos por país')
@@ -121,12 +121,12 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config, {
     extraModels: [
-      EnvironmentTypeDto,
-      UpdateEnvironmentTypeDto,
-      StateTypeDto,
-      UpdateStateTypeDto,
-      PortfolioTypeDto,
-      UpdatePortfolioTypeDto,
+      TblEnvironmentTypeDto,
+      UpdateTblEnvironmentTypeDto,
+      TblStateTypeDto,
+      UpdateTblStateTypeDto,
+      TblPortfolioTypeDto,
+      UpdateTblPortfolioTypeDto,
       DataBasesDto,
       UpdateDataBasesDto,
       CreateAttentionScheduleDto,

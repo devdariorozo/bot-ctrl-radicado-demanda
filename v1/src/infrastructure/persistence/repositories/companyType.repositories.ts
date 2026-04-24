@@ -6,8 +6,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CompanyTypeEntity } from '../entities/companyType.entities';
 import { CompanyType } from '@domain/entities/companyType.entities';
 import { CreateCompanyTypeInput, CompanyTypeRepository } from '@domain/ports/companyType.ports';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 
 @Injectable()
 export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {
@@ -58,8 +58,8 @@ export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {
   async findAll(): Promise<CompanyType[]> {
     const raw = await this.companyTypeRepository
       .createQueryBuilder('ct')
-      .leftJoin(PortfolioTypeEntity, 'pt', 'pt.id = ct.portfolio_type_id')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = ct.state_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pt', 'pt.id = ct.portfolio_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = ct.state_type_id')
       .select([
         'ct.id',
         'ct.portfolio_type_id',
@@ -78,7 +78,7 @@ export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {
         'ct.responsible',
       ])
       .addSelect('pt.type', 'portfolio_type_name')
-      .addSelect('st.type', 'state_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
       .orderBy('ct.id', 'DESC')
       .getRawMany();
 

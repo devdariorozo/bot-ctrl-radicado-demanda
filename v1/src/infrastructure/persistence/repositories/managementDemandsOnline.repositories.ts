@@ -11,11 +11,11 @@ import {
   ManagementDemandsOnlineRepository,
 } from '@domain/ports/managementDemandsOnline.ports';
 import { ManagementDemandsOnlineEntity } from '../entities/managementDemandsOnline.entities';
-import { StateTypeEntity } from '../entities/stateType.entities';
+import { TblStateTypeEntity } from '../entities/tblStateType.entities';
 import { PortfolioCityConfigEntity } from '../entities/portfolioCityConfig.entities';
 import { DataBasesEntity } from '../entities/dataBases.entities';
-import { EnvironmentTypeEntity } from '../entities/environmentType.entities';
-import { PortfolioTypeEntity } from '../entities/portfolioType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
+import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
 
 @Injectable()
 export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsOnlineRepository {
@@ -55,11 +55,11 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
   async findAll(filters: FindAllManagementDemandsOnlineFilters = {}): Promise<ManagementDemandsOnline[]> {
     const qb = this.repo
       .createQueryBuilder('m')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = m.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = m.state_type_id')
       .leftJoin(PortfolioCityConfigEntity, 'pcc', 'pcc.id = m.portfolio_city_config_id')
       .leftJoin(DataBasesEntity, 'db', 'db.id = pcc.id_data_bases')
-      .leftJoin(EnvironmentTypeEntity, 'env', 'env.id = db.environment_type_id')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = db.portfolio_type_id')
+      .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
       .select([
         'm.id',
         'm.portfolio_type_id',
@@ -86,9 +86,9 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
         'pcc.id_data_bases',
         'db.environment_type_id',
       ])
-      .addSelect('st.type', 'state_type_name')
-      .addSelect('env.type', 'environment_type_name')
-      .addSelect('pf.type', 'portfolio_type_name');
+      .addSelect('st.stty_type', 'state_type_name')
+      .addSelect('env.env_type', 'environment_type_name')
+      .addSelect('pf.porty_type', 'portfolio_type_name');
 
     if (filters.portfolio_type_id !== undefined) {
       qb.andWhere('m.portfolio_type_id = :portfolio_type_id', { portfolio_type_id: filters.portfolio_type_id });
@@ -152,11 +152,11 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
   async findById(id: number): Promise<ManagementDemandsOnline> {
     const raw = await this.repo
       .createQueryBuilder('m')
-      .leftJoin(StateTypeEntity, 'st', 'st.id = m.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = m.state_type_id')
       .leftJoin(PortfolioCityConfigEntity, 'pcc', 'pcc.id = m.portfolio_city_config_id')
       .leftJoin(DataBasesEntity, 'db', 'db.id = pcc.id_data_bases')
-      .leftJoin(EnvironmentTypeEntity, 'env', 'env.id = db.environment_type_id')
-      .leftJoin(PortfolioTypeEntity, 'pf', 'pf.id = db.portfolio_type_id')
+      .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
+      .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
       .select([
         'm.id',
         'm.portfolio_type_id',
@@ -183,9 +183,9 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
         'pcc.id_data_bases',
         'db.environment_type_id',
       ])
-      .addSelect('st.type', 'state_type_name')
-      .addSelect('env.type', 'environment_type_name')
-      .addSelect('pf.type', 'portfolio_type_name')
+      .addSelect('st.stty_type', 'state_type_name')
+      .addSelect('env.env_type', 'environment_type_name')
+      .addSelect('pf.porty_type', 'portfolio_type_name')
       .where('m.id = :id', { id })
       .getRawOne<Record<string, unknown> | null>();
 

@@ -25,7 +25,7 @@ export class LawyerDataMigration1771978729013 implements MigrationInterface {
         responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
         CONSTRAINT UQ_lawyer_data_portfolio_type_document UNIQUE (portfolio_type_id, document_type, document_number),
         CONSTRAINT FK_lawyer_data_portfolio_type
-          FOREIGN KEY (portfolio_type_id) REFERENCES portfolio_type(id),
+          FOREIGN KEY (portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
         CONSTRAINT FK_lawyer_data_state_type
           FOREIGN KEY (state_type_id) REFERENCES state_type(id)
       )

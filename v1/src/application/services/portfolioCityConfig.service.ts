@@ -19,10 +19,10 @@ import {
   DataBasesRepository,
   VCitiesRow,
 } from '@domain/ports/dataBases.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
 import { DataBasesService } from '@application/services/dataBases.service';
 import { DataBasesId } from '@domain/value-objects/dataBases.valueobjects';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { CityViewsId } from '@domain/value-objects/portfolioCityConfig.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
@@ -33,8 +33,8 @@ export class PortfolioCityConfigService {
     private readonly portfolioCityConfigRepository: PortfolioCityConfigRepository,
     @Inject(DATABASES_REPOSITORY)
     private readonly dataBasesRepository: DataBasesRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
     private readonly dataBasesService: DataBasesService,
   ) {}
 
@@ -42,7 +42,7 @@ export class PortfolioCityConfigService {
     try {
       DataBasesId.create(input.id_data_bases);
       CityViewsId.create(input.id_city_views);
-      StateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('id_data_bases, id_city_views and state_type_id must be valid');
     }
@@ -68,7 +68,7 @@ export class PortfolioCityConfigService {
     try {
       const created = await this.portfolioCityConfigRepository.create(normalizedInput);
       const state = await this.stateTypeRepository.findById(created.state_type_id);
-      return { ...created, state_type_name: state.type };
+      return { ...created, state_type_name: state.stty_type };
     } catch (error) {
       throw new InternalServerErrorException('Error creating portfolio city config');
     }
@@ -108,7 +108,7 @@ export class PortfolioCityConfigService {
         city: config.city,
         detail: config.detail,
         state_type_id: config.state_type_id,
-        state_type_name: state.type,
+        state_type_name: state.stty_type,
         created_at: config.created_at,
         updated_at: config.updated_at,
         responsible: config.responsible,
@@ -139,7 +139,7 @@ export class PortfolioCityConfigService {
         );
       }
       const state = await this.stateTypeRepository.findById(config.state_type_id);
-      return { ...config, state_type_name: state.type };
+      return { ...config, state_type_name: state.stty_type };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException(
@@ -152,7 +152,7 @@ export class PortfolioCityConfigService {
     try {
       DataBasesId.create(config.id_data_bases);
       CityViewsId.create(config.id_city_views);
-      StateTypeId.create(config.state_type_id);
+      TblStateTypeId.create(config.state_type_id);
     } catch {
       throw new BadRequestException('id_data_bases, id_city_views and state_type_id must be valid');
     }
@@ -199,7 +199,7 @@ export class PortfolioCityConfigService {
     try {
       const updated = await this.portfolioCityConfigRepository.update(normalized);
       const state = await this.stateTypeRepository.findById(updated.state_type_id);
-      return { ...updated, state_type_name: state.type };
+      return { ...updated, state_type_name: state.stty_type };
     } catch (error) {
       throw new InternalServerErrorException('Error updating portfolio city config');
     }

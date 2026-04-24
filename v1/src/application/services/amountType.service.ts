@@ -11,8 +11,8 @@ import {
 
 import { AmountType } from '@domain/entities/amountType.entities';
 import { AMOUNT_TYPE_REPOSITORY, AmountTypeRepository, CreateAmountTypeInput } from '@domain/ports/amountType.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -20,13 +20,13 @@ export class AmountTypeService {
   constructor(
     @Inject(AMOUNT_TYPE_REPOSITORY)
     private readonly amountTypeRepository: AmountTypeRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   async create(input: CreateAmountTypeInput): Promise<AmountType> {
     try {
-      StateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id debe ser un número entero positivo');
     }
@@ -68,7 +68,7 @@ export class AmountTypeService {
       const stateType = await this.stateTypeRepository.findById(amount.state_type_id);
       return {
         ...amount,
-        state_type_name: stateType.type,
+        state_type_name: stateType.stty_type,
       };
     } catch {
       throw new NotFoundException('No se encontraron datos para el id indicado');
@@ -77,7 +77,7 @@ export class AmountTypeService {
 
   async update(amountType: AmountType): Promise<AmountType> {
     try {
-      StateTypeId.create(amountType.state_type_id);
+      TblStateTypeId.create(amountType.state_type_id);
     } catch {
       throw new BadRequestException('state_type_id debe ser un número entero positivo');
     }

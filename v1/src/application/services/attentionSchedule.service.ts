@@ -14,10 +14,10 @@ import {
   AttentionScheduleRepository,
   CreateAttentionScheduleInput,
 } from '@domain/ports/attentionSchedule.ports';
-import { PORTFOLIO_TYPE_REPOSITORY, PortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
-import { STATE_TYPE_REPOSITORY, StateTypeRepository } from '@domain/ports/stateType.ports';
-import { PortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
-import { StateTypeId } from '@domain/value-objects/stateType.valueobjects';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import {
   DayOfWeek,
   DAYS_OF_WEEK_ES,
@@ -38,17 +38,17 @@ export class AttentionScheduleService {
   constructor(
     @Inject(ATTENTION_SCHEDULE_REPOSITORY)
     private readonly attentionScheduleRepository: AttentionScheduleRepository,
-    @Inject(PORTFOLIO_TYPE_REPOSITORY)
-    private readonly portfolioTypeRepository: PortfolioTypeRepository,
-    @Inject(STATE_TYPE_REPOSITORY)
-    private readonly stateTypeRepository: StateTypeRepository,
+    @Inject(TBL_PORTFOLIO_TYPE_REPOSITORY)
+    private readonly portfolioTypeRepository: TblPortfolioTypeRepository,
+    @Inject(TBL_STATE_TYPE_REPOSITORY)
+    private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
   /** Crea un solo registro con days como array de días en español. */
   async create(input: CreateAttentionScheduleInput): Promise<AttentionSchedule> {
     try {
-      PortfolioTypeId.create(input.portfolio_type_id);
-      StateTypeId.create(input.state_type_id);
+      TblPortfolioTypeId.create(input.portfolio_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch {
       throw new BadRequestException('portfolio_type_id and state_type_id must be positive integers');
     }
@@ -147,7 +147,7 @@ export class AttentionScheduleService {
       return {
         id: sc.id,
         portfolio_type_id: sc.portfolio_type_id,
-        portfolio_type_name: portfolio.type,
+        portfolio_type_name: portfolio.porty_type,
         days: sc.days,
         start_time: sc.start_time,
         start_recess: (sc as any).start_recess,
@@ -155,7 +155,7 @@ export class AttentionScheduleService {
         end_time: sc.end_time,
         detail: sc.detail,
         state_type_id: sc.state_type_id,
-        state_type_name: state.type,
+        state_type_name: state.stty_type,
         created_at: sc.created_at,
         updated_at: sc.updated_at,
         responsible: sc.responsible,
@@ -185,8 +185,8 @@ export class AttentionScheduleService {
 
   async update(input: AttentionSchedule): Promise<AttentionSchedule> {
     try {
-      PortfolioTypeId.create(input.portfolio_type_id);
-      StateTypeId.create(input.state_type_id);
+      TblPortfolioTypeId.create(input.portfolio_type_id);
+      TblStateTypeId.create(input.state_type_id);
     } catch (e) {
       throw new BadRequestException(
         e instanceof Error ? e.message : 'Invalid portfolio_type_id or state_type_id',
