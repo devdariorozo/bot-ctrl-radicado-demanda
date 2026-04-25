@@ -15,6 +15,7 @@ import { TblStateTypeMigration1771978729002 } from '@infrastructure/persistence/
 import { TblPortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_tblPortfolioType.migrations';
 import { DataBasesEntity } from './infrastructure/persistence/entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from '@infrastructure/persistence/migrations/1771978729004_dataBases.migrations';
+import { TblDataBasesAlign1771978729016 } from '@infrastructure/persistence/migrations/1771978729016_tblDataBasesAlign.migrations';
 import { DataBasesModule } from './interfaces/modules/dataBases.module';
 import { AttentionScheduleEntity } from './infrastructure/persistence/entities/attentionSchedule.entities';
 import { AttentionScheduleMigration1771978729005 } from '@infrastructure/persistence/migrations/1771978729005_attentionSchedule.migrations';
@@ -89,6 +90,7 @@ import { LogsModule } from './interfaces/modules/logs.module';
           HolidayMigration1771978729015,
           ManagementDemandsOnlineMigration1771978729008,
           BotControlMigration1771978729009,
+          TblDataBasesAlign1771978729016,
         ],
         migrationsTableName: 'migrations',
         synchronize: false,

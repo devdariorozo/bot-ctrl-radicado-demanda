@@ -1,6 +1,6 @@
 // Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
 
-import { DataBases } from '@domain/entities/dataBases.entities';
+import { BasesConfig, DataBases } from '@domain/entities/dataBases.entities';
 
 /** Token para inyección del repositorio (las interfaces no existen en runtime en NestJS). */
 export const DATABASES_REPOSITORY = Symbol('DATABASES_REPOSITORY');
@@ -22,6 +22,8 @@ export type CreateDataBasesInput = Pick<
 export interface DataBasesRepository {
   // Crear un nuevo registro de bases
   create(input: CreateDataBasesInput): Promise<DataBases>;
+  /** Mismo valor JSON (orden de claves ignorado) que `db_bases`, o null. */
+  findByDuplicateBases(bases: BasesConfig): Promise<DataBases | null>;
   // Obtener todos los registros de bases
   findAll(): Promise<DataBases[]>;
   // Obtener un registro por su id

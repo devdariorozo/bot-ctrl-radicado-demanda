@@ -7,6 +7,7 @@ import { AmountTypeService } from '@application/services/amountType.service';
 import { AmountType } from '@domain/entities/amountType.entities';
 import { CreateAmountTypeInput } from '@domain/ports/amountType.ports';
 import { AmountTypeDto, UpdateAmountTypeDto } from '../dto/amountType.dto';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
 import { dataEmpty, dataOne } from '@application/utils/response.utils';
 
@@ -29,11 +30,11 @@ const updateExampleSchema = {
 };
 
 @ApiTags('amountType')
-@Controller('amount_type')
+@Controller('amountType')
 export class AmountTypeController {
   constructor(private readonly amountTypeService: AmountTypeService) {}
 
-  @Post()
+  @Post('crear')
   @ApiOperation({ summary: 'Crear un nuevo tipo de cuantía' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -45,7 +46,7 @@ export class AmountTypeController {
   }
 
   // Listado simple para selects (id + label_name)
-  @Get('options')
+  @Get('opciones')
   @ApiOperation({ summary: 'Obtener opciones de tipos de cuantía para selects' })
   async options() {
     const all = await this.amountTypeService.findAll();
@@ -56,7 +57,7 @@ export class AmountTypeController {
     return dataOne(items);
   }
 
-  @Get()
+  @Get('listar')
   @ApiOperation({ summary: 'Obtener todos los tipos de cuantía' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final (YYYY-MM-DD).' })
@@ -78,14 +79,7 @@ export class AmountTypeController {
   ): Promise<PaginatedResult<AmountTypeDto>> {
     const all = await this.amountTypeService.findAll();
 
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
-    const start = parseDate(start_date);
-    const end = parseDate(end_date);
+    const { start, end } = getListQueryDateRange(start_date, end_date);
 
     const normalizedStateId =
       state_type_id === undefined || state_type_id === null
@@ -140,14 +134,14 @@ export class AmountTypeController {
     return paginateArray(filtered, page, limit);
   }
 
-  @Get(':id')
+  @Get('filtrar/:id')
   @ApiOperation({ summary: 'Obtener un tipo de cuantía por su id' })
   async findById(@Param('id') id: number) {
     const item = await this.amountTypeService.findById(id);
     return dataOne(item);
   }
 
-  @Put(':id')
+  @Put('actualizar/:id')
   @ApiOperation({ summary: 'Actualizar un tipo de cuantía' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -158,7 +152,7 @@ export class AmountTypeController {
     return dataOne(updated);
   }
 
-  @Delete(':id')
+  @Delete('eliminar/:id')
   @ApiOperation({ summary: 'Eliminar un tipo de cuantía' })
   async delete(@Param('id') id: number) {
     await this.amountTypeService.delete(id);

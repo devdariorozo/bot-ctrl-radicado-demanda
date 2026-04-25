@@ -1,7 +1,7 @@
 // Responsabilidad: servicio de aplicación para lawyer_data.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   ConflictException,
   Inject,
   Injectable,
@@ -18,6 +18,7 @@ import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@doma
 import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
 import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -51,28 +52,28 @@ export class LawyerDataService {
     try {
       TblPortfolioTypeId.create(input.portfolio_type_id);
     } catch {
-      throw new BadRequestException('portfolio_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idCarteraEntero);
     }
 
     // Validar state_type_id
     try {
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     // Verificar existencia de portfolio_type
     try {
       await this.portfolioTypeRepository.findById(input.portfolio_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given portfolio type id');
+      throw new NotFoundException({ message: userMsg.notFoundCartera });
     }
 
     // Verificar existencia de state_type
     try {
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given state type id');
+      throw new NotFoundException({ message: userMsg.notFoundEstado });
     }
 
     const normalized: CreateLawyerDataInput = {
@@ -96,13 +97,13 @@ export class LawyerDataService {
       normalized.document_number,
     );
     if (duplicate) {
-      throw new ConflictException('Lawyer data with the same document already exists');
+      throw new ConflictException({ message: userMsg.documentoRegistroDuplicado });
     }
 
     try {
       return await this.lawyerDataRepository.create(normalized);
     } catch (error) {
-      throw new InternalServerErrorException('Error creating lawyer data');
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -110,7 +111,7 @@ export class LawyerDataService {
     try {
       return await this.lawyerDataRepository.findAll();
     } catch {
-      throw new InternalServerErrorException('Error getting all lawyer data');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -142,7 +143,7 @@ export class LawyerDataService {
         responsible: lawyer.responsible,
       };
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -150,20 +151,20 @@ export class LawyerDataService {
     try {
       TblPortfolioTypeId.create(lawyer.portfolio_type_id);
     } catch {
-      throw new BadRequestException('portfolio_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idCarteraEntero);
     }
 
     try {
       TblStateTypeId.create(lawyer.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     let existing: LawyerData;
     try {
       existing = await this.lawyerDataRepository.findById(lawyer.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     const normalized: LawyerData = {
@@ -199,13 +200,13 @@ export class LawyerDataService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
 
     try {
       return await this.lawyerDataRepository.update(normalized);
     } catch {
-      throw new InternalServerErrorException('Error updating lawyer data');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -213,13 +214,13 @@ export class LawyerDataService {
     try {
       await this.lawyerDataRepository.findById(id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     try {
       await this.lawyerDataRepository.delete(id);
     } catch {
-      throw new InternalServerErrorException('Error deleting lawyer data');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }

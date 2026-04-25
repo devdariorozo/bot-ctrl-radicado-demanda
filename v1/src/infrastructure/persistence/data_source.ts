@@ -10,6 +10,7 @@ import { TblPortfolioTypeEntity } from './entities/tblPortfolioType.entities';
 import { TblPortfolioTypeMigration1771978729003 } from './migrations/1771978729003_tblPortfolioType.migrations';
 import { DataBasesEntity } from './entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from './migrations/1771978729004_dataBases.migrations';
+import { TblDataBasesAlign1771978729016 } from './migrations/1771978729016_tblDataBasesAlign.migrations';
 import { AttentionScheduleEntity } from './entities/attentionSchedule.entities';
 import { AttentionScheduleMigration1771978729005 } from './migrations/1771978729005_attentionSchedule.migrations';
 import { PortfolioCityConfigEntity } from './entities/portfolioCityConfig.entities';
@@ -65,6 +66,7 @@ export const dataSource = new DataSource({
     HolidayMigration1771978729015,
     ManagementDemandsOnlineMigration1771978729008,
     BotControlMigration1771978729009,
+    TblDataBasesAlign1771978729016,
   ],
   synchronize: false,
   logging: process.env.DB_CONFIG_LOGGING === 'true',

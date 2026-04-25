@@ -1,7 +1,7 @@
 // Responsabilidad: servicio de aplicación para holidays.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -15,6 +15,7 @@ import {
 } from '@domain/ports/holiday.ports';
 import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -38,13 +39,13 @@ export class HolidayService {
     try {
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     try {
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given state type id');
+      throw new NotFoundException({ message: userMsg.notFoundEstado });
     }
 
     const normalized: CreateHolidayInput = {
@@ -58,7 +59,7 @@ export class HolidayService {
     try {
       return await this.holidayRepository.create(normalized);
     } catch {
-      throw new InternalServerErrorException('Error creating holiday');
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -66,7 +67,7 @@ export class HolidayService {
     try {
       return await this.holidayRepository.findAll();
     } catch {
-      throw new InternalServerErrorException('Error getting holidays');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -79,7 +80,7 @@ export class HolidayService {
         state_type_name: state.stty_type,
       };
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -87,14 +88,14 @@ export class HolidayService {
     try {
       TblStateTypeId.create(holiday.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     let existing: Holiday;
     try {
       existing = await this.holidayRepository.findById(holiday.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     const normalized: Holiday = {
@@ -116,13 +117,13 @@ export class HolidayService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
 
     try {
       return await this.holidayRepository.update(normalized);
     } catch {
-      throw new InternalServerErrorException('Error updating holiday');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -130,13 +131,13 @@ export class HolidayService {
     try {
       await this.holidayRepository.findById(id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     try {
       await this.holidayRepository.delete(id);
     } catch {
-      throw new InternalServerErrorException('Error deleting holiday');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }

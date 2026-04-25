@@ -1,7 +1,7 @@
 // Responsabilidad: fachada de aplicación que usará el controller.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   ConflictException,
   Inject,
   Injectable,
@@ -22,11 +22,9 @@ import {
   DayOfWeek,
   DAYS_OF_WEEK_ES,
 } from '@domain/value-objects/attentionSchedule.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 import { QueryFailedError } from 'typeorm';
-
-const DUPLICATE_SCHEDULE_MSG =
-  'Attention schedule already exists for this portfolio_type_id, start_time and end_time';
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -50,10 +48,10 @@ export class AttentionScheduleService {
       TblPortfolioTypeId.create(input.portfolio_type_id);
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('portfolio_type_id and state_type_id must be positive integers');
+      throw new UnprocessableEntityException(userMsg.carteraYEstadoEnteros);
     }
     if (!input.days?.length) {
-      throw new BadRequestException('days must be a non-empty array');
+      throw new UnprocessableEntityException(userMsg.diasObligatorios);
     }
     const daysSet = new Set<string>();
     for (const d of input.days) {
@@ -61,8 +59,8 @@ export class AttentionScheduleService {
         const vo = DayOfWeek.create(d);
         daysSet.add(vo.value);
       } catch {
-        throw new BadRequestException(
-          `Each day must be one of: ${DAYS_OF_WEEK_ES.join(', ')}`,
+        throw new UnprocessableEntityException(
+          `Cada día debe ser uno de: ${DAYS_OF_WEEK_ES.join(', ')}.`,
         );
       }
     }
@@ -72,7 +70,7 @@ export class AttentionScheduleService {
       await this.portfolioTypeRepository.findById(input.portfolio_type_id);
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('One or more related records not found');
+      throw new NotFoundException({ message: userMsg.noRelacion });
     }
 
     const start = timeToMinutes(input.start_time);
@@ -80,14 +78,10 @@ export class AttentionScheduleService {
     const endRecess = timeToMinutes((input as any).end_recess);
     const end = timeToMinutes(input.end_time);
     if ([start, startRecess, endRecess, end].some((v) => Number.isNaN(v))) {
-      throw new BadRequestException(
-        'start_time, start_recess, end_recess and end_time must be valid HH:mm',
-      );
+      throw new UnprocessableEntityException(userMsg.horasFormato);
     }
     if (!(start < startRecess && startRecess < endRecess && endRecess < end)) {
-      throw new BadRequestException(
-        'Times must satisfy start_time < start_recess < end_recess < end_time',
-      );
+      throw new UnprocessableEntityException(userMsg.horasOrden);
     }
 
     const existing = await this.attentionScheduleRepository.findByPortfolio(input.portfolio_type_id);
@@ -99,7 +93,7 @@ export class AttentionScheduleService {
         s.end_time === input.end_time,
     );
     if (duplicate) {
-      throw new ConflictException(DUPLICATE_SCHEDULE_MSG);
+      throw new ConflictException({ message: userMsg.horarioDuplicado });
     }
 
     const normalizedDetail = capitalizeFirstWord(input.detail);
@@ -123,9 +117,9 @@ export class AttentionScheduleService {
           (err as QueryFailedError & { driverError?: { code?: string } }).driverError?.code === 'ER_DUP_ENTRY' ||
           (err as Error).message?.includes('Duplicate entry'));
       if (isDuplicate) {
-        throw new ConflictException(DUPLICATE_SCHEDULE_MSG);
+        throw new ConflictException({ message: userMsg.horarioDuplicado });
       }
-      throw err;
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -133,7 +127,7 @@ export class AttentionScheduleService {
     try {
       return await this.attentionScheduleRepository.findAll();
     } catch (error) {
-      throw new InternalServerErrorException('Error getting all attention schedules');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -161,7 +155,7 @@ export class AttentionScheduleService {
         responsible: sc.responsible,
       };
     } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -170,15 +164,15 @@ export class AttentionScheduleService {
       try {
         DayOfWeek.create(days);
       } catch {
-        throw new BadRequestException(
-          `days must be one of: ${DAYS_OF_WEEK_ES.join(', ')}`,
+        throw new UnprocessableEntityException(
+          `Cada día debe ser uno de: ${DAYS_OF_WEEK_ES.join(', ')}.`,
         );
       }
     }
     try {
       await this.portfolioTypeRepository.findById(portfolio_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given portfolio_type_id');
+      throw new NotFoundException({ message: userMsg.notFoundCarteraParam });
     }
     return this.attentionScheduleRepository.findByPortfolio(portfolio_type_id, days);
   }
@@ -188,19 +182,19 @@ export class AttentionScheduleService {
       TblPortfolioTypeId.create(input.portfolio_type_id);
       TblStateTypeId.create(input.state_type_id);
     } catch (e) {
-      throw new BadRequestException(
-        e instanceof Error ? e.message : 'Invalid portfolio_type_id or state_type_id',
+      throw new UnprocessableEntityException(
+        e instanceof Error ? e.message : userMsg.idsCarteraEstadoInvalido,
       );
     }
     if (!Array.isArray(input.days) || !input.days.length) {
-      throw new BadRequestException('days must be a non-empty array');
+      throw new UnprocessableEntityException(userMsg.diasObligatorios);
     }
     for (const d of input.days) {
       try {
         DayOfWeek.create(d);
       } catch {
-        throw new BadRequestException(
-          `Each day must be one of: ${DAYS_OF_WEEK_ES.join(', ')}`,
+        throw new UnprocessableEntityException(
+          `Cada día debe ser uno de: ${DAYS_OF_WEEK_ES.join(', ')}.`,
         );
       }
     }
@@ -209,7 +203,7 @@ export class AttentionScheduleService {
     try {
       existing = await this.attentionScheduleRepository.findById(input.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     const start = timeToMinutes(input.start_time);
@@ -217,14 +211,10 @@ export class AttentionScheduleService {
     const endRecess = timeToMinutes((input as any).end_recess);
     const end = timeToMinutes(input.end_time);
     if ([start, startRecess, endRecess, end].some((v) => Number.isNaN(v))) {
-      throw new BadRequestException(
-        'start_time, start_recess, end_recess and end_time must be valid HH:mm',
-      );
+      throw new UnprocessableEntityException(userMsg.horasFormato);
     }
     if (!(start < startRecess && startRecess < endRecess && endRecess < end)) {
-      throw new BadRequestException(
-        'Times must satisfy start_time < start_recess < end_recess < end_time',
-      );
+      throw new UnprocessableEntityException(userMsg.horasOrden);
     }
 
     const others = await this.attentionScheduleRepository.findByPortfolio(input.portfolio_type_id);
@@ -238,7 +228,7 @@ export class AttentionScheduleService {
           s.end_time === input.end_time,
       );
     if (duplicate) {
-      throw new ConflictException(DUPLICATE_SCHEDULE_MSG);
+      throw new ConflictException({ message: userMsg.horarioDuplicado });
     }
 
     const normalized = { ...input, detail: capitalizeFirstWord(input.detail) };
@@ -259,13 +249,13 @@ export class AttentionScheduleService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
     try {
       await this.attentionScheduleRepository.update(normalized);
       return this.findById(input.id);
     } catch (error) {
-      throw new InternalServerErrorException('Error updating attention schedule');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -273,12 +263,12 @@ export class AttentionScheduleService {
     try {
       await this.attentionScheduleRepository.findById(id);
     } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
     try {
       await this.attentionScheduleRepository.delete(id);
     } catch (error) {
-      throw new InternalServerErrorException('Error deleting attention schedule');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }

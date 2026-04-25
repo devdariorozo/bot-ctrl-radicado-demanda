@@ -1,7 +1,7 @@
 // Responsabilidad: fachada de aplicación que usará el controller.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   ConflictException,
   Inject,
   Injectable,
@@ -24,6 +24,7 @@ import { DataBasesService } from '@application/services/dataBases.service';
 import { DataBasesId } from '@domain/value-objects/dataBases.valueobjects';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { CityViewsId } from '@domain/value-objects/portfolioCityConfig.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -44,14 +45,14 @@ export class PortfolioCityConfigService {
       CityViewsId.create(input.id_city_views);
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('id_data_bases, id_city_views and state_type_id must be valid');
+      throw new UnprocessableEntityException(userMsg.vinculosBaseCiudadEstado);
     }
 
     try {
       await this.dataBasesRepository.findById(input.id_data_bases);
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('One or more related records not found (data_bases or state_type)');
+      throw new NotFoundException({ message: userMsg.noRelacion });
     }
 
     const existing = await this.portfolioCityConfigRepository.findByDataBasesAndCityViews(
@@ -59,9 +60,7 @@ export class PortfolioCityConfigService {
       input.id_city_views,
     );
     if (existing) {
-      throw new ConflictException(
-        'PortfolioCityConfig for this id_data_bases and id_city_views already exists',
-      );
+      throw new ConflictException({ message: userMsg.configCiudadDuplicada });
     }
 
     const normalizedInput = { ...input, detail: capitalizeFirstWord(input.detail) };
@@ -70,7 +69,7 @@ export class PortfolioCityConfigService {
       const state = await this.stateTypeRepository.findById(created.state_type_id);
       return { ...created, state_type_name: state.stty_type };
     } catch (error) {
-      throw new InternalServerErrorException('Error creating portfolio city config');
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -78,7 +77,7 @@ export class PortfolioCityConfigService {
     try {
       return await this.portfolioCityConfigRepository.findAll();
     } catch (error) {
-      throw new InternalServerErrorException('Error getting all portfolio city configs');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -114,7 +113,7 @@ export class PortfolioCityConfigService {
         responsible: config.responsible,
       };
     } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -126,7 +125,7 @@ export class PortfolioCityConfigService {
       DataBasesId.create(id_data_bases);
       CityViewsId.create(id_city_views);
     } catch {
-      throw new BadRequestException('id_data_bases and id_city_views must be valid');
+      throw new UnprocessableEntityException(userMsg.vinculosBaseCiudad);
     }
     try {
       const config = await this.portfolioCityConfigRepository.findByDataBasesAndCityViews(
@@ -134,17 +133,13 @@ export class PortfolioCityConfigService {
         id_city_views,
       );
       if (!config) {
-        throw new NotFoundException(
-          'No se encontró configuración para los id_data_bases e id_city_views indicados',
-        );
+        throw new NotFoundException({ message: userMsg.registroNoEncontrado });
       }
       const state = await this.stateTypeRepository.findById(config.state_type_id);
       return { ...config, state_type_name: state.stty_type };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException(
-        'Error getting portfolio city config by data_bases and city_views',
-      );
+      throw new InternalServerErrorException(userMsg.noCargar);
     }
   }
 
@@ -154,21 +149,21 @@ export class PortfolioCityConfigService {
       CityViewsId.create(config.id_city_views);
       TblStateTypeId.create(config.state_type_id);
     } catch {
-      throw new BadRequestException('id_data_bases, id_city_views and state_type_id must be valid');
+      throw new UnprocessableEntityException(userMsg.vinculosBaseCiudadEstado);
     }
 
     let existing: PortfolioCityConfig;
     try {
       existing = await this.portfolioCityConfigRepository.findById(config.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     try {
       await this.dataBasesRepository.findById(config.id_data_bases);
       await this.stateTypeRepository.findById(config.state_type_id);
     } catch {
-      throw new NotFoundException('One or more related records not found');
+      throw new NotFoundException({ message: userMsg.noRelacion });
     }
 
     const other = await this.portfolioCityConfigRepository.findByDataBasesAndCityViews(
@@ -176,9 +171,7 @@ export class PortfolioCityConfigService {
       config.id_city_views,
     );
     if (other && other.id !== config.id) {
-      throw new ConflictException(
-        'Another config already exists for this id_data_bases and id_city_views',
-      );
+      throw new ConflictException({ message: userMsg.configCiudadEnUso });
     }
 
     const normalized = { ...config, detail: capitalizeFirstWord(config.detail) };
@@ -193,7 +186,7 @@ export class PortfolioCityConfigService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
 
     try {
@@ -201,7 +194,7 @@ export class PortfolioCityConfigService {
       const state = await this.stateTypeRepository.findById(updated.state_type_id);
       return { ...updated, state_type_name: state.stty_type };
     } catch (error) {
-      throw new InternalServerErrorException('Error updating portfolio city config');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -209,12 +202,12 @@ export class PortfolioCityConfigService {
     try {
       await this.portfolioCityConfigRepository.findById(id);
     } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
     try {
       await this.portfolioCityConfigRepository.delete(id);
     } catch (error) {
-      throw new InternalServerErrorException('Error deleting portfolio city config');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 
@@ -226,19 +219,17 @@ export class PortfolioCityConfigService {
     try {
       DataBasesId.create(id_data_bases);
     } catch {
-      throw new BadRequestException('id_data_bases must be a valid positive integer');
+      throw new UnprocessableEntityException(userMsg.idBasesPositivo);
     }
     try {
       await this.dataBasesRepository.findById(id_data_bases);
     } catch {
-      throw new NotFoundException('data_bases record not found');
+      throw new NotFoundException({ message: userMsg.notFoundBases });
     }
     try {
       return await this.dataBasesRepository.fetchVCitiesFromFirstBase(id_data_bases);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error querying v_cities view';
-      throw new InternalServerErrorException(message);
+      throw new InternalServerErrorException(userMsg.errorListadoCiudades);
     }
   }
 }

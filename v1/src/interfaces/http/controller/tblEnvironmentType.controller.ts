@@ -1,35 +1,34 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '../dto/tblEnvironmentType.dto';
 import { TblEnvironmentTypeService } from '@application/services/tblEnvironmentType.service';
 import { TblEnvironmentType } from '@domain/entities/tblEnvironmentType.entities';
 import { CreateTblEnvironmentTypeInput } from '@domain/ports/tblEnvironmentType.ports';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
-import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
+import { dataMany, dataOne } from '@application/utils/response.utils';
 
-/** Ejemplo JSON que Swagger muestra por defecto en el body (guía visual para quien use la API). */
 const createExampleSchema = {
     env_type: 'dev',
     env_detail: 'Ambiente de desarrollo',
     env_responsible: 'BOT ctrl radicado demanda',
 };
 
-/** Ejemplo JSON para actualizar. El env_id va solo en la URL (path), no en el body. */
 const updateExampleSchema = {
     env_type: 'dev',
     env_detail: 'Ambiente de desarrollo',
     env_responsible: 'BOT ctrl radicado demanda',
 };
 
-@ApiTags('tbl_environment_type')
-@Controller('tbl_environment_type')
+@ApiTags('environmentType')
+@Controller('environmentType')
 export class TblEnvironmentTypeController {
     constructor(private readonly tblEnvironmentTypeService: TblEnvironmentTypeService) {}
 
-    // Crear un nuevo tipo de entorno
-    @Post()
+    @Post('crear')
     @ApiOperation({ summary: 'Crear un nuevo tipo de entorno' })
     @ApiBody({
         description: 'El JSON de abajo sirve de guía.',
@@ -37,29 +36,19 @@ export class TblEnvironmentTypeController {
     })
     async create(@Body() dto: TblEnvironmentTypeDto) {
         const created = await this.tblEnvironmentTypeService.create(dto as CreateTblEnvironmentTypeInput);
-        return dataOne(created);
+        return { data: [this.toEnvironmentRow(created)], message: 'Registro creado correctamente' };
     }
 
-    // Listado simple para selects (env_id + label_name)
-    @Get('options')
-    @ApiOperation({ summary: 'Obtener opciones de tipos de entorno para selects' })
+    @Get('opciones')
+    @ApiOperation({ summary: 'Obtener opciones de tipos de entorno para selects (env_id, label_name)' })
     async options() {
         const all = await this.tblEnvironmentTypeService.findAll();
         const items = all.map((item) => ({ env_id: item.env_id, label_name: item.env_type }));
         return dataMany(items);
     }
 
-    // Obtener un tipo de entorno por su env_type (debe ir antes de :id para evitar conflictos de ruta)
-    @Get('type/:type')
-    @ApiOperation({ summary: 'Obtener un tipo de entorno por su env_type' })
-    async findByType(@Param('type') type: string) {
-        const item = await this.tblEnvironmentTypeService.findByType(type);
-        return dataOne(item);
-    }
-
-    // Obtener todos los tipos de entorno
-    @Get()
-    @ApiOperation({ summary: 'Obtener todos los tipos de entorno' })
+    @Get('listar')
+    @ApiOperation({ summary: 'Listar todos los tipos de entorno con filtros opcionales' })
     @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
     @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
     @ApiQuery({ name: 'env_type', required: false, type: String, description: 'Filtrar por env_type (búsqueda parcial, opcional).' })
@@ -74,14 +63,7 @@ export class TblEnvironmentTypeController {
     ): Promise<PaginatedResult<TblEnvironmentTypeDto>> {
         const all = await this.tblEnvironmentTypeService.findAll();
 
-        const parseDate = (value?: string): Date | undefined => {
-            if (!value) return undefined;
-            const d = new Date(value);
-            return Number.isNaN(d.getTime()) ? undefined : d;
-        };
-
-        const start = parseDate(start_date);
-        const end = parseDate(end_date);
+        const { start, end } = getListQueryDateRange(start_date, end_date);
         const normalizedType = env_type?.trim().toLowerCase() || '';
 
         const byDate = all.filter((item) => {
@@ -97,34 +79,59 @@ export class TblEnvironmentTypeController {
             return true;
         });
 
-        return paginateArray(byFilters, page, limit);
+        return paginateArray(
+            byFilters.map((e) => this.toEnvironmentRow(e)),
+            page,
+            limit,
+        ) as unknown as PaginatedResult<TblEnvironmentTypeDto>;
     }
 
-    // Obtener un tipo de entorno por su env_id
-    @Get(':id')
+    @Get('filtrar/:id')
     @ApiOperation({ summary: 'Obtener un tipo de entorno por su env_id' })
-    async findById(@Param('id') id: number) {
-        const item = await this.tblEnvironmentTypeService.findById(id);
-        return dataOne(item);
+    async findById(@Param('id') id: string) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        const item = await this.tblEnvironmentTypeService.findById(numId);
+        return dataOne(this.toEnvironmentRow(item));
     }
 
-    // Actualizar un tipo de entorno
-    @Put(':id')
-    @ApiOperation({ summary: 'Actualizar un tipo de entorno' })
+    @Put('actualizar/:id')
+    @ApiOperation({ summary: 'Actualizar un tipo de entorno por su env_id' })
     @ApiBody({
         description: 'El JSON de abajo sirve de guía.',
         schema: { allOf: [{ $ref: getSchemaPath(UpdateTblEnvironmentTypeDto) }], example: updateExampleSchema },
     })
-    async update(@Param('id') id: number, @Body() body: UpdateTblEnvironmentTypeDto): Promise<TblEnvironmentTypeDto> {
-        return this.tblEnvironmentTypeService.update({ ...body, env_id: Number(id) } as TblEnvironmentType);
+    async update(@Param('id') id: string, @Body() body: UpdateTblEnvironmentTypeDto) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        await this.tblEnvironmentTypeService.update({ ...body, env_id: numId } as TblEnvironmentType);
+        return { data: null, message: 'Registro actualizado correctamente' };
     }
 
-    // Eliminar un tipo de entorno
-    @Delete(':id')
-    @ApiOperation({ summary: 'Eliminar un tipo de entorno' })
-    async delete(@Param('id') id: number) {
-        await this.tblEnvironmentTypeService.delete(id);
-        return dataEmpty();
+    @Delete('eliminar/:id')
+    @ApiOperation({ summary: 'Eliminar un tipo de entorno por su env_id' })
+    async delete(@Param('id') id: string) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        await this.tblEnvironmentTypeService.delete(numId);
+        return { data: null, message: 'Registro eliminado correctamente' };
+    }
+
+    /** Misma fila y orden: crear / listar / filtrar. Orden = tabla. */
+    private toEnvironmentRow(e: TblEnvironmentType): Record<string, unknown> {
+        return {
+            env_id: e.env_id,
+            env_type: e.env_type,
+            env_detail: e.env_detail,
+            env_created_at: e.env_created_at,
+            env_updated_at: e.env_updated_at,
+            env_responsible: e.env_responsible,
+        };
     }
 }
-

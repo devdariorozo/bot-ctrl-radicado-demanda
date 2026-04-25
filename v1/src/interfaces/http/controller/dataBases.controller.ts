@@ -1,198 +1,183 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { DataBasesDto, UpdateDataBasesDto } from '../dto/dataBases.dto';
-import { DataBasesService } from '@application/services/dataBases.service';
+import { DataBasesService, shortLabelForBases } from '@application/services/dataBases.service';
 import { DataBases } from '@domain/entities/dataBases.entities';
 import { CreateDataBasesInput } from '@domain/ports/dataBases.ports';
-import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
-import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
+import { paginateArray } from '@application/utils/pagination.utils';
+import { dataMany, dataOne } from '@application/utils/response.utils';
+import { fromCreateDataBasesDto, fromUpdateDataBasesDto, toDataBasesApi } from '../mappers/dataBasesHttp.mappers';
 
-/** Ejemplo JSON que Swagger muestra por defecto en el body (guía visual para quien use la API). */
 const createExampleSchema = {
-  environment_type_id: 1,
-  portfolio_type_id: 1,
-  bases: {
-    dev_db_1: {
+  db_environment_type_id: 1,
+  db_portfolio_type_id: 1,
+  db_bases: {
+    miosv2_carteras_QA: {
       generate_pdf_demand_service: {
-        url: 'https://example.groupcos.com/api/v1',
-        api_key: 'sk_74b9d1c1e949ae8e60f52b1f2a4d7c89',
-      },
-    },
-    dev_db_2: {
-      generate_pdf_demand_service: {
-        url: 'https://example2.groupcos.com/api/v1',
+        url: 'https://qa-cartera.groupcos.com/api/v1',
         api_key: 'sk_74b9d1c1e949ae8e60f52b1f2a4d7c89',
       },
     },
   },
-  detail: 'Bases de datos para entorno dev, cartera Propias',
-  state_type_id: 1,
-  responsible: 'BOT ctrl filed demand',
+  db_detail: 'Bases de datos para entorno QA',
+  db_state_type_id: 1,
+  db_responsible: 'BOT ctrl radicado demanda',
 };
 
-/** Ejemplo JSON para actualizar. El id va solo en la URL (path), no en el body. */
-const updateExampleSchema = {
-  environment_type_id: 1,
-  portfolio_type_id: 1,
-  bases: {
-    dev_db_1: {
-      generate_pdf_demand_service: {
-        url: 'https://example.groupcos.com/api/v1',
-        api_key: 'sk_74b9d1c1e949ae8e60f52b1f2a4d7c89',
-      },
-    },
-  },
-  detail: 'Bases de datos para entorno dev, cartera Propias',
-  state_type_id: 1,
-  responsible: 'BOT ctrl filed demand',
-};
+const updateExampleSchema = { ...createExampleSchema };
 
-@ApiTags('dataBases')
-@Controller('dataBases')
+@ApiTags('tbl_data_bases')
+@Controller('tbl_data_bases')
 export class DataBasesController {
   constructor(private readonly dataBasesService: DataBasesService) {}
 
-  // Crear un nuevo registro de bases
-  @Post()
-  @ApiOperation({ summary: 'Crear un nuevo registro de bases' })
+  @Post('crear')
+  @ApiOperation({ summary: 'Crear un registro en tbl_data_bases' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
     schema: { allOf: [{ $ref: getSchemaPath(DataBasesDto) }], example: createExampleSchema },
   })
   async create(@Body() dto: DataBasesDto) {
-    const created = await this.dataBasesService.create(dto as CreateDataBasesInput);
-    return dataOne(created);
+    const input: CreateDataBasesInput = fromCreateDataBasesDto(dto);
+    const created = await this.dataBasesService.create(input);
+    // Misma carga enriquecida y mismo orden que listar / filtrar
+    const full = await this.dataBasesService.findById(created.id);
+    return { data: [toDataBasesApi(full)], message: 'Registro creado correctamente' };
   }
 
-  // Listado simple para selects (id + label_name)
-  @Get('options')
-  @ApiOperation({ summary: 'Obtener opciones de bases de datos para selects' })
+  @Get('opciones')
+  @ApiOperation({
+    summary: 'Opciones para selects (db_id, label_name); excluye entornos de tipo producción',
+  })
   async options() {
     const all = await this.dataBasesService.findAll();
-    const items = all.map((item) => ({
-      id: item.id,
-      label_name: item.label_data_base ?? item.detail,
+    const list = this.dataBasesService.findOptionsExcludingProduction(all);
+    const items = list.map((item) => ({
+      db_id: item.id,
+      label_name: shortLabelForBases(item.bases, item.detail),
     }));
     return dataMany(items);
   }
 
-  // Obtener todos los registros de bases
-  @Get()
-  @ApiOperation({ summary: 'Obtener todos los registros de bases' })
-  @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
-  @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
-  @ApiQuery({ name: 'data_bases_id', required: false, type: Number, description: 'Filtrar por data_bases_id (opcional)' })
-  @ApiQuery({ name: 'environment_type_id', required: false, type: Number, description: 'Filtrar por environment_type_id (opcional)' })
-  @ApiQuery({ name: 'portfolio_type_id', required: false, type: Number, description: 'Filtrar por portfolio_type_id (opcional)' })
-  @ApiQuery({ name: 'state_type_id', required: false, type: Number, description: 'Filtrar por state_type_id (opcional)' })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (>=1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Registros por página (>=1)' })
+  @Get('opcionesActivas')
+  @ApiOperation({
+    summary: 'Opciones activas: db_id y label_name; excluye tipo de estado inactivo (stty_type con "inactiv")',
+  })
+  async optionsActive() {
+    const all = await this.dataBasesService.findAll();
+    const list = this.dataBasesService.findOptionsActiveState(all);
+    const items = list.map((item) => ({
+      db_id: item.id,
+      label_name: shortLabelForBases(item.bases, item.detail),
+    }));
+    return dataMany(items);
+  }
+
+  @Get('listar')
+  @ApiOperation({ summary: 'Listar con filtros opcionales' })
+  @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha creación desde (YYYY-MM-DD).' })
+  @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha creación hasta (YYYY-MM-DD).' })
+  @ApiQuery({ name: 'db_environment_type_id', required: false, type: Number, description: 'Filtrar por env_id' })
+  @ApiQuery({ name: 'db_portfolio_type_id', required: false, type: Number, description: 'Filtrar por porty_id' })
+  @ApiQuery({ name: 'db_bases', required: false, type: String, description: 'Subcadena en JSON serializado de db_bases' })
+  @ApiQuery({ name: 'db_state_type_id', required: false, type: Number, description: 'Filtrar por stty_id' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Página (>=1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Tamaño de página (>=1)' })
   async findAll(
     @Query('start_date') start_date?: string,
     @Query('end_date') end_date?: string,
-    @Query('data_bases_id') data_bases_id?: number,
-    @Query('environment_type_id') environment_type_id?: number,
-    @Query('portfolio_type_id') portfolio_type_id?: number,
-    @Query('state_type_id') state_type_id?: number,
+    @Query('db_environment_type_id') db_environment_type_id?: number,
+    @Query('db_portfolio_type_id') db_portfolio_type_id?: number,
+    @Query('db_bases') db_bases?: string,
+    @Query('db_state_type_id') db_state_type_id?: number,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
-  ): Promise<PaginatedResult<DataBasesDto>> {
-    const normalizeFilterId = (value: unknown): number | undefined => {
+  ) {
+    const normalizeId = (value: unknown): number | undefined => {
       if (value === undefined || value === null || (value as any) === '') return undefined;
       const n = typeof value === 'number' ? value : Number(value as any);
       if (!Number.isFinite(n) || n <= 0) return undefined;
       return Math.floor(n);
     };
 
-    const dbId = normalizeFilterId(data_bases_id);
-    const envId = normalizeFilterId(environment_type_id);
-    const portfId = normalizeFilterId(portfolio_type_id);
-    const stateId = normalizeFilterId(state_type_id);
+    const envF = normalizeId(db_environment_type_id);
+    const portF = normalizeId(db_portfolio_type_id);
+    const stateF = normalizeId(db_state_type_id);
+    const basesQ = (db_bases ?? '').trim().toLowerCase();
 
     const all = await this.dataBasesService.findAll();
 
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
-    const start = parseDate(start_date);
-    const end = parseDate(end_date);
+    const { start, end } = getListQueryDateRange(start_date, end_date);
 
     const byDate = all.filter((item) => {
-      const created = (item as any).created_at ? new Date((item as any).created_at) : undefined;
+      const created = item.created_at ? new Date(item.created_at) : undefined;
       if (!created || Number.isNaN(created.getTime())) return true;
       if (start && created < start) return false;
       if (end && created > end) return false;
       return true;
     });
 
-    const hasDbFilter = dbId !== undefined;
-    const hasEnvFilter = envId !== undefined;
-    const hasPortfFilter = portfId !== undefined;
-    const hasStateFilter = stateId !== undefined;
-
-    const hasAnyIdFilter = hasDbFilter || hasEnvFilter || hasPortfFilter || hasStateFilter;
-
-    // Si NO viene ningún filtro de IDs, devolvemos todo lo filtrado solo por fecha.
-    if (!hasAnyIdFilter) {
-      return paginateArray(byDate, page, limit);
-    }
-
     const filtered = byDate.filter((item) => {
-      if (hasDbFilter && Number(item.id) !== Number(dbId)) {
-        return false;
+      if (envF !== undefined && Number(item.environment_type_id) !== envF) return false;
+      if (portF !== undefined && Number(item.portfolio_type_id) !== portF) return false;
+      if (stateF !== undefined && Number(item.state_type_id) !== stateF) return false;
+      if (basesQ) {
+        const hay = jsonStringifyLower(item.bases);
+        if (!hay.includes(basesQ)) return false;
       }
-
-      if (hasEnvFilter && Number(item.environment_type_id) !== Number(envId)) {
-        return false;
-      }
-
-      if (hasPortfFilter && Number(item.portfolio_type_id) !== Number(portfId)) {
-        return false;
-      }
-
-      if (hasStateFilter && Number(item.state_type_id) !== Number(stateId)) {
-        return false;
-      }
-
       return true;
     });
 
-    return paginateArray(filtered, page, limit);
+    const asApi = filtered.map((row) => toDataBasesApi(row));
+    return paginateArray(asApi, page, limit);
   }
 
-  // Obtener un registro de bases por su id
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener un registro de bases por su id' })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (>=1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Registros por página (>=1)' })
-  async findById(@Param('id') id: number) {
-    const item = await this.dataBasesService.findById(id);
-    return dataOne(item);
+  @Get('filtrar/:id')
+  @ApiOperation({ summary: 'Obtener un registro por db_id' })
+  async findById(@Param('id') id: string) {
+    const numId = Number(id);
+    if (!Number.isInteger(numId) || numId <= 0) {
+      throw new BadRequestException(userMsg.idUrlEntero);
+    }
+    const item = await this.dataBasesService.findById(numId);
+    return dataOne(toDataBasesApi(item));
   }
 
-  // Actualizar un registro de bases
-  @Put(':id')
-  @ApiOperation({ summary: 'Actualizar un registro de bases' })
+  @Put('actualizar/:id')
+  @ApiOperation({ summary: 'Actualizar por db_id' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
     schema: { allOf: [{ $ref: getSchemaPath(UpdateDataBasesDto) }], example: updateExampleSchema },
   })
-  async update(@Param('id') id: number, @Body() body: UpdateDataBasesDto) {
-    const updated = await this.dataBasesService.update({ ...body, id: Number(id) } as DataBases);
-    return dataOne(updated);
+  async update(@Param('id') id: string, @Body() body: UpdateDataBasesDto) {
+    const numId = Number(id);
+    if (!Number.isInteger(numId) || numId <= 0) {
+      throw new BadRequestException(userMsg.idUrlEntero);
+    }
+    await this.dataBasesService.update(fromUpdateDataBasesDto(body, numId));
+    return { data: null, message: 'Registro actualizado correctamente' };
   }
 
-  // Eliminar un registro de bases
-  @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un registro de bases' })
-  async delete(@Param('id') id: number) {
-    await this.dataBasesService.delete(id);
-    return dataEmpty();
+  @Delete('eliminar/:id')
+  @ApiOperation({ summary: 'Eliminar por db_id' })
+  async delete(@Param('id') id: string) {
+    const numId = Number(id);
+    if (!Number.isInteger(numId) || numId <= 0) {
+      throw new BadRequestException(userMsg.idUrlEntero);
+    }
+    await this.dataBasesService.delete(numId);
+    return { data: null, message: 'Registro eliminado correctamente' };
   }
 }
 
+function jsonStringifyLower(bases: DataBases['bases']): string {
+  try {
+    return JSON.stringify(bases).toLowerCase();
+  } catch {
+    return '';
+  }
+}

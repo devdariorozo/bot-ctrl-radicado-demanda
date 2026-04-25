@@ -6,6 +6,7 @@ import { PortfolioCityConfigDto, UpdatePortfolioCityConfigDto } from '../dto/por
 import { PortfolioCityConfigService } from '@application/services/portfolioCityConfig.service';
 import { PortfolioCityConfig } from '@domain/entities/portfolioCityConfig.entities';
 import { CreatePortfolioCityConfigInput } from '@domain/ports/portfolioCityConfig.ports';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
 import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
 
@@ -43,7 +44,7 @@ export class PortfolioCityConfigController {
     return Math.floor(n);
   }
 
-  @Post()
+  @Post('crear')
   @ApiOperation({ summary: 'Crear una nueva configuración cartera-ciudad' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -57,7 +58,7 @@ export class PortfolioCityConfigController {
     return dataOne(created);
   }
 
-  @Get('options')
+  @Get('opciones')
   @ApiOperation({ summary: 'Obtener opciones de configuración cartera-ciudad para selects' })
   async options() {
     const all = await this.portfolioCityConfigService.findAll();
@@ -73,7 +74,7 @@ export class PortfolioCityConfigController {
     return dataMany(items);
   }
 
-  @Get()
+  @Get('listar')
   @ApiOperation({ summary: 'Obtener todas las configuraciones' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
@@ -93,14 +94,7 @@ export class PortfolioCityConfigController {
   ): Promise<PaginatedResult<PortfolioCityConfigDto>> {
     const all = await this.portfolioCityConfigService.findAll();
 
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
-    const start = parseDate(start_date);
-    const end = parseDate(end_date);
+    const { start, end } = getListQueryDateRange(start_date, end_date);
 
     const dbId = this.normalizeIdFilter(id_data_bases);
     const cityId = this.normalizeIdFilter(id_city_views);
@@ -124,7 +118,7 @@ export class PortfolioCityConfigController {
     return paginateArray(filtered, page, limit);
   }
 
-  @Get('vCitiesFetch')
+  @Get('ciudades')
   @ApiOperation({
     summary: 'vCitiesFetch - Consultar vista v_cities',
     description:
@@ -141,7 +135,7 @@ export class PortfolioCityConfigController {
     return dataMany(items);
   }
 
-  @Get(':id')
+  @Get('filtrar/:id')
   @ApiOperation({ summary: 'Obtener una configuración por id' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (>=1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Registros por página (>=1)' })
@@ -150,7 +144,7 @@ export class PortfolioCityConfigController {
     return dataOne(item);
   }
 
-  @Put(':id')
+  @Put('actualizar/:id')
   @ApiOperation({ summary: 'Actualizar una configuración' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -167,7 +161,7 @@ export class PortfolioCityConfigController {
     return dataOne(updated);
   }
 
-  @Delete(':id')
+  @Delete('eliminar/:id')
   @ApiOperation({ summary: 'Eliminar una configuración' })
   async delete(@Param('id') id: number) {
     await this.portfolioCityConfigService.delete(id);

@@ -1,7 +1,7 @@
 // Responsabilidad: fachada de aplicación para company_type que usará el controller.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   ConflictException,
   Inject,
   Injectable,
@@ -18,6 +18,7 @@ import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@doma
 import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
 import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -66,28 +67,28 @@ export class CompanyTypeService {
     try {
       TblPortfolioTypeId.create(input.portfolio_type_id);
     } catch {
-      throw new BadRequestException('portfolio_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idCarteraEntero);
     }
 
     // Validar state_type_id
     try {
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     // Verificar existencia de portfolio_type
     try {
       await this.portfolioTypeRepository.findById(input.portfolio_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given portfolio type id');
+      throw new NotFoundException({ message: userMsg.notFoundCartera });
     }
 
     // Verificar existencia de state_type
     try {
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('No data found for the given state type id');
+      throw new NotFoundException({ message: userMsg.notFoundEstado });
     }
 
     // Normalizar campos
@@ -111,13 +112,13 @@ export class CompanyTypeService {
       normalized.document_number,
     );
     if (duplicate) {
-      throw new ConflictException('Company with the same document already exists');
+      throw new ConflictException({ message: userMsg.documentoRegistroDuplicado });
     }
 
     try {
       return await this.companyTypeRepository.create(normalized);
     } catch (error) {
-      throw new InternalServerErrorException('Error creating company type');
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -126,7 +127,7 @@ export class CompanyTypeService {
     try {
       return await this.companyTypeRepository.findAll();
     } catch (error) {
-      throw new InternalServerErrorException('Error getting all company types');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -157,7 +158,7 @@ export class CompanyTypeService {
         responsible: company.responsible,
       };
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -167,13 +168,13 @@ export class CompanyTypeService {
     try {
       TblPortfolioTypeId.create(company.portfolio_type_id);
     } catch {
-      throw new BadRequestException('portfolio_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idCarteraEntero);
     }
 
     try {
       TblStateTypeId.create(company.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id must be a positive integer');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     // Verificar existencia
@@ -181,7 +182,7 @@ export class CompanyTypeService {
     try {
       existing = await this.companyTypeRepository.findById(company.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     const normalized: CompanyType = {
@@ -209,13 +210,13 @@ export class CompanyTypeService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
 
     try {
       return await this.companyTypeRepository.update(normalized);
     } catch (error) {
-      throw new InternalServerErrorException('Error updating company type');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -224,13 +225,13 @@ export class CompanyTypeService {
     try {
       await this.companyTypeRepository.findById(id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     try {
       await this.companyTypeRepository.delete(id);
     } catch {
-      throw new InternalServerErrorException('Error deleting company type');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }

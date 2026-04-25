@@ -1,7 +1,14 @@
 // Responsabilidad: fachada de aplicación que usará el controller.
 
-import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DataBases } from '@domain/entities/dataBases.entities';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { BasesConfig, DataBases } from '@domain/entities/dataBases.entities';
 import { CreateDataBasesInput, DataBasesRepository, DATABASES_REPOSITORY } from '@domain/ports/dataBases.ports';
 import { TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from '@domain/ports/tblEnvironmentType.ports';
 import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
@@ -10,12 +17,33 @@ import { TblEnvironmentTypeId } from '@domain/value-objects/tblEnvironmentType.v
 import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
+import { jsonStableStringify } from '@application/utils/jsonStableStringify.utils';
 
-/** Construye label_data_base: si environment es "pro" solo portfolio, sino "portfolio environment". */
 function buildLabelDataBase(portfolioTypeName: string, environmentTypeName: string): string {
   const env = (environmentTypeName || '').trim().toLowerCase();
   if (env === 'pro') return portfolioTypeName;
   return `${portfolioTypeName} ${environmentTypeName}`.trim();
+}
+
+/** Excluir opciones cuyo entorno sea "producción" (heurística: pro, prod, production, producción). */
+export function isProductionEnvironmentName(envType: string): boolean {
+  const t = (envType || '').trim().toLowerCase();
+  if (!t) return false;
+  if (t === 'pro') return true;
+  if (t === 'producción' || t === 'produccion') return true;
+  if (t.includes('prod')) return true;
+  if (t.includes('production') || t.includes('producción') || t.includes('produccion')) return true;
+  return false;
+}
+
+/** Nombre corto mostrable para `db_bases` en selects: primera clave del JSON, si existe. */
+export function shortLabelForBases(bases: BasesConfig, detail: string): string {
+  if (bases && typeof bases === 'object') {
+    const k = Object.keys(bases);
+    if (k.length) return k[0];
+  }
+  return (detail || '').trim() || 'config';
 }
 
 @Injectable()
@@ -31,50 +59,40 @@ export class DataBasesService {
     private readonly stateTypeRepository: TblStateTypeRepository,
   ) {}
 
-  // Crear un nuevo registro de bases
   async create(input: CreateDataBasesInput): Promise<DataBases> {
-    // Validar que los IDs sean enteros positivos
     try {
       TblEnvironmentTypeId.create(input.environment_type_id);
       TblPortfolioTypeId.create(input.portfolio_type_id);
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('All foreign keys must be positive integers');
+      throw new UnprocessableEntityException(userMsg.fkEnterosPositivos);
     }
 
-    // Validar que existan en BD
     try {
       await this.environmentTypeRepository.findById(input.environment_type_id);
       await this.portfolioTypeRepository.findById(input.portfolio_type_id);
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('One or more related records not found');
+      throw new NotFoundException({ message: 'Registro no encontrado' });
     }
 
-    // Validar que bases no sea vacío
     if (!input.bases || typeof input.bases !== 'object' || Object.keys(input.bases).length === 0) {
-      throw new BadRequestException('At least one base must be provided');
+      throw new UnprocessableEntityException(userMsg.alMenosUnaBase);
     }
 
-    // Evitar duplicados por combinación environment/portfolio
-    const existing = (await this.dataBasesRepository.findAll()).find(
-      (db) =>
-        db.environment_type_id === input.environment_type_id &&
-        db.portfolio_type_id === input.portfolio_type_id,
-    );
-    if (existing) {
-      throw new ConflictException('DataBases record for this environment/portfolio already exists');
+    const duplicate = await this.dataBasesRepository.findByDuplicateBases(input.bases);
+    if (duplicate) {
+      throw new ConflictException({ message: 'El registro ya existe', db_bases: input.bases });
     }
 
     const normalizedInput = { ...input, detail: capitalizeFirstWord(input.detail) };
     try {
       return await this.dataBasesRepository.create(normalizedInput);
-    } catch (error) {
-      throw new InternalServerErrorException('Error creating dataBases record');
+    } catch {
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
-  // Obtener todos los registros de bases (enriquecidos con _name y label_data_base)
   async findAll(): Promise<DataBases[]> {
     try {
       const [dbs, envTypes, portfolioTypes, stateTypes] = await Promise.all([
@@ -93,6 +111,9 @@ export class DataBasesService {
         const envType = env?.env_type ?? '';
         const portfolioType = portfolio?.porty_type ?? '';
         const stateType = state?.stty_type ?? '';
+        const pStateName = portfolio
+          ? stateMap.get(portfolio.porty_state_type_id)?.stty_type ?? ''
+          : '';
         return {
           id: db.id,
           environment_type_id: db.environment_type_id,
@@ -104,79 +125,78 @@ export class DataBasesService {
           detail: db.detail,
           state_type_id: db.state_type_id,
           state_type_name: stateType,
+          portfolio_state_type_name: pStateName,
           created_at: db.created_at,
           updated_at: db.updated_at,
           responsible: db.responsible,
         };
       });
-    } catch (error) {
-      throw new InternalServerErrorException('Error getting all dataBases records');
+    } catch {
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
-  // Obtener registros de bases por combinación entorno/cartera (enriquecidos con _name y label_data_base)
-  async findByEnvAndPortf(
-    environment_type_id: number,
-    portfolio_type_id: number,
-  ): Promise<DataBases[]> {
+  /** `opciones`: excluir filas cuyo entorno asociado se considere producción. */
+  findOptionsExcludingProduction(enriched: DataBases[]): DataBases[] {
+    return enriched.filter((r) => !isProductionEnvironmentName(r.environment_type_name ?? ''));
+  }
+
+  /** `opcionesActivas`: estado de la fila (data_bases) activo, no inactivo en stty_type. */
+  findOptionsActiveState(enriched: DataBases[]): DataBases[] {
+    return enriched.filter((r) => {
+      const n = (r.state_type_name ?? '').toLowerCase();
+      return n.length > 0 && !n.includes('inactiv');
+    });
+  }
+
+  async findByEnvAndPortf(environment_type_id: number, portfolio_type_id: number): Promise<DataBases[]> {
     try {
       const all = await this.findAll();
       return all.filter(
-        (db) =>
-          db.environment_type_id === environment_type_id &&
-          db.portfolio_type_id === portfolio_type_id,
+        (db) => db.environment_type_id === environment_type_id && db.portfolio_type_id === portfolio_type_id,
       );
-    } catch (error) {
-      throw new InternalServerErrorException('Error getting dataBases by environment and portfolio');
+    } catch {
+      throw new InternalServerErrorException(userMsg.noCargar);
     }
   }
 
-  // Obtener un registro de bases por su id
   async findById(id: number): Promise<DataBases> {
     try {
       const db = await this.dataBasesRepository.findById(id);
-      const [env, portfolio, state] = await Promise.all([
-        this.environmentTypeRepository.findById(db.environment_type_id),
-        this.portfolioTypeRepository.findById(db.portfolio_type_id),
-        this.stateTypeRepository.findById(db.state_type_id),
-      ]);
-
       return {
-        id: db.id,
-        environment_type_id: db.environment_type_id,
-        environment_type_name: env.env_type,
-        portfolio_type_id: db.portfolio_type_id,
-        portfolio_type_name: portfolio.porty_type,
-        label_data_base: buildLabelDataBase(portfolio.porty_type, env.env_type),
-        bases: db.bases,
-        detail: db.detail,
-        state_type_id: db.state_type_id,
-        state_type_name: state.stty_type,
-        created_at: db.created_at,
-        updated_at: db.updated_at,
-        responsible: db.responsible,
+        ...db,
+        label_data_base: buildLabelDataBase(
+          db.portfolio_type_name ?? '',
+          db.environment_type_name ?? '',
+        ),
       };
-    } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+    } catch {
+      throw new NotFoundException({ message: 'Registro no encontrado', id });
     }
   }
 
-  // Actualizar un registro de bases
   async update(dataBases: DataBases): Promise<DataBases> {
-    // Validar que los IDs sean enteros positivos
     try {
       TblEnvironmentTypeId.create(dataBases.environment_type_id);
       TblPortfolioTypeId.create(dataBases.portfolio_type_id);
       TblStateTypeId.create(dataBases.state_type_id);
     } catch {
-      throw new BadRequestException('All foreign keys must be positive integers');
+      throw new UnprocessableEntityException(userMsg.fkEnterosPositivos);
+    }
+
+    try {
+      await this.environmentTypeRepository.findById(dataBases.environment_type_id);
+      await this.portfolioTypeRepository.findById(dataBases.portfolio_type_id);
+      await this.stateTypeRepository.findById(dataBases.state_type_id);
+    } catch {
+      throw new NotFoundException({ message: 'Registro no encontrado' });
     }
 
     let existing: DataBases;
     try {
       existing = await this.dataBasesRepository.findById(dataBases.id);
     } catch {
-      throw new NotFoundException('No data found for the given id');
+      throw new NotFoundException({ message: 'Registro no encontrado', id: dataBases.id });
     }
 
     const normalized = { ...dataBases, detail: capitalizeFirstWord(dataBases.detail) };
@@ -186,31 +206,40 @@ export class DataBasesService {
       existing.state_type_id !== normalized.state_type_id ||
       existing.detail !== normalized.detail ||
       existing.responsible !== normalized.responsible ||
-      JSON.stringify(existing.bases) !== JSON.stringify(normalized.bases);
+      jsonStableStringify(existing.bases) !== jsonStableStringify(normalized.bases);
 
     if (!hasChanges) {
-      throw new BadRequestException('No changes to update');
+      throw new UnprocessableEntityException({ message: 'No hay cambios para actualizar', id: dataBases.id });
     }
 
+    const toSave: DataBases = {
+      id: existing.id,
+      environment_type_id: normalized.environment_type_id,
+      portfolio_type_id: normalized.portfolio_type_id,
+      bases: normalized.bases,
+      detail: normalized.detail,
+      state_type_id: normalized.state_type_id,
+      created_at: existing.created_at,
+      updated_at: new Date(),
+      responsible: normalized.responsible,
+    };
     try {
-      return await this.dataBasesRepository.update(normalized);
-    } catch (error) {
-      throw new InternalServerErrorException('Error updating dataBases record');
+      return await this.dataBasesRepository.update(toSave);
+    } catch {
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
-  // Eliminar un registro de bases
   async delete(id: number): Promise<void> {
     try {
       await this.dataBasesRepository.findById(id);
-    } catch (error) {
-      throw new NotFoundException('No data found for the given id');
+    } catch {
+      throw new NotFoundException({ message: 'Registro no encontrado', id });
     }
     try {
       await this.dataBasesRepository.delete(id);
-    } catch (error) {
-      throw new InternalServerErrorException('Error deleting dataBases record');
+    } catch {
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }
-

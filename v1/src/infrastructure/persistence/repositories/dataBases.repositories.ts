@@ -4,7 +4,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
-import { DataBases } from '@domain/entities/dataBases.entities';
+import { BasesConfig, DataBases } from '@domain/entities/dataBases.entities';
+import { jsonStableStringify } from '@application/utils/jsonStableStringify.utils';
 import { DataBasesEntity } from '../entities/dataBases.entities';
 import {
   DataBasesRepository,
@@ -38,6 +39,27 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
     };
     const saved = await this.repo.save(entity as DataBasesEntity);
     return saved;
+  }
+
+  async findByDuplicateBases(bases: BasesConfig): Promise<DataBases | null> {
+    const target = jsonStableStringify(bases);
+    const rows = await this.repo.find();
+    for (const e of rows) {
+      if (jsonStableStringify(e.bases as BasesConfig) === target) {
+        return {
+          id: e.id,
+          environment_type_id: e.environment_type_id,
+          portfolio_type_id: e.portfolio_type_id,
+          bases: e.bases as BasesConfig,
+          detail: e.detail,
+          state_type_id: e.state_type_id,
+          created_at: e.created_at,
+          updated_at: e.updated_at,
+          responsible: e.responsible,
+        };
+      }
+    }
+    return null;
   }
 
   // Obtener todos los registros de bases (con nombres de tipos vía JOIN)
@@ -87,7 +109,7 @@ export class DataBasesRepositoryImpl implements DataBasesRepository {
       .leftJoin(TblEnvironmentTypeEntity, 'env', 'env.env_id = db.environment_type_id')
       .leftJoin(TblPortfolioTypeEntity, 'pf', 'pf.porty_id = db.portfolio_type_id')
       .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = db.state_type_id')
-      .leftJoin(TblStateTypeEntity, 'st_pf', 'st_pf.stty_id = pf.state_type_id')
+      .leftJoin(TblStateTypeEntity, 'st_pf', 'st_pf.stty_id = pf.porty_state_type_id')
       .select([
         'db.id',
         'db.environment_type_id',

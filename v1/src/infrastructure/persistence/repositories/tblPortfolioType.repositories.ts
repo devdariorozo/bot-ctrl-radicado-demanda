@@ -58,6 +58,38 @@ export class TblPortfolioTypeRepositoryImpl implements TblPortfolioTypeRepositor
         }));
     }
 
+    async findAllActive(): Promise<TblPortfolioType[]> {
+        const raw = await this.repo
+            .createQueryBuilder('pt')
+            .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = pt.porty_state_type_id')
+            .where('LOWER(COALESCE(st.stty_type, :empty)) NOT LIKE :pattern', {
+                pattern: '%inactiv%',
+                empty: '',
+            })
+            .select([
+                'pt.porty_id',
+                'pt.porty_type',
+                'pt.porty_detail',
+                'pt.porty_state_type_id',
+                'pt.porty_created_at',
+                'pt.porty_updated_at',
+                'pt.porty_responsible',
+            ])
+            .addSelect('st.stty_type', 'state_type_name')
+            .orderBy('pt.porty_id', 'DESC')
+            .getRawMany();
+        return raw.map((row: Record<string, unknown>) => ({
+            porty_id: row.pt_porty_id as number,
+            porty_type: row.pt_porty_type as string,
+            porty_detail: row.pt_porty_detail as string,
+            porty_state_type_id: row.pt_porty_state_type_id as number,
+            state_type_name: (row.state_type_name as string) ?? '',
+            porty_created_at: row.pt_porty_created_at as Date,
+            porty_updated_at: row.pt_porty_updated_at as Date,
+            porty_responsible: row.pt_porty_responsible as string,
+        }));
+    }
+
     async findById(id: number): Promise<TblPortfolioType> {
         const found = await this.repo.findOneBy({ porty_id: id });
         if (!found) {
@@ -82,7 +114,17 @@ export class TblPortfolioTypeRepositoryImpl implements TblPortfolioTypeRepositor
     }
 
     async update(input: TblPortfolioType): Promise<TblPortfolioType> {
-        return this.repo.save(input);
+        await this.repo.update(
+            { porty_id: input.porty_id },
+            {
+                porty_type: input.porty_type,
+                porty_detail: input.porty_detail,
+                porty_state_type_id: input.porty_state_type_id,
+                porty_responsible: input.porty_responsible,
+                porty_updated_at: input.porty_updated_at,
+            },
+        );
+        return this.findById(input.porty_id);
     }
 
     async delete(id: number): Promise<void> {

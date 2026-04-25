@@ -29,7 +29,7 @@ async function runSeeds() {
       await qr.query('TRUNCATE TABLE lawyer_data');
       await qr.query('TRUNCATE TABLE holiday');
       await qr.query('TRUNCATE TABLE amount_type');
-      await qr.query('TRUNCATE TABLE data_bases');
+      await qr.query('TRUNCATE TABLE tbl_data_bases');
       await qr.query('TRUNCATE TABLE attention_schedule');
       await qr.query('TRUNCATE TABLE portfolio_city_config');
       await qr.query('TRUNCATE TABLE management_demands_online');

@@ -29,7 +29,7 @@ type ResponseType = 'success' | 'info' | 'warning' | 'error';
 
 function mapStatusToType(status: number): ResponseType {
   if (status >= 200 && status < 300) return 'success';
-  if (status === 400) return 'warning';
+  if (status === 400 || status === 422) return 'warning';
   if (status === 409) return 'info';
   if (status >= 500) return 'error';
   return 'warning';
@@ -171,19 +171,21 @@ export class StandardResponseInterceptor implements NestInterceptor {
           };
         }
 
-        // Si el controller ya devolvió { data } (sin meta), usar ese data y no añadir page/limit/total
+        // Si el controller ya devolvió { data } (sin meta), usar ese data y no añadir page/limit/total.
+        // Si el body incluye un campo message, se respeta como mensaje personalizado.
         if (
           body &&
           typeof body === 'object' &&
           'data' in body &&
           !('meta' in body)
         ) {
-          const rawData = (body as { data: any }).data;
+          const rawData = (body as { data: any; message?: string }).data;
+          const bodyMessage = (body as { data: any; message?: string }).message;
           return {
             status,
             type,
             title,
-            message,
+            message: bodyMessage ?? message,
             data: formatDatesDeep(rawData),
           };
         }

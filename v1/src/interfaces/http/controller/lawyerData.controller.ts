@@ -6,6 +6,7 @@ import { LawyerDataDto, UpdateLawyerDataDto } from '../dto/lawyerData.dto';
 import { LawyerDataService } from '@application/services/lawyerData.service';
 import { LawyerData } from '@domain/entities/lawyerData.entities';
 import { CreateLawyerDataInput } from '@domain/ports/lawyerData.ports';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
 import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
 
@@ -35,7 +36,7 @@ const updateExampleSchema = {
 export class LawyerDataController {
   constructor(private readonly lawyerDataService: LawyerDataService) {}
 
-  @Post()
+  @Post('crear')
   @ApiOperation({ summary: 'Crear un nuevo registro de abogado (lawyer_data)' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -46,7 +47,7 @@ export class LawyerDataController {
     return dataOne(created);
   }
 
-  @Get('options')
+  @Get('opciones')
   @ApiOperation({ summary: 'Obtener opciones de abogados para selects' })
   async options() {
     const all = await this.lawyerDataService.findAll();
@@ -57,7 +58,7 @@ export class LawyerDataController {
     return dataMany(items);
   }
 
-  @Get()
+  @Get('listar')
   @ApiOperation({ summary: 'Obtener todos los registros de abogados' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
@@ -75,14 +76,7 @@ export class LawyerDataController {
   ): Promise<PaginatedResult<LawyerDataDto>> {
     const all = await this.lawyerDataService.findAll();
 
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
-    const start = parseDate(start_date);
-    const end = parseDate(end_date);
+    const { start, end } = getListQueryDateRange(start_date, end_date);
     const normalizedDoc = document_number?.trim() || '';
 
     const byDate = all.filter((item) => {
@@ -111,14 +105,14 @@ export class LawyerDataController {
     return paginateArray(filtered, page, limit);
   }
 
-  @Get(':id')
+  @Get('filtrar/:id')
   @ApiOperation({ summary: 'Obtener un registro de abogado por su id' })
   async findById(@Param('id') id: number) {
     const item = await this.lawyerDataService.findById(id);
     return dataOne(item);
   }
 
-  @Put(':id')
+  @Put('actualizar/:id')
   @ApiOperation({ summary: 'Actualizar un registro de abogado' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -129,7 +123,7 @@ export class LawyerDataController {
     return dataOne(updated);
   }
 
-  @Delete(':id')
+  @Delete('eliminar/:id')
   @ApiOperation({ summary: 'Eliminar un registro de abogado' })
   async delete(@Param('id') id: number) {
     await this.lawyerDataService.delete(id);

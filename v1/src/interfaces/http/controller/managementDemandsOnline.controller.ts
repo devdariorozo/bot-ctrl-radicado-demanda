@@ -10,6 +10,7 @@ import {
   ManagementDemandsOnlineDto,
   UpdateManagementDemandsOnlineDto,
 } from '../dto/managementDemandsOnline.dto';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
 import { dataEmpty, dataOne } from '@application/utils/response.utils';
 
@@ -54,11 +55,11 @@ const updateExampleSchema = {
 };
 
 @ApiTags('managementDemandsOnline')
-@Controller('management_demands_online')
+@Controller('managementDemandsOnline')
 export class ManagementDemandsOnlineController {
   constructor(private readonly managementDemandsOnlineService: ManagementDemandsOnlineService) {}
 
-  @Post()
+  @Post('crear')
   @ApiOperation({ summary: 'Crear un registro de gestión de demandas pendientes' })
   @ApiBody({
     description: 'Cuerpo para crear el registro.',
@@ -71,7 +72,7 @@ export class ManagementDemandsOnlineController {
     return dataOne(created);
   }
 
-  @Get()
+  @Get('listar')
   @ApiOperation({ summary: 'Listar todos los registros de gestión de demandas' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final (YYYY-MM-DD).' })
@@ -93,15 +94,10 @@ export class ManagementDemandsOnlineController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ): Promise<PaginatedResult<ManagementDemandsOnlineDto>> {
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
+    const { start, end } = getListQueryDateRange(start_date, end_date);
     const all = await this.managementDemandsOnlineService.findAll({
-      start_date: parseDate(start_date),
-      end_date: parseDate(end_date),
+      start_date: start,
+      end_date: end,
       portfolio_type_id: portfolio_type_id !== undefined ? Number(portfolio_type_id) : undefined,
       name_data_base: name_data_base || undefined,
       amount_type_id: amount_type_id !== undefined ? Number(amount_type_id) : undefined,
@@ -112,14 +108,14 @@ export class ManagementDemandsOnlineController {
     return paginateArray(all, page, limit);
   }
 
-  @Get(':id')
+  @Get('filtrar/:id')
   @ApiOperation({ summary: 'Obtener un registro por id' })
   async findById(@Param('id') id: number) {
     const item = await this.managementDemandsOnlineService.findById(id);
     return dataOne(item);
   }
 
-  @Put(':id')
+  @Put('actualizar/:id')
   @ApiOperation({ summary: 'Actualizar un registro por id' })
   @ApiBody({
     description: 'Cuerpo para actualizar. El id va en la URL.',
@@ -136,7 +132,7 @@ export class ManagementDemandsOnlineController {
     return dataOne(updated);
   }
 
-  @Delete(':id')
+  @Delete('eliminar/:id')
   @ApiOperation({ summary: 'Eliminar un registro por id' })
   async delete(@Param('id') id: number) {
     await this.managementDemandsOnlineService.delete(id);

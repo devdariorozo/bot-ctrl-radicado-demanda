@@ -1,7 +1,7 @@
 // Responsabilidad: fachada de aplicación que usará el controller para amount_type.
 
 import {
-  BadRequestException,
+  UnprocessableEntityException,
   ConflictException,
   Inject,
   Injectable,
@@ -13,6 +13,7 @@ import { AmountType } from '@domain/entities/amountType.entities';
 import { AMOUNT_TYPE_REPOSITORY, AmountTypeRepository, CreateAmountTypeInput } from '@domain/ports/amountType.ports';
 import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
 import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
 @Injectable()
@@ -28,18 +29,18 @@ export class AmountTypeService {
     try {
       TblStateTypeId.create(input.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id debe ser un número entero positivo');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     try {
       await this.stateTypeRepository.findById(input.state_type_id);
     } catch {
-      throw new NotFoundException('No se encontraron datos para el tipo de estado indicado');
+      throw new NotFoundException({ message: userMsg.noTipoEstado });
     }
 
     const duplicate = await this.amountTypeRepository.findByDuplicate(input.type);
     if (duplicate) {
-      throw new ConflictException('Ya existe un tipo de cuantía con ese nombre');
+      throw new ConflictException({ message: 'Ya existe un tipo de cuantía con ese nombre.' });
     }
 
     const normalized: CreateAmountTypeInput = {
@@ -50,7 +51,7 @@ export class AmountTypeService {
     try {
       return await this.amountTypeRepository.create(normalized);
     } catch {
-      throw new InternalServerErrorException('Error al crear el tipo de cuantía');
+      throw new InternalServerErrorException(userMsg.noCrear);
     }
   }
 
@@ -58,7 +59,7 @@ export class AmountTypeService {
     try {
       return await this.amountTypeRepository.findAll();
     } catch {
-      throw new InternalServerErrorException('Error al obtener los tipos de cuantía');
+      throw new InternalServerErrorException(userMsg.noListar);
     }
   }
 
@@ -71,7 +72,7 @@ export class AmountTypeService {
         state_type_name: stateType.stty_type,
       };
     } catch {
-      throw new NotFoundException('No se encontraron datos para el id indicado');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
   }
 
@@ -79,14 +80,14 @@ export class AmountTypeService {
     try {
       TblStateTypeId.create(amountType.state_type_id);
     } catch {
-      throw new BadRequestException('state_type_id debe ser un número entero positivo');
+      throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     let existing: AmountType;
     try {
       existing = await this.amountTypeRepository.findById(amountType.id);
     } catch {
-      throw new NotFoundException('No se encontraron datos para el id indicado');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     const normalized: AmountType = {
@@ -110,20 +111,20 @@ export class AmountTypeService {
       existing.responsible !== normalized.responsible;
 
     if (!hasChanges) {
-      throw new BadRequestException('No hay cambios para actualizar');
+      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
     }
 
     if (existing.type !== normalized.type) {
       const duplicate = await this.amountTypeRepository.findByDuplicate(normalized.type);
       if (duplicate && duplicate.id !== amountType.id) {
-        throw new ConflictException('Ya existe otro tipo de cuantía con ese nombre');
+        throw new ConflictException({ message: 'Ya existe otro tipo de cuantía con ese nombre.' });
       }
     }
 
     try {
       return await this.amountTypeRepository.update(normalized);
     } catch {
-      throw new InternalServerErrorException('Error al actualizar el tipo de cuantía');
+      throw new InternalServerErrorException(userMsg.noActualizar);
     }
   }
 
@@ -131,13 +132,13 @@ export class AmountTypeService {
     try {
       await this.amountTypeRepository.findById(id);
     } catch {
-      throw new NotFoundException('No se encontraron datos para el id indicado');
+      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
     }
 
     try {
       await this.amountTypeRepository.delete(id);
     } catch {
-      throw new InternalServerErrorException('Error al eliminar el tipo de cuantía');
+      throw new InternalServerErrorException(userMsg.noEliminar);
     }
   }
 }

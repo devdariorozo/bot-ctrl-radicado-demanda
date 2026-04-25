@@ -29,7 +29,14 @@ export class TblEnvironmentTypeRepositoryImpl implements TblEnvironmentTypeRepos
             env_responsible: input.env_responsible,
         };
         const saved = await this.tblEnvironmentTypeRepository.save(entity as TblEnvironmentTypeEntity);
-        return saved;
+        return {
+            env_id: saved.env_id,
+            env_type: saved.env_type,
+            env_detail: saved.env_detail,
+            env_created_at: saved.env_created_at,
+            env_updated_at: saved.env_updated_at,
+            env_responsible: saved.env_responsible,
+        };
     }
     // Buscar duplicado por env_type; devuelve null si no existe
     async findByDuplicate(env_type: string): Promise<TblEnvironmentType | null> {
@@ -74,9 +81,20 @@ export class TblEnvironmentTypeRepositoryImpl implements TblEnvironmentTypeRepos
 
         return partialMatches[0];
     }
-    // Actualizar un tipo de entorno
+    // UPDATE parcial: no usa save() con objeto incompleto (evita 500 con columnas de auditoría).
     async update(tblEnvironmentType: TblEnvironmentType): Promise<TblEnvironmentType> {
-        return this.tblEnvironmentTypeRepository.save(tblEnvironmentType);
+        // No validar r.affected: en MySQL puede ser 0 con UPDATE válido (sin cambio efectivo) o
+        // undefined según el driver; findById confirma el estado.
+        await this.tblEnvironmentTypeRepository.update(
+            { env_id: tblEnvironmentType.env_id },
+            {
+                env_type: tblEnvironmentType.env_type,
+                env_detail: tblEnvironmentType.env_detail,
+                env_responsible: tblEnvironmentType.env_responsible,
+                env_updated_at: tblEnvironmentType.env_updated_at,
+            },
+        );
+        return this.findById(tblEnvironmentType.env_id);
     }
     // Eliminar un tipo de entorno
     async delete(env_id: number): Promise<void> {

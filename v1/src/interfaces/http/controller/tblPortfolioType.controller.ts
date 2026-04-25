@@ -1,13 +1,15 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '../dto/tblPortfolioType.dto';
 import { TblPortfolioTypeService } from '@application/services/tblPortfolioType.service';
 import { TblPortfolioType } from '@domain/entities/tblPortfolioType.entities';
 import { CreateTblPortfolioTypeInput } from '@domain/ports/tblPortfolioType.ports';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
-import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
+import { dataMany, dataOne } from '@application/utils/response.utils';
 
 const createExampleSchema = {
     porty_type: 'Propias',
@@ -23,12 +25,12 @@ const updateExampleSchema = {
     porty_responsible: 'BOT ctrl radicado demanda',
 };
 
-@ApiTags('tbl_portfolio_type')
-@Controller('tbl_portfolio_type')
+@ApiTags('portfolioType')
+@Controller('portfolioType')
 export class TblPortfolioTypeController {
     constructor(private readonly portfolioTypeService: TblPortfolioTypeService) {}
 
-    @Post()
+    @Post('crear')
     @ApiOperation({ summary: 'Crear un nuevo tipo de cartera' })
     @ApiBody({
         description: 'El JSON de abajo sirve de guía.',
@@ -36,32 +38,34 @@ export class TblPortfolioTypeController {
     })
     async create(@Body() dto: TblPortfolioTypeDto) {
         const created = await this.portfolioTypeService.create(dto as CreateTblPortfolioTypeInput);
-        return dataOne(created);
+        const full = await this.portfolioTypeService.findById(created.porty_id);
+        return { data: [this.toPortfolioRow(full)], message: 'Registro creado correctamente' };
     }
 
-    @Get('options')
-    @ApiOperation({ summary: 'Obtener opciones de tipos de cartera para selects' })
+    @Get('opciones')
+    @ApiOperation({ summary: 'Obtener opciones de tipos de cartera para selects (porty_id, label_name)' })
     async options() {
         const all = await this.portfolioTypeService.findAll();
-        const items = all.map((item) => ({ id: item.porty_id, label_name: item.porty_type }));
+        const items = all.map((item) => ({ porty_id: item.porty_id, label_name: item.porty_type }));
         return dataMany(items);
     }
 
-    @Get('type/:type')
-    @ApiOperation({ summary: 'Obtener un tipo de cartera por su tipo' })
-    async findByType(@Param('type') type: string) {
-        const item = await this.portfolioTypeService.findByType(type);
-        return dataOne(item);
+    @Get('opcionesActivas')
+    @ApiOperation({ summary: 'Obtener opciones de carteras activas para selects (porty_id, label_name = porty_type)' })
+    async optionsActive() {
+        const all = await this.portfolioTypeService.findAllActive();
+        const items = all.map((item) => ({ porty_id: item.porty_id, label_name: item.porty_type }));
+        return dataMany(items);
     }
 
-    @Get()
-    @ApiOperation({ summary: 'Obtener todos los tipos de cartera' })
+    @Get('listar')
+    @ApiOperation({ summary: 'Listar tipos de cartera con filtros opcionales' })
     @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial de creación (YYYY-MM-DD).' })
     @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final de creación (YYYY-MM-DD).' })
-    @ApiQuery({ name: 'porty_type', required: false, type: String, description: 'Filtrar por porty_type (búsqueda parcial, opcional)' })
-    @ApiQuery({ name: 'porty_state_type_id', required: false, type: Number, description: 'Filtrar por porty_state_type_id (opcional)' })
-    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (>=1)' })
-    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Registros por página (>=1)' })
+    @ApiQuery({ name: 'porty_type', required: false, type: String, description: 'Filtrar por porty_type (búsqueda parcial, opcional).' })
+    @ApiQuery({ name: 'porty_state_type_id', required: false, type: Number, description: 'Filtrar por stty_id del tipo de estado (opcional).' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (>=1).' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Registros por página (>=1).' })
     async findAll(
         @Query('start_date') start_date?: string,
         @Query('end_date') end_date?: string,
@@ -72,14 +76,7 @@ export class TblPortfolioTypeController {
     ): Promise<PaginatedResult<TblPortfolioTypeDto>> {
         const all = await this.portfolioTypeService.findAll();
 
-        const parseDate = (value?: string): Date | undefined => {
-            if (!value) return undefined;
-            const d = new Date(value);
-            return Number.isNaN(d.getTime()) ? undefined : d;
-        };
-
-        const start = parseDate(start_date);
-        const end = parseDate(end_date);
+        const { start, end } = getListQueryDateRange(start_date, end_date);
         const normalizedType = porty_type?.trim().toLowerCase() || '';
 
         const byDate = all.filter((item) => {
@@ -107,31 +104,64 @@ export class TblPortfolioTypeController {
             return true;
         });
 
-        return paginateArray(filtered, page, limit);
+        return paginateArray(
+            filtered.map((p) => this.toPortfolioRow(p)),
+            page,
+            limit,
+        ) as unknown as PaginatedResult<TblPortfolioTypeDto>;
     }
 
-    @Get(':id')
-    @ApiOperation({ summary: 'Obtener un tipo de cartera por su id' })
-    async findById(@Param('id') id: number) {
-        const item = await this.portfolioTypeService.findById(id);
-        return dataOne(item);
+    @Get('filtrar/:id')
+    @ApiOperation({ summary: 'Obtener un tipo de cartera por su porty_id' })
+    async findById(@Param('id') id: string) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        const item = await this.portfolioTypeService.findById(numId);
+        return dataOne(this.toPortfolioRow(item));
     }
 
-    @Put(':id')
-    @ApiOperation({ summary: 'Actualizar un tipo de cartera' })
-    @ApiBody({
-        description: 'El JSON de abajo sirve de guía.',
-        schema: { allOf: [{ $ref: getSchemaPath(UpdateTblPortfolioTypeDto) }], example: updateExampleSchema },
-    })
-    async update(@Param('id') id: number, @Body() body: UpdateTblPortfolioTypeDto) {
-        const updated = await this.portfolioTypeService.update({ ...body, porty_id: Number(id) } as TblPortfolioType);
-        return dataOne(updated);
+    @Put('actualizar/:id')
+    @ApiOperation({ summary: 'Actualizar un tipo de cartera por su porty_id (campos vía query)' })
+    @ApiQuery({ name: 'porty_type', required: true, type: String, description: 'Tipo de cartera', example: updateExampleSchema.porty_type })
+    @ApiQuery({ name: 'porty_detail', required: true, type: String, description: 'Descripción de la cartera', example: updateExampleSchema.porty_detail })
+    @ApiQuery({ name: 'porty_state_type_id', required: true, type: Number, description: 'ID del tipo de estado', example: updateExampleSchema.porty_state_type_id })
+    @ApiQuery({ name: 'porty_responsible', required: true, type: String, description: 'Responsable de la gestión', example: updateExampleSchema.porty_responsible })
+    async update(@Param('id') id: string, @Query() query: UpdateTblPortfolioTypeDto) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        await this.portfolioTypeService.update({ ...query, porty_id: numId } as TblPortfolioType);
+        return { data: null, message: 'Registro actualizado correctamente' };
     }
 
-    @Delete(':id')
-    @ApiOperation({ summary: 'Eliminar un tipo de cartera' })
-    async delete(@Param('id') id: number) {
-        await this.portfolioTypeService.delete(id);
-        return dataEmpty();
+    @Delete('eliminar/:id')
+    @ApiOperation({ summary: 'Eliminar un tipo de cartera por su porty_id' })
+    async delete(@Param('id') id: string) {
+        const numId = Number(id);
+        if (!Number.isInteger(numId) || numId <= 0) {
+            throw new BadRequestException(userMsg.idUrlEntero);
+        }
+        await this.portfolioTypeService.delete(numId);
+        return { data: null, message: 'Registro eliminado correctamente' };
+    }
+
+    /** Misma fila, orden e includes que listar (incl. state_type_name). */
+    private toPortfolioRow(p: TblPortfolioType): Record<string, unknown> {
+        const o: Record<string, unknown> = {
+            porty_id: p.porty_id,
+            porty_type: p.porty_type,
+            porty_detail: p.porty_detail,
+            porty_state_type_id: p.porty_state_type_id,
+        };
+        if (p.state_type_name != null && String(p.state_type_name).length > 0) {
+            o.state_type_name = p.state_type_name;
+        }
+        o.porty_created_at = p.porty_created_at;
+        o.porty_updated_at = p.porty_updated_at;
+        o.porty_responsible = p.porty_responsible;
+        return o;
     }
 }

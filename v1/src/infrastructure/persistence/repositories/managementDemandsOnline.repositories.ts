@@ -109,10 +109,7 @@ export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsO
       qb.andWhere('m.created_at >= :start_date', { start_date: filters.start_date });
     }
     if (filters.end_date) {
-      // Incluir todo el día final
-      const endOfDay = new Date(filters.end_date);
-      endOfDay.setHours(23, 59, 59, 999);
-      qb.andWhere('m.created_at <= :end_date', { end_date: endOfDay });
+      qb.andWhere('m.created_at <= :end_date', { end_date: filters.end_date });
     }
 
     qb.orderBy('m.id', 'DESC');

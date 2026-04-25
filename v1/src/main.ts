@@ -1,13 +1,19 @@
 // Responsabilidad: punto de entrada de la aplicación.
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
-import { description, version } from '../package.json';
-import { Logger, ValidationPipe } from '@nestjs/common';
+
+const { description, version } = JSON.parse(
+  readFileSync(join(process.cwd(), 'package.json'), 'utf-8'),
+) as { description: string; version: string };
+import { UnprocessableEntityException, Logger, ValidationPipe } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppLogger } from './infrastructure/logging/appLogger.service';
 import { JsonParseExceptionFilter } from './interfaces/http/filters/jsonParseException.filter';
+import { translateValidationMessage } from '@application/utils/validation.utils';
 import { StandardResponseInterceptor } from './interfaces/http/interceptors/standardResponse.interceptor';
 import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '@interfaces/http/dto/tblEnvironmentType.dto';
 import { TblStateTypeDto, UpdateTblStateTypeDto } from '@interfaces/http/dto/tblStateType.dto';
@@ -88,6 +94,11 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        const constraints = errors[0]?.constraints ?? {};
+        const rawMsg = Object.values(constraints)[0] ?? 'Datos inválidos.';
+        return new UnprocessableEntityException(translateValidationMessage(rawMsg));
+      },
     }),
   );
 
@@ -106,10 +117,10 @@ async function bootstrap() {
     .setDescription(description)
     .setVersion(version)
     .addTag('api', 'Verificación del servicio')
-    .addTag('tbl_environment_type', 'Tipo de entorno que se puede tener en el sistema')
-    .addTag('tbl_state_type', 'Tipo de estado que puede tener un registro')
-    .addTag('tbl_portfolio_type', 'Tipo de cartera que se puede tener en el sistema')
-    .addTag('dataBases', 'Configuración de bases de datos por entorno y cartera')
+    .addTag('environmentType', 'Tipo de entorno (dev, qa, pro, etc.)')
+    .addTag('stateType', 'Tipo de estado (activo, inactivo, en proceso, etc.)')
+    .addTag('portfolioType', 'Tipos de cartera y relación con tipo de estado')
+    .addTag('tbl_data_bases', 'Configuración de bases (tbl_data_bases) por entorno, cartera y estado')
     .addTag('attentionSchedule', 'Horarios de atención por cartera')
     .addTag('holiday', 'Días festivos por país')
     .addTag('portfolioCityConfig', 'Configuración de ciudades por cartera')

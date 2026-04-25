@@ -2,7 +2,7 @@
 
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('data_bases')
+@Entity('tbl_data_bases')
 export class DataBasesEntity {
   @PrimaryGeneratedColumn()
   id: number;

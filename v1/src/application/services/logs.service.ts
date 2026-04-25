@@ -1,5 +1,6 @@
 // Responsabilidad: lectura y gestión de archivos de logs para exponerlos vía API.
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException, NotFoundException } from '@nestjs/common';
+import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -58,9 +59,7 @@ export class LogsService {
 
     const filePath = this.getFilePathByDate(normalizedDate);
     if (!fs.existsSync(filePath)) {
-      throw new NotFoundException(
-        `Log file not found for date ${normalizedDate}. Expected file ${path.basename(filePath)}`,
-      );
+      throw new NotFoundException({ message: userMsg.logNoArchivo });
     }
 
     const raw = fs.readFileSync(filePath, 'utf-8');
@@ -151,38 +150,34 @@ export class LogsService {
     const filePath = this.getFilePathByDate(normalizedDate);
 
     if (!fs.existsSync(filePath)) {
-      throw new NotFoundException(
-        `Log file not found for date ${normalizedDate}. Expected file ${path.basename(filePath)}`,
-      );
+      throw new NotFoundException({ message: userMsg.logNoArchivo });
     }
 
     try {
       fs.unlinkSync(filePath);
     } catch (err) {
-      throw new BadRequestException(
-        `Unable to delete log file for date ${normalizedDate}: ${(err as Error).message}`,
-      );
+      throw new UnprocessableEntityException({ message: userMsg.logNoBorrar });
     }
   }
 
   private validateDate(value: string): string {
     if (!value) {
-      throw new BadRequestException('log_date is required in format YYYY-MM-DD');
+      throw new UnprocessableEntityException(userMsg.logFechaRequerida);
     }
     const re = /^\d{4}-\d{2}-\d{2}$/;
     if (!re.test(value)) {
-      throw new BadRequestException('log_date must match format YYYY-MM-DD');
+      throw new UnprocessableEntityException(userMsg.logFechaFormato);
     }
     return value;
   }
 
   private validateLines(value: number): number {
     if (value == null) {
-      throw new BadRequestException('number_lines is required and must be >= 1');
+      throw new UnprocessableEntityException(userMsg.logLineas);
     }
     const n = Number(value);
     if (!Number.isFinite(n) || n < 1) {
-      throw new BadRequestException('number_lines must be an integer greater or equal to 1');
+      throw new UnprocessableEntityException(userMsg.logLineas);
     }
     return Math.floor(n);
   }

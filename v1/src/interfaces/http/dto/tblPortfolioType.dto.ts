@@ -1,14 +1,10 @@
 // Responsabilidad: modelos de datos de entrada/salida para HTTP.
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, IsDate, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsNumber, IsInt, Min } from 'class-validator';
 
 export class TblPortfolioTypeDto {
-    @ApiPropertyOptional({ example: 1, description: 'ID (opcional en POST, lo genera la BD)' })
-    @IsNumber()
-    @IsOptional()
-    porty_id?: number;
-
     @ApiProperty({ example: 'Propias', description: 'Tipo de cartera' })
     @IsString()
     @IsNotEmpty()
@@ -19,27 +15,19 @@ export class TblPortfolioTypeDto {
     @IsNotEmpty()
     porty_detail: string;
 
-    @ApiProperty({ example: 1, description: 'ID del tipo de estado' })
-    @IsNumber()
-    @IsNotEmpty()
+    @ApiProperty({ example: 1, description: 'ID del tipo de estado (stateType, stty_id)' })
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
     porty_state_type_id: number;
 
-    @ApiPropertyOptional({ example: '2026-02-25T12:00:00.000Z', description: 'Fecha de creación (opcional en POST)' })
-    @IsDate()
-    @IsOptional()
-    porty_created_at?: Date;
-
-    @ApiPropertyOptional({ example: '2026-02-25T12:00:00.000Z', description: 'Fecha de actualización (opcional en POST)' })
-    @IsDate()
-    @IsOptional()
-    porty_updated_at?: Date;
-
-    @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable de la cartera' })
+    @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable de la gestión' })
     @IsString()
     @IsNotEmpty()
     porty_responsible: string;
 }
 
+/** Parámetros de query para PUT `actualizar/:id` (misma forma que el JSON de ejemplo en Swagger). El porty_id va en la URL. */
 export class UpdateTblPortfolioTypeDto {
     @ApiProperty({ example: 'Propias', description: 'Tipo de cartera' })
     @IsString()
@@ -51,22 +39,13 @@ export class UpdateTblPortfolioTypeDto {
     @IsNotEmpty()
     porty_detail: string;
 
-    @ApiProperty({ example: 1, description: 'ID del tipo de estado' })
-    @IsNumber()
-    @IsNotEmpty()
+    @ApiProperty({ example: 1, description: 'ID del tipo de estado (stateType, stty_id)' })
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
     porty_state_type_id: number;
 
-    @ApiPropertyOptional({ example: '2026-02-25T12:00:00.000Z', description: 'Fecha de creación' })
-    @IsDate()
-    @IsOptional()
-    porty_created_at?: Date;
-
-    @ApiPropertyOptional({ example: '2026-02-25T12:00:00.000Z', description: 'Fecha de actualización' })
-    @IsDate()
-    @IsOptional()
-    porty_updated_at?: Date;
-
-    @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable de la cartera' })
+    @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable de la gestión' })
     @IsString()
     @IsNotEmpty()
     porty_responsible: string;

@@ -6,6 +6,7 @@ import { HolidayService } from '@application/services/holiday.service';
 import { Holiday } from '@domain/entities/holiday.entities';
 import { HolidayDto, UpdateHolidayDto } from '../dto/holiday.dto';
 import { CreateHolidayInput } from '@domain/ports/holiday.ports';
+import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
 import { dataEmpty, dataMany, dataOne } from '@application/utils/response.utils';
 
@@ -30,7 +31,7 @@ const updateExampleSchema = {
 export class HolidayController {
   constructor(private readonly holidayService: HolidayService) {}
 
-  @Post()
+  @Post('crear')
   @ApiOperation({ summary: 'Crear un nuevo día festivo' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -45,7 +46,7 @@ export class HolidayController {
     return dataOne(created);
   }
 
-  @Get('options')
+  @Get('opciones')
   @ApiOperation({ summary: 'Obtener opciones de festivos para selects' })
   async options() {
     const all = await this.holidayService.findAll();
@@ -56,7 +57,7 @@ export class HolidayController {
     return dataMany(items);
   }
 
-  @Get()
+  @Get('listar')
   @ApiOperation({ summary: 'Obtener todos los días festivos' })
   @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Fecha inicial (YYYY-MM-DD).' })
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha final (YYYY-MM-DD).' })
@@ -76,14 +77,7 @@ export class HolidayController {
   ): Promise<PaginatedResult<HolidayDto>> {
     const all = await this.holidayService.findAll();
 
-    const parseDate = (value?: string): Date | undefined => {
-      if (!value) return undefined;
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? undefined : d;
-    };
-
-    const start = parseDate(start_date);
-    const end = parseDate(end_date);
+    const { start, end } = getListQueryDateRange(start_date, end_date);
     const normalizedCountry = (country_code ?? '').trim().toUpperCase();
     const normalizedType = (type ?? '').trim().toUpperCase();
 
@@ -129,14 +123,14 @@ export class HolidayController {
     return paginateArray(dtoItems, page, limit);
   }
 
-  @Get(':id')
+  @Get('filtrar/:id')
   @ApiOperation({ summary: 'Obtener un festivo por su id' })
   async findById(@Param('id') id: number) {
     const item = await this.holidayService.findById(id);
     return dataOne(item);
   }
 
-  @Put(':id')
+  @Put('actualizar/:id')
   @ApiOperation({ summary: 'Actualizar un festivo' })
   @ApiBody({
     description: 'El JSON de abajo sirve de guía.',
@@ -152,7 +146,7 @@ export class HolidayController {
     return dataOne(updated);
   }
 
-  @Delete(':id')
+  @Delete('eliminar/:id')
   @ApiOperation({ summary: 'Eliminar un festivo' })
   async delete(@Param('id') id: number) {
     await this.holidayService.delete(id);

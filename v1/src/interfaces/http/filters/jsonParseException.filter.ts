@@ -51,7 +51,7 @@ function translateErrorMessage(message: string, statusCode: number): string {
     if (statusCode === HttpStatus.NOT_FOUND) {
       return 'No se encontraron datos para la solicitud realizada.';
     }
-    if (statusCode === HttpStatus.BAD_REQUEST) {
+    if (statusCode === HttpStatus.UNPROCESSABLE_ENTITY) {
       return 'Solicitud inválida. Revisa los datos enviados.';
     }
     if (statusCode === HttpStatus.CONFLICT) {
@@ -80,7 +80,7 @@ function translateErrorMessage(message: string, statusCode: number): string {
   }
 
   if (
-    statusCode === HttpStatus.BAD_REQUEST &&
+    statusCode === HttpStatus.UNPROCESSABLE_ENTITY &&
     (lower.includes('must be') || lower.includes('must be valid'))
   ) {
     return 'Los datos enviados no son válidos. Revisa los campos requeridos.';
@@ -112,10 +112,10 @@ export class JsonParseExceptionFilter implements ExceptionFilter {
     const status = err.getStatus?.() ?? HttpStatus.INTERNAL_SERVER_ERROR;
     const message = err?.message ?? String(exception);
 
-    if (status === HttpStatus.BAD_REQUEST && isJsonParseError(message)) {
+    if (status === HttpStatus.UNPROCESSABLE_ENTITY && isJsonParseError(message)) {
       this.logger.warn(`JSON parse error (original): ${message}`);
-      res.status(HttpStatus.BAD_REQUEST).json({
-        status: HttpStatus.BAD_REQUEST,
+      res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
         type: 'warning',
         title: 'JSON inválido',
         message: FRIENDLY_MSG,
@@ -126,22 +126,23 @@ export class JsonParseExceptionFilter implements ExceptionFilter {
 
     if (typeof err.getResponse === 'function') {
       const response = err.getResponse();
-      const raw =
+      const raw: Record<string, unknown> =
         typeof response === 'object' && response !== null
-          ? (response as { message?: string | string[] })
+          ? (response as Record<string, unknown>)
           : { message, statusCode: status, error: 'Bad Request' };
 
-      const statusCode = (raw as { statusCode?: number }).statusCode ?? status;
+      const statusCode = (raw.statusCode as number | undefined) ?? status;
+      const rawMsg = raw.message;
       const originalMsg =
-        Array.isArray(raw.message) && raw.message.length > 0
-          ? raw.message[0]
-          : typeof raw.message === 'string'
-          ? raw.message
+        Array.isArray(rawMsg) && rawMsg.length > 0
+          ? (rawMsg as string[])[0]
+          : typeof rawMsg === 'string'
+          ? rawMsg
           : message;
       const msg = translateErrorMessage(originalMsg, statusCode);
 
       const type =
-        statusCode === HttpStatus.BAD_REQUEST
+        statusCode === HttpStatus.UNPROCESSABLE_ENTITY
           ? 'warning'
           : statusCode === HttpStatus.CONFLICT
           ? 'info'
@@ -149,12 +150,25 @@ export class JsonParseExceptionFilter implements ExceptionFilter {
           ? 'error'
           : 'warning';
 
+      // Extrae campos extra (más allá de message/statusCode/error) para incluir en data.
+      // Los 404 nunca devuelven data extra.
+      const reserved = new Set(['message', 'statusCode', 'error']);
+      const extraData: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (!reserved.has(k)) extraData[k] = v;
+      }
+      const includeExtra =
+        statusCode !== HttpStatus.NOT_FOUND &&
+        statusCode !== HttpStatus.UNPROCESSABLE_ENTITY &&
+        statusCode !== HttpStatus.CONFLICT &&
+        Object.keys(extraData).length > 0;
+
       res.status(statusCode).json({
         status: statusCode,
         type,
         title: buildOperationTitle(req),
         message: msg,
-        data: null,
+        data: includeExtra ? extraData : null,
       });
       return;
     }
