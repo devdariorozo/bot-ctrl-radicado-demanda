@@ -1,17 +1,16 @@
 // Responsabilidad: entidad de dominio para días festivos.
 
 export class Holiday {
-  id: number;
-  date: Date;
-  name: string;
-  country_code: string;
-  type: string;
-  is_working_day: boolean;
-  detail: string;
-  state_type_id: number;
+  hldy_id: number;
+  hldy_date: Date;
+  hldy_name: string;
+  hldy_country_code: string;
+  hldy_type: string;
+  hldy_is_working_day: boolean;
+  hldy_detail: string;
+  hldy_state_type_id: number;
   state_type_name?: string;
-  created_at: Date;
-  updated_at: Date;
-  responsible: string;
+  hldy_created_at: Date;
+  hldy_updated_at: Date;
+  hldy_responsible: string;
 }
-

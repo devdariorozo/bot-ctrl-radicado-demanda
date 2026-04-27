@@ -6,8 +6,8 @@ import { DataSource, Repository } from 'typeorm';
 import { LawyerDataEntity } from '../entities/lawyerData.entities';
 import { LawyerData } from '@domain/entities/lawyerData.entities';
 import { CreateLawyerDataInput, LawyerDataRepository } from '@domain/ports/lawyerData.ports';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 
 @Injectable()
 export class LawyerDataRepositoryImpl implements LawyerDataRepository {

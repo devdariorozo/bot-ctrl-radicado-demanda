@@ -20,7 +20,7 @@ export class TblStateTypeDto {
     stty_responsible: string;
 }
 
-/** Parámetros de query para PUT `actualizar/:id` (misma forma que el JSON de ejemplo en Swagger). El stty_id va en la URL. */
+/** Body JSON para PUT `actualizar/:id`. El stty_id va en la URL. */
 export class UpdateTblStateTypeDto {
     @ApiProperty({ example: 'Activo', description: 'Tipo de estado' })
     @IsString()

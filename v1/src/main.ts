@@ -15,11 +15,11 @@ import { AppLogger } from './infrastructure/logging/appLogger.service';
 import { JsonParseExceptionFilter } from './interfaces/http/filters/jsonParseException.filter';
 import { translateValidationMessage } from '@application/utils/validation.utils';
 import { StandardResponseInterceptor } from './interfaces/http/interceptors/standardResponse.interceptor';
-import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '@interfaces/http/dto/tblEnvironmentType.dto';
-import { TblStateTypeDto, UpdateTblStateTypeDto } from '@interfaces/http/dto/tblStateType.dto';
-import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '@interfaces/http/dto/tblPortfolioType.dto';
+import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '@interfaces/http/dto/environmentType.dto';
+import { TblStateTypeDto, UpdateTblStateTypeDto } from '@interfaces/http/dto/stateType.dto';
+import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '@interfaces/http/dto/portfolioType.dto';
 import { DataBasesDto, UpdateDataBasesDto } from '@interfaces/http/dto/dataBases.dto';
-import { CreateAttentionScheduleDto, AttentionScheduleDto, UpdateAttentionScheduleDto } from '@interfaces/http/dto/attentionSchedule.dto';
+import { CreateTblAttentionScheduleDto, UpdateTblAttentionScheduleDto } from '@interfaces/http/dto/attentionSchedule.dto';
 import { PortfolioCityConfigDto, UpdatePortfolioCityConfigDto } from '@interfaces/http/dto/portfolioCityConfig.dto';
 import { AmountTypeDto, UpdateAmountTypeDto } from '@interfaces/http/dto/amountType.dto';
 import { CompanyTypeDto, UpdateCompanyTypeDto } from '@interfaces/http/dto/companyType.dto';
@@ -120,8 +120,8 @@ async function bootstrap() {
     .addTag('environmentType', 'Tipo de entorno (dev, qa, pro, etc.)')
     .addTag('stateType', 'Tipo de estado (activo, inactivo, en proceso, etc.)')
     .addTag('portfolioType', 'Tipos de cartera y relación con tipo de estado')
-    .addTag('tbl_data_bases', 'Configuración de bases (tbl_data_bases) por entorno, cartera y estado')
-    .addTag('attentionSchedule', 'Horarios de atención por cartera')
+    .addTag('dataBases', 'Configuración de bases (tbl_data_bases) por entorno, cartera y estado')
+    .addTag('attentionSchedule', 'Horarios de atención por tipo de cartera')
     .addTag('holiday', 'Días festivos por país')
     .addTag('portfolioCityConfig', 'Configuración de ciudades por cartera')
     .addTag('amountType', 'Tipo de cuantía (mayor, menor, mínima)')
@@ -140,9 +140,8 @@ async function bootstrap() {
       UpdateTblPortfolioTypeDto,
       DataBasesDto,
       UpdateDataBasesDto,
-      CreateAttentionScheduleDto,
-      AttentionScheduleDto,
-      UpdateAttentionScheduleDto,
+      CreateTblAttentionScheduleDto,
+      UpdateTblAttentionScheduleDto,
       PortfolioCityConfigDto,
       UpdatePortfolioCityConfigDto,
       AmountTypeDto,

@@ -19,10 +19,10 @@ import {
   DataBasesRepository,
   VCitiesRow,
 } from '@domain/ports/dataBases.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
 import { DataBasesService } from '@application/services/dataBases.service';
 import { DataBasesId } from '@domain/value-objects/dataBases.valueobjects';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { CityViewsId } from '@domain/value-objects/portfolioCityConfig.valueobjects';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
@@ -90,7 +90,7 @@ export class PortfolioCityConfigService {
       let portfolio_type_name: string | undefined;
       try {
         const db = await this.dataBasesService.findById(config.id_data_bases);
-        portfolio_type_id = db.portfolio_type_id;
+        portfolio_type_id = db.db_portfolio_type_id;
         portfolio_type_name = db.portfolio_type_name;
       } catch {
         // Si algo falla al enriquecer, devolvemos al menos el resto de la información

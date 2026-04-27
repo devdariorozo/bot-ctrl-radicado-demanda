@@ -317,8 +317,8 @@ export class DemandsOnlineAutomationService {
       let dbBases: import('@domain/entities/dataBases.entities').BasesConfig;
       try {
         const dbRecord = await this.dataBasesService.findById(currentDataBasesId);
-        portfolioTypeId = dbRecord.portfolio_type_id;
-        dbBases = dbRecord.bases;
+        portfolioTypeId = dbRecord.db_portfolio_type_id;
+        dbBases = dbRecord.db_bases;
       } catch {
         this.appLogger.structured({
           level: 'debug',

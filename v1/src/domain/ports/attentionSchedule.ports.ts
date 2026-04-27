@@ -1,31 +1,29 @@
 // Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
 
-import { AttentionSchedule } from '@domain/entities/attentionSchedule.entities';
+import { TblAttentionSchedule } from '@domain/entities/attentionSchedule.entities';
 
-/** Token para inyección del repositorio (las interfaces no existen en runtime en NestJS). */
-export const ATTENTION_SCHEDULE_REPOSITORY = Symbol('ATTENTION_SCHEDULE_REPOSITORY');
+export const TBL_ATTENTION_SCHEDULE_REPOSITORY = Symbol('TBL_ATTENTION_SCHEDULE_REPOSITORY');
 
-/** Datos para crear un registro; days es array de días en español. */
-export type CreateAttentionScheduleInput = Pick<
-  AttentionSchedule,
-  | 'portfolio_type_id'
-  | 'days'
-  | 'start_time'
-  | 'start_recess'
-  | 'end_recess'
-  | 'end_time'
-  | 'detail'
-  | 'state_type_id'
-  | 'responsible'
-> & Partial<AttentionSchedule>;
+export type CreateTblAttentionScheduleInput = Pick<
+  TblAttentionSchedule,
+  | 'atsh_portfolio_type_id'
+  | 'atsh_days'
+  | 'atsh_start_time'
+  | 'atsh_start_recess_time'
+  | 'atsh_end_recess_time'
+  | 'atsh_end_time'
+  | 'atsh_detail'
+  | 'atsh_state_type_id'
+  | 'atsh_responsible'
+> & Partial<TblAttentionSchedule>;
 
-export interface AttentionScheduleRepository {
-  create(input: CreateAttentionScheduleInput): Promise<AttentionSchedule>;
-  findAll(): Promise<AttentionSchedule[]>;
-  findById(id: number): Promise<AttentionSchedule>;
-  /** Horarios por cartera; opcionalmente filtrar por un día (schedules que incluyan ese día). */
-  findByPortfolio(portfolio_type_id: number, day?: string): Promise<AttentionSchedule[]>;
-  update(attentionSchedule: AttentionSchedule): Promise<AttentionSchedule>;
+export interface TblAttentionScheduleRepository {
+  create(input: CreateTblAttentionScheduleInput): Promise<TblAttentionSchedule>;
+  findByDuplicate(atsh_portfolio_type_id: number, atsh_days: string[]): Promise<TblAttentionSchedule | null>;
+  findAll(): Promise<TblAttentionSchedule[]>;
+  findAllActive(): Promise<TblAttentionSchedule[]>;
+  findByPortfolioType(atsh_portfolio_type_id: number): Promise<TblAttentionSchedule[]>;
+  findById(id: number): Promise<TblAttentionSchedule>;
+  update(input: TblAttentionSchedule): Promise<void>;
   delete(id: number): Promise<void>;
 }
-

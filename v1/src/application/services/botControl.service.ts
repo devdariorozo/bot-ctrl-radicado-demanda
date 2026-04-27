@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 
 import {
-  ATTENTION_SCHEDULE_REPOSITORY,
-  AttentionScheduleRepository,
+  TBL_ATTENTION_SCHEDULE_REPOSITORY,
+  TblAttentionScheduleRepository,
 } from '@domain/ports/attentionSchedule.ports';
 import {
   BOT_CONTROL_REPOSITORY,
@@ -44,8 +44,8 @@ export class BotControlService implements OnModuleInit {
   private currentDataBasesId: number | null = null;
 
   constructor(
-    @Inject(ATTENTION_SCHEDULE_REPOSITORY)
-    private readonly attentionScheduleRepository: AttentionScheduleRepository,
+    @Inject(TBL_ATTENTION_SCHEDULE_REPOSITORY)
+    private readonly attentionScheduleRepository: TblAttentionScheduleRepository,
     private readonly dataBasesService: DataBasesService,
     private readonly appLogger: AppLogger,
     @Inject(BOT_CONTROL_REPOSITORY)
@@ -147,7 +147,7 @@ export class BotControlService implements OnModuleInit {
     const targetDb = await this.dataBasesService.findById(dbId);
     const conflictId = await this.findConflictWithSamePortfolio(
       dbId,
-      targetDb.portfolio_type_id,
+      targetDb.db_portfolio_type_id,
     );
     if (conflictId) {
       const reason =
@@ -381,7 +381,7 @@ export class BotControlService implements OnModuleInit {
     data_bases_id?: number,
   ): Promise<{ ok: boolean; reason?: string }> {
     const now = new Date();
-    const dayEs = this.getCurrentDayEs(now);
+    const dayEn = this.getCurrentDayEn(now);
     const minutesNow = this.timeToMinutes(`${now.getHours().toString().padStart(2, '0')}:${now
       .getMinutes()
       .toString()
@@ -407,28 +407,28 @@ export class BotControlService implements OnModuleInit {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     try {
       const holiday = await this.holidayRepository.findByDateAndCountry(today, 'CO');
-      if (holiday && !holiday.is_working_day) {
+      if (holiday && !holiday.hldy_is_working_day) {
         return {
           ok: false,
-          reason: `Hoy (${today.toISOString().slice(0, 10)}) es festivo no laborable para el bot: ${holiday.name}`,
+          reason: `Hoy (${today.toISOString().slice(0, 10)}) es festivo no laborable para el bot: ${holiday.hldy_name}`,
         };
       }
     } catch {
       // Si falla la consulta de festivos, no bloqueamos al bot; se continúa con validación de horarios.
     }
 
-    const schedules = await this.attentionScheduleRepository.findByPortfolio(db.portfolio_type_id);
+    const schedules = await this.attentionScheduleRepository.findByPortfolioType(db.db_portfolio_type_id);
     const activeSchedules = schedules.filter(
       (sc) => sc.state_type_name && sc.state_type_name.toLowerCase() === 'active',
     );
 
     const hasValidSchedule = activeSchedules.some((sc) => {
-      const includesDay = Array.isArray(sc.days) && sc.days.includes(dayEs);
+      const includesDay = Array.isArray(sc.atsh_days) && sc.atsh_days.includes(dayEn);
       if (!includesDay) return false;
-      const start = this.timeToMinutes(sc.start_time);
-      const startRecess = this.timeToMinutes((sc as any).start_recess);
-      const endRecess = this.timeToMinutes((sc as any).end_recess);
-      const end = this.timeToMinutes(sc.end_time);
+      const start = this.timeToMinutes(sc.atsh_start_time);
+      const startRecess = this.timeToMinutes(sc.atsh_start_recess_time);
+      const endRecess = this.timeToMinutes(sc.atsh_end_recess_time);
+      const end = this.timeToMinutes(sc.atsh_end_time);
       if ([start, startRecess, endRecess, end].some((v) => !Number.isFinite(v))) return false;
 
       const inMorning = minutesNow >= start && minutesNow < startRecess;
@@ -437,7 +437,7 @@ export class BotControlService implements OnModuleInit {
     });
 
     if (!hasValidSchedule) {
-      const reason = this.getStandbyReason(activeSchedules, dayEs, minutesNow);
+      const reason = this.getStandbyReason(activeSchedules, dayEn, minutesNow);
       return { ok: false, reason };
     }
 
@@ -450,25 +450,23 @@ export class BotControlService implements OnModuleInit {
    */
   private getStandbyReason(
     activeSchedules: Array<{
-      days?: string[];
-      start_time?: string;
-      start_recess?: string;
-      end_recess?: string;
-      end_time?: string;
+      atsh_days?: string[];
+      atsh_start_recess_time?: string;
+      atsh_end_recess_time?: string;
     }>,
-    dayEs: string,
+    dayEn: string,
     minutesNow: number,
   ): string {
     const anyIncludesDay = activeSchedules.some(
-      (sc) => Array.isArray(sc.days) && sc.days.includes(dayEs),
+      (sc) => Array.isArray(sc.atsh_days) && sc.atsh_days.includes(dayEn),
     );
     if (!anyIncludesDay) {
       return 'Fuera de días de atención.';
     }
 
     const inRecessOfAny = activeSchedules.some((sc) => {
-      const startRecess = this.timeToMinutes((sc as any).start_recess);
-      const endRecess = this.timeToMinutes((sc as any).end_recess);
+      const startRecess = this.timeToMinutes(sc.atsh_start_recess_time ?? '');
+      const endRecess = this.timeToMinutes(sc.atsh_end_recess_time ?? '');
       if (!Number.isFinite(startRecess) || !Number.isFinite(endRecess)) return false;
       return minutesNow >= startRecess && minutesNow < endRecess;
     });
@@ -492,7 +490,7 @@ export class BotControlService implements OnModuleInit {
     for (const id of otherIds) {
       try {
         const db = await this.dataBasesService.findById(id);
-        if (db.portfolio_type_id === portfolio_type_id) {
+        if (db.db_portfolio_type_id === portfolio_type_id) {
           return id;
         }
       } catch {
@@ -583,14 +581,14 @@ export class BotControlService implements OnModuleInit {
     }
 
     return {
-      environment_type_id: db.environment_type_id,
+      environment_type_id: db.db_environment_type_id,
       environment_type_name: db.environment_type_name,
       portfolio_type_name: db.portfolio_type_name,
       data_bases: hadRecord
         ? [
             {
-              id: db.id,
-              bases: db.bases,
+              id: db.db_id,
+              bases: db.db_bases,
               label_data_base: db.label_data_base,
             },
           ]
@@ -598,10 +596,10 @@ export class BotControlService implements OnModuleInit {
     };
   }
 
-  private getCurrentDayEs(date: Date): string {
-    // JS: 0 = Domingo, 1 = Lunes, ...
-    const daysEs = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return daysEs[date.getDay()] ?? 'Lunes';
+  private getCurrentDayEn(date: Date): string {
+    // JS: 0 = Sunday, 1 = Monday, ...
+    const daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return daysEn[date.getDay()] ?? 'Monday';
   }
 
   private timeToMinutes(time: string): number {

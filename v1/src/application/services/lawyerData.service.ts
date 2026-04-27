@@ -14,10 +14,10 @@ import {
   LawyerDataRepository,
   CreateLawyerDataInput,
 } from '@domain/ports/lawyerData.ports';
-import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
-import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
+import { TblPortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 

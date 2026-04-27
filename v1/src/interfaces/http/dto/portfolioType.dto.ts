@@ -27,7 +27,7 @@ export class TblPortfolioTypeDto {
     porty_responsible: string;
 }
 
-/** Parámetros de query para PUT `actualizar/:id` (misma forma que el JSON de ejemplo en Swagger). El porty_id va en la URL. */
+/** Body JSON para PUT `actualizar/:id`. El porty_id va en la URL. */
 export class UpdateTblPortfolioTypeDto {
     @ApiProperty({ example: 'Propias', description: 'Tipo de cartera' })
     @IsString()

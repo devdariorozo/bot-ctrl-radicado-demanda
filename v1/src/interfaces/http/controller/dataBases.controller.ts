@@ -1,7 +1,7 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiBody, ApiExtraModels, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { DataBasesDto, UpdateDataBasesDto } from '../dto/dataBases.dto';
 import { DataBasesService, shortLabelForBases } from '@application/services/dataBases.service';
 import { DataBases } from '@domain/entities/dataBases.entities';
@@ -30,8 +30,9 @@ const createExampleSchema = {
 
 const updateExampleSchema = { ...createExampleSchema };
 
-@ApiTags('tbl_data_bases')
-@Controller('tbl_data_bases')
+@ApiTags('dataBases')
+@ApiExtraModels(DataBasesDto, UpdateDataBasesDto)
+@Controller('dataBases')
 export class DataBasesController {
   constructor(private readonly dataBasesService: DataBasesService) {}
 
@@ -44,21 +45,19 @@ export class DataBasesController {
   async create(@Body() dto: DataBasesDto) {
     const input: CreateDataBasesInput = fromCreateDataBasesDto(dto);
     const created = await this.dataBasesService.create(input);
-    // Misma carga enriquecida y mismo orden que listar / filtrar
-    const full = await this.dataBasesService.findById(created.id);
+    const full = await this.dataBasesService.findById(created.db_id);
     return { data: [toDataBasesApi(full)], message: 'Registro creado correctamente' };
   }
 
   @Get('opciones')
   @ApiOperation({
-    summary: 'Opciones para selects (db_id, label_name); excluye entornos de tipo producción',
+    summary: 'Opciones para selects (db_id, label_name)',
   })
   async options() {
     const all = await this.dataBasesService.findAll();
-    const list = this.dataBasesService.findOptionsExcludingProduction(all);
-    const items = list.map((item) => ({
-      db_id: item.id,
-      label_name: shortLabelForBases(item.bases, item.detail),
+    const items = all.map((item) => ({
+      db_id: item.db_id,
+      label_name: item.label_data_base || shortLabelForBases(item.db_bases, item.db_detail),
     }));
     return dataMany(items);
   }
@@ -71,8 +70,8 @@ export class DataBasesController {
     const all = await this.dataBasesService.findAll();
     const list = this.dataBasesService.findOptionsActiveState(all);
     const items = list.map((item) => ({
-      db_id: item.id,
-      label_name: shortLabelForBases(item.bases, item.detail),
+      db_id: item.db_id,
+      label_name: item.label_data_base || shortLabelForBases(item.db_bases, item.db_detail),
     }));
     return dataMany(items);
   }
@@ -83,7 +82,7 @@ export class DataBasesController {
   @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Fecha creación hasta (YYYY-MM-DD).' })
   @ApiQuery({ name: 'db_environment_type_id', required: false, type: Number, description: 'Filtrar por env_id' })
   @ApiQuery({ name: 'db_portfolio_type_id', required: false, type: Number, description: 'Filtrar por porty_id' })
-  @ApiQuery({ name: 'db_bases', required: false, type: String, description: 'Subcadena en JSON serializado de db_bases' })
+  @ApiQuery({ name: 'db_bases', required: false, type: String, description: 'Nombre de la base de datos (clave dentro de db_bases, ej. miosv2_carteras_QA)' })
   @ApiQuery({ name: 'db_state_type_id', required: false, type: Number, description: 'Filtrar por stty_id' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Página (>=1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Tamaño de página (>=1)' })
@@ -98,8 +97,8 @@ export class DataBasesController {
     @Query('limit') limit?: number,
   ) {
     const normalizeId = (value: unknown): number | undefined => {
-      if (value === undefined || value === null || (value as any) === '') return undefined;
-      const n = typeof value === 'number' ? value : Number(value as any);
+      if (value === undefined || value === null || (value as string) === '') return undefined;
+      const n = typeof value === 'number' ? value : Number(value as string);
       if (!Number.isFinite(n) || n <= 0) return undefined;
       return Math.floor(n);
     };
@@ -110,11 +109,10 @@ export class DataBasesController {
     const basesQ = (db_bases ?? '').trim().toLowerCase();
 
     const all = await this.dataBasesService.findAll();
-
     const { start, end } = getListQueryDateRange(start_date, end_date);
 
     const byDate = all.filter((item) => {
-      const created = item.created_at ? new Date(item.created_at) : undefined;
+      const created = item.db_created_at ? new Date(item.db_created_at) : undefined;
       if (!created || Number.isNaN(created.getTime())) return true;
       if (start && created < start) return false;
       if (end && created > end) return false;
@@ -122,12 +120,12 @@ export class DataBasesController {
     });
 
     const filtered = byDate.filter((item) => {
-      if (envF !== undefined && Number(item.environment_type_id) !== envF) return false;
-      if (portF !== undefined && Number(item.portfolio_type_id) !== portF) return false;
-      if (stateF !== undefined && Number(item.state_type_id) !== stateF) return false;
+      if (envF !== undefined && Number(item.db_environment_type_id) !== envF) return false;
+      if (portF !== undefined && Number(item.db_portfolio_type_id) !== portF) return false;
+      if (stateF !== undefined && Number(item.db_state_type_id) !== stateF) return false;
       if (basesQ) {
-        const hay = jsonStringifyLower(item.bases);
-        if (!hay.includes(basesQ)) return false;
+        const keys = item.db_bases && typeof item.db_bases === 'object' ? Object.keys(item.db_bases) : [];
+        if (!keys.some((k) => k.toLowerCase().includes(basesQ))) return false;
       }
       return true;
     });
@@ -174,7 +172,7 @@ export class DataBasesController {
   }
 }
 
-function jsonStringifyLower(bases: DataBases['bases']): string {
+function jsonStringifyLower(bases: DataBases['db_bases']): string {
   try {
     return JSON.stringify(bases).toLowerCase();
   } catch {

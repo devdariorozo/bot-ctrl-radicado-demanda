@@ -10,10 +10,10 @@ import {
   PortfolioCityConfigRepository,
   CreatePortfolioCityConfigInput,
 } from '@domain/ports/portfolioCityConfig.ports';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 import { DataBasesEntity } from '../entities/dataBases.entities';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
-import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/environmentType.entities';
 
 @Injectable()
 export class PortfolioCityConfigRepositoryImpl implements PortfolioCityConfigRepository {

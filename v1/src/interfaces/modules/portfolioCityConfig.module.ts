@@ -6,7 +6,7 @@ import { PortfolioCityConfigService } from '@application/services/portfolioCityC
 import { PortfolioCityConfigRepositoryImpl } from '@infrastructure/persistence/repositories/portfolioCityConfig.repositories';
 import { PORTFOLIO_CITY_CONFIG_REPOSITORY } from '@domain/ports/portfolioCityConfig.ports';
 import { DataBasesModule } from './dataBases.module';
-import { TblStateTypeModule } from './tblStateType.module';
+import { TblStateTypeModule } from './stateType.module';
 
 @Module({
   controllers: [PortfolioCityConfigController],

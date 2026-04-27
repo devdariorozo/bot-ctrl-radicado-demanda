@@ -90,7 +90,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
           'runSync no se ejecuta porque la cartera (portfolio) de la configuración data_bases seleccionada no está activa.',
         meta: {
           data_bases_id: currentDataBasesId,
-          portfolio_type_id: dbRecord.portfolio_type_id,
+          portfolio_type_id: dbRecord.db_portfolio_type_id,
           portfolio_state_type_name: dbRecord.portfolio_state_type_name ?? null,
         },
       });
@@ -108,10 +108,10 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
     });
 
     for (const dbRecord of dbList) {
-      if (!dbRecord.bases || typeof dbRecord.bases !== 'object' || Object.keys(dbRecord.bases).length === 0) {
+      if (!dbRecord.db_bases || typeof dbRecord.db_bases !== 'object' || Object.keys(dbRecord.db_bases).length === 0) {
         continue;
       }
-      const configs = await this.portfolioCityConfigRepository.findByDataBases(dbRecord.id);
+      const configs = await this.portfolioCityConfigRepository.findByDataBases(dbRecord.db_id);
       if (configs.length === 0) {
         continue;
       }
@@ -125,16 +125,16 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
         status: 'OK',
         message: 'Procesando registro de data_bases',
         meta: {
-          dataBasesId: dbRecord.id,
-          portfolio_type_id: dbRecord.portfolio_type_id,
+          dataBasesId: dbRecord.db_id,
+          portfolio_type_id: dbRecord.db_portfolio_type_id,
           state_type_name: dbRecord.state_type_name,
-          bases: dbRecord.bases,
+          bases: dbRecord.db_bases,
           portfolioCityConfigs: configs.length,
           idCityViews,
         },
       });
 
-      for (const baseName of Object.keys(dbRecord.bases)) {
+      for (const baseName of Object.keys(dbRecord.db_bases)) {
         try {
           // 1) Consultar primero lawsuits pendientes (status Pendiente y sin deleted_at)
           //    y cruzarlas con lawsuit_court_assignments por lawsuit_id y city_id ∈ idCityViews.
@@ -150,7 +150,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
             message:
               'Resultado de lawsuits pendientes con lawsuit_court_assignments por base',
             meta: {
-              dataBasesId: dbRecord.id,
+              dataBasesId: dbRecord.db_id,
               baseName,
               pendingCount: pendingRows.length,
             },
@@ -178,7 +178,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
                 message: 'Sin configuración de ciudad para este city_id; se omite registro',
                 meta: {
                   baseName,
-                  dataBasesId: dbRecord.id,
+                  dataBasesId: dbRecord.db_id,
                   lawsuitCourtAssignmentsId,
                   lawsuitId,
                   clientId,
@@ -201,7 +201,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
                 message: 'Registro ya existe en management_demands_online para esta base; se omite',
                 meta: {
                   baseName,
-                  dataBasesId: dbRecord.id,
+                  dataBasesId: dbRecord.db_id,
                   lawsuitCourtAssignmentsId,
                   existingId: existing.id,
                 },
@@ -223,7 +223,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
                 message: 'No se encontró amount_type para el type_quantity; se omite',
                 meta: {
                   baseName,
-                  dataBasesId: dbRecord.id,
+                  dataBasesId: dbRecord.db_id,
                   lawsuitCourtAssignmentsId,
                   lawsuitId,
                   typeQuantity,
@@ -233,7 +233,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
               continue;
             }
             const input: CreateManagementDemandsOnlineInput = {
-              portfolio_type_id: dbRecord.portfolio_type_id,
+              portfolio_type_id: dbRecord.db_portfolio_type_id,
               name_data_base: baseName,
               portfolio_city_config_id: pcc.id,
               campaign_id: Number(row.campaign_id ?? 0),
@@ -259,7 +259,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
               message: 'Creando registro en management_demands_online',
               meta: {
                 baseName,
-                dataBasesId: dbRecord.id,
+                dataBasesId: dbRecord.db_id,
                 lawsuitCourtAssignmentsId,
                 lawsuitId,
                 clientId,
@@ -277,7 +277,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
             context: DemandsPendingSyncService.name,
             type: 'SYNC_JOB',
             status: 'WARN',
-            message: `Sync base "${baseName}" (data_bases id ${dbRecord.id}) falló`,
+            message: `Sync base "${baseName}" (data_bases id ${dbRecord.db_id}) falló`,
             meta: { error: error.message },
           });
         }

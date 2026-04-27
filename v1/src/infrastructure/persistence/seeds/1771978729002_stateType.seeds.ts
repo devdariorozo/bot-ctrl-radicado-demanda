@@ -1,7 +1,7 @@
 // Responsabilidad: insertar datos iniciales (semilla).
 
 import { DataSource } from 'typeorm';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 
 export const tblStateTypeSeeds = async (dataSource: DataSource) => {
     const repo = dataSource.getRepository(TblStateTypeEntity);

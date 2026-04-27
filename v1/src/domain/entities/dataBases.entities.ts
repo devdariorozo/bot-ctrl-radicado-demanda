@@ -15,20 +15,20 @@ export interface DataBaseServices {
 export type BasesConfig = Record<string, DataBaseServices>;
 
 export class DataBases {
-    id: number;
-    environment_type_id: number; // FK al environment_type.id
-    environment_type_name?: string; // Nombre del tipo de entorno
-    portfolio_type_id: number; // FK al portfolio_type.id
-    portfolio_type_name?: string; // Nombre del tipo de portfolio
-    bases: BasesConfig; // JSON con bases de datos y sus configuraciones de servicios
-    detail: string;
-    state_type_id: number;   // FK al state_type.id
-    state_type_name?: string; // Nombre del tipo de estado (de data_bases)
-    /** Estado de la cartera (portfolio_type): type en state_type para portfolio_type.state_type_id. Se usa para validar si la cartera está activa. */
+    db_id: number;
+    db_environment_type_id: number;
+    environment_type_name?: string;
+    db_portfolio_type_id: number;
+    portfolio_type_name?: string;
+    db_bases: BasesConfig;
+    db_detail: string;
+    db_state_type_id: number;
+    state_type_name?: string;
+    /** Estado de la cartera (portfolio_type): stty_type para portfolio_type.porty_state_type_id. */
     portfolio_state_type_name?: string;
-    /** Solo en respuestas de listado: "portfolio_type_name environment_type_name" o solo portfolio si env es "pro". */
+    /** "portfolio_type_name environment_type_name" o solo portfolio si env es "pro". */
     label_data_base?: string;
-    created_at: Date;
-    updated_at: Date;
-    responsible: string;
+    db_created_at: Date;
+    db_updated_at: Date;
+    db_responsible: string;
 }

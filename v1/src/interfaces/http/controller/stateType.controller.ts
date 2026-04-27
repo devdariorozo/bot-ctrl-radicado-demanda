@@ -1,11 +1,11 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
-import { TblStateTypeDto, UpdateTblStateTypeDto } from '../dto/tblStateType.dto';
-import { TblStateTypeService } from '@application/services/tblStateType.service';
-import { TblStateType } from '@domain/entities/tblStateType.entities';
-import { CreateTblStateTypeInput } from '@domain/ports/tblStateType.ports';
+import { ApiBody, ApiExtraModels, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { TblStateTypeDto, UpdateTblStateTypeDto } from '../dto/stateType.dto';
+import { TblStateTypeService } from '@application/services/stateType.service';
+import { TblStateType } from '@domain/entities/stateType.entities';
+import { CreateTblStateTypeInput } from '@domain/ports/stateType.ports';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
@@ -24,6 +24,7 @@ const updateExampleSchema = {
 };
 
 @ApiTags('stateType')
+@ApiExtraModels(UpdateTblStateTypeDto)
 @Controller('stateType')
 export class TblStateTypeController {
     constructor(private readonly tblStateTypeService: TblStateTypeService) {}
@@ -106,16 +107,17 @@ export class TblStateTypeController {
     }
 
     @Put('actualizar/:id')
-    @ApiOperation({ summary: 'Actualizar un tipo de estado por su stty_id (campos vía query)' })
-    @ApiQuery({ name: 'stty_type', required: true, type: String, description: 'Tipo de estado', example: updateExampleSchema.stty_type })
-    @ApiQuery({ name: 'stty_detail', required: true, type: String, description: 'Descripción del estado', example: updateExampleSchema.stty_detail })
-    @ApiQuery({ name: 'stty_responsible', required: true, type: String, description: 'Responsable de la gestión', example: updateExampleSchema.stty_responsible })
-    async update(@Param('id') id: string, @Query() query: UpdateTblStateTypeDto) {
+    @ApiOperation({ summary: 'Actualizar un tipo de estado por su stty_id' })
+    @ApiBody({
+        description: 'El JSON de abajo sirve de guía.',
+        schema: { allOf: [{ $ref: getSchemaPath(UpdateTblStateTypeDto) }], example: updateExampleSchema },
+    })
+    async update(@Param('id') id: string, @Body() dto: UpdateTblStateTypeDto) {
         const numId = Number(id);
         if (!Number.isInteger(numId) || numId <= 0) {
             throw new BadRequestException(userMsg.idUrlEntero);
         }
-        await this.tblStateTypeService.update({ ...query, stty_id: numId } as TblStateType);
+        await this.tblStateTypeService.update({ ...dto, stty_id: numId } as TblStateType);
         return { data: null, message: 'Registro actualizado correctamente' };
     }
 

@@ -1,4 +1,4 @@
-// Responsabilidad: insertar datos iniciales (semilla) para data_bases.
+// Responsabilidad: insertar datos iniciales (semilla) para tbl_data_bases.
 
 import { DataSource } from 'typeorm';
 import { DataBasesEntity } from '../entities/dataBases.entities';
@@ -187,68 +187,65 @@ export const dataBasesSeeds = async (dataSource: DataSource) => {
   const now = new Date();
 
   await repo.save([
-    // Cartera 1 — ambientes 1 (dev), 2 (qa), 3 (pro)
     {
-      environment_type_id: 1, // dev
-      portfolio_type_id: 1,
-      bases: BASES_PROPIAS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera propia',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
+      db_environment_type_id: 1,
+      db_portfolio_type_id: 1,
+      db_bases: BASES_PROPIAS_NO_PRO,
+      db_detail: 'Listado base de datos correspondiente a la cartera propia',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
     },
     {
-      environment_type_id: 2, // qa
-      portfolio_type_id: 1,
-      bases: BASES_PROPIAS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera propia',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
+      db_environment_type_id: 2,
+      db_portfolio_type_id: 1,
+      db_bases: BASES_PROPIAS_NO_PRO,
+      db_detail: 'Listado base de datos correspondiente a la cartera propia',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
     },
     {
-      environment_type_id: 3, // pro
-      portfolio_type_id: 1,
-      bases: CARTERA_PROPIA_BASES_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera propia',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
-    },
-
-    // Cartera 2 — ambientes 1 (dev), 2 (qa), 3 (pro)
-    {
-      environment_type_id: 1, // dev
-      portfolio_type_id: 2,
-      bases: BASES_SUDAMERIS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera sudameris',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
+      db_environment_type_id: 3,
+      db_portfolio_type_id: 1,
+      db_bases: CARTERA_PROPIA_BASES_PRO,
+      db_detail: 'Listado base de datos correspondiente a la cartera propia',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
     },
     {
-      environment_type_id: 2, // qa
-      portfolio_type_id: 2,
-      bases: BASES_SUDAMERIS_NO_PRO,
-      detail: 'Listado base de datos correspondiente a la cartera sudameris',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
+      db_environment_type_id: 1,
+      db_portfolio_type_id: 2,
+      db_bases: BASES_SUDAMERIS_NO_PRO,
+      db_detail: 'Listado base de datos correspondiente a la cartera sudameris',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
     },
     {
-      environment_type_id: 3, // pro
-      portfolio_type_id: 2,
-      bases: BASES_SUDAMERIS_PRO_EJEMPLO,
-      detail: 'Listado base de datos correspondiente a la cartera sudameris',
-      state_type_id: 1,
-      created_at: now,
-      updated_at: now,
-      responsible: 'BOT ctrl filed demand',
+      db_environment_type_id: 2,
+      db_portfolio_type_id: 2,
+      db_bases: BASES_SUDAMERIS_NO_PRO,
+      db_detail: 'Listado base de datos correspondiente a la cartera sudameris',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
+    },
+    {
+      db_environment_type_id: 3,
+      db_portfolio_type_id: 2,
+      db_bases: BASES_SUDAMERIS_PRO_EJEMPLO,
+      db_detail: 'Listado base de datos correspondiente a la cartera sudameris',
+      db_state_type_id: 1,
+      db_created_at: now,
+      db_updated_at: now,
+      db_responsible: 'BOT ctrl radicado demanda',
     },
   ]);
 };

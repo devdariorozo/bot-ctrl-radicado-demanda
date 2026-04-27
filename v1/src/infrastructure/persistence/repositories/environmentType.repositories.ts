@@ -4,12 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, Like, Repository } from 'typeorm';
 
-import { TblEnvironmentType } from '@domain/entities/tblEnvironmentType.entities';
+import { TblEnvironmentType } from '@domain/entities/environmentType.entities';
 import {
     CreateTblEnvironmentTypeInput,
     TblEnvironmentTypeRepository,
-} from '@domain/ports/tblEnvironmentType.ports';
-import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
+} from '@domain/ports/environmentType.ports';
+import { TblEnvironmentTypeEntity } from '../entities/environmentType.entities';
 
 @Injectable()
 export class TblEnvironmentTypeRepositoryImpl implements TblEnvironmentTypeRepository {

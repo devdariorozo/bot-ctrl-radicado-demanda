@@ -15,10 +15,10 @@ import {
   CreateManagementDemandsOnlineInput,
   FindAllManagementDemandsOnlineFilters,
 } from '@domain/ports/managementDemandsOnline.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
 import { AMOUNT_TYPE_REPOSITORY, AmountTypeRepository } from '@domain/ports/amountType.ports';
 import { PORTFOLIO_CITY_CONFIG_REPOSITORY, PortfolioCityConfigRepository } from '@domain/ports/portfolioCityConfig.ports';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 
 @Injectable()

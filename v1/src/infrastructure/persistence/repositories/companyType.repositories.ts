@@ -6,8 +6,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CompanyTypeEntity } from '../entities/companyType.entities';
 import { CompanyType } from '@domain/entities/companyType.entities';
 import { CreateCompanyTypeInput, CompanyTypeRepository } from '@domain/ports/companyType.ports';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 
 @Injectable()
 export class CompanyTypeRepositoryImpl implements CompanyTypeRepository {

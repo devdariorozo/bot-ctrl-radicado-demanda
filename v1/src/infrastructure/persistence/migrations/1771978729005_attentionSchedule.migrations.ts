@@ -2,33 +2,31 @@
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AttentionScheduleMigration1771978729005 implements MigrationInterface {
+export class TblAttentionScheduleMigration1771978729005 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TABLE attention_schedule (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        portfolio_type_id INT NOT NULL,
-        days JSON NOT NULL,
-        start_time TIME NOT NULL,
-        start_recess TIME NOT NULL,
-        end_recess TIME NOT NULL,
-        end_time TIME NOT NULL,
-        detail VARCHAR(255) NOT NULL,
-        state_type_id INT NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl filed demand',
-        CONSTRAINT UQ_attention_schedule UNIQUE (portfolio_type_id, start_time, end_time),
-        CONSTRAINT FK_attention_schedule_portfolio_type
-          FOREIGN KEY (portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
-        CONSTRAINT FK_attention_schedule_state_type
-          FOREIGN KEY (state_type_id) REFERENCES state_type(id)
+      CREATE TABLE tbl_attention_schedule (
+        atsh_id INT AUTO_INCREMENT PRIMARY KEY,
+        atsh_portfolio_type_id INT NOT NULL,
+        atsh_days JSON NOT NULL,
+        atsh_start_time TIME NOT NULL,
+        atsh_start_recess_time TIME NOT NULL,
+        atsh_end_recess_time TIME NOT NULL,
+        atsh_end_time TIME NOT NULL,
+        atsh_detail VARCHAR(255) NOT NULL,
+        atsh_state_type_id INT NOT NULL,
+        atsh_created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        atsh_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        atsh_responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl radicado demanda',
+        CONSTRAINT FK_tbl_attention_schedule_portfolio_type
+          FOREIGN KEY (atsh_portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
+        CONSTRAINT FK_tbl_attention_schedule_state_type
+          FOREIGN KEY (atsh_state_type_id) REFERENCES tbl_state_type(stty_id)
       )
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE attention_schedule');
+    await queryRunner.query('DROP TABLE tbl_attention_schedule');
   }
 }
-

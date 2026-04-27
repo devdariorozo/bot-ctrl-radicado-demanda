@@ -7,7 +7,7 @@ import { DataSource, Repository } from 'typeorm';
 import { AmountType } from '@domain/entities/amountType.entities';
 import { CreateAmountTypeInput, AmountTypeRepository } from '@domain/ports/amountType.ports';
 import { AmountTypeEntity } from '../entities/amountType.entities';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 
 @Injectable()
 export class AmountTypeRepositoryImpl implements AmountTypeRepository {

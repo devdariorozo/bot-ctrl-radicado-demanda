@@ -1,7 +1,7 @@
 // Responsabilidad: insertar datos iniciales (semilla).
 
 import { DataSource } from 'typeorm';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
 
 export const tblPortfolioTypeSeeds = async (dataSource: DataSource) => {
   const repo = dataSource.getRepository(TblPortfolioTypeEntity);

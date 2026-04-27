@@ -3,12 +3,12 @@
 import { Module } from '@nestjs/common';
 import { HolidayController } from '../http/controller/holiday.controller';
 import { HolidayService } from '@application/services/holiday.service';
-import { HolidayRepositoryImpl } from '@infrastructure/persistence/repositories/holiday.repositories';
+import { TblHolidayRepositoryImpl } from '@infrastructure/persistence/repositories/holiday.repositories';
 import { HOLIDAY_REPOSITORY } from '@domain/ports/holiday.ports';
-import { TblStateTypeModule } from './tblStateType.module';
-import { TblStateTypeService } from '@application/services/tblStateType.service';
-import { TBL_STATE_TYPE_REPOSITORY } from '@domain/ports/tblStateType.ports';
-import { TblStateTypeRepositoryImpl } from '@infrastructure/persistence/repositories/tblStateType.repositories';
+import { TblStateTypeModule } from './stateType.module';
+import { TblStateTypeService } from '@application/services/stateType.service';
+import { TBL_STATE_TYPE_REPOSITORY } from '@domain/ports/stateType.ports';
+import { TblStateTypeRepositoryImpl } from '@infrastructure/persistence/repositories/stateType.repositories';
 
 @Module({
   controllers: [HolidayController],
@@ -17,7 +17,7 @@ import { TblStateTypeRepositoryImpl } from '@infrastructure/persistence/reposito
     TblStateTypeService,
     {
       provide: HOLIDAY_REPOSITORY,
-      useClass: HolidayRepositoryImpl,
+      useClass: TblHolidayRepositoryImpl,
     },
     {
       provide: TBL_STATE_TYPE_REPOSITORY,
@@ -29,7 +29,7 @@ import { TblStateTypeRepositoryImpl } from '@infrastructure/persistence/reposito
     HolidayService,
     {
       provide: HOLIDAY_REPOSITORY,
-      useClass: HolidayRepositoryImpl,
+      useClass: TblHolidayRepositoryImpl,
     },
   ],
 })

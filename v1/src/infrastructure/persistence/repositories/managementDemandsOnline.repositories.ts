@@ -11,11 +11,11 @@ import {
   ManagementDemandsOnlineRepository,
 } from '@domain/ports/managementDemandsOnline.ports';
 import { ManagementDemandsOnlineEntity } from '../entities/managementDemandsOnline.entities';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 import { PortfolioCityConfigEntity } from '../entities/portfolioCityConfig.entities';
 import { DataBasesEntity } from '../entities/dataBases.entities';
-import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/environmentType.entities';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
 
 @Injectable()
 export class ManagementDemandsOnlineRepositoryImpl implements ManagementDemandsOnlineRepository {

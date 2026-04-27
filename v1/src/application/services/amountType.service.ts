@@ -11,8 +11,8 @@ import {
 
 import { AmountType } from '@domain/entities/amountType.entities';
 import { AMOUNT_TYPE_REPOSITORY, AmountTypeRepository, CreateAmountTypeInput } from '@domain/ports/amountType.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 

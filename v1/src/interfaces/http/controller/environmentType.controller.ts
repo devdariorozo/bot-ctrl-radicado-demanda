@@ -2,10 +2,10 @@
 
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
-import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '../dto/tblEnvironmentType.dto';
-import { TblEnvironmentTypeService } from '@application/services/tblEnvironmentType.service';
-import { TblEnvironmentType } from '@domain/entities/tblEnvironmentType.entities';
-import { CreateTblEnvironmentTypeInput } from '@domain/ports/tblEnvironmentType.ports';
+import { TblEnvironmentTypeDto, UpdateTblEnvironmentTypeDto } from '../dto/environmentType.dto';
+import { TblEnvironmentTypeService } from '@application/services/environmentType.service';
+import { TblEnvironmentType } from '@domain/entities/environmentType.entities';
+import { CreateTblEnvironmentTypeInput } from '@domain/ports/environmentType.ports';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';

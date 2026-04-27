@@ -1,11 +1,11 @@
 // Responsabilidad: endpoints HTTP de Nest (controller).
 
 import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
-import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '../dto/tblPortfolioType.dto';
-import { TblPortfolioTypeService } from '@application/services/tblPortfolioType.service';
-import { TblPortfolioType } from '@domain/entities/tblPortfolioType.entities';
-import { CreateTblPortfolioTypeInput } from '@domain/ports/tblPortfolioType.ports';
+import { ApiBody, ApiExtraModels, ApiOperation, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '../dto/portfolioType.dto';
+import { TblPortfolioTypeService } from '@application/services/portfolioType.service';
+import { TblPortfolioType } from '@domain/entities/portfolioType.entities';
+import { CreateTblPortfolioTypeInput } from '@domain/ports/portfolioType.ports';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { PaginatedResult, paginateArray } from '@application/utils/pagination.utils';
@@ -26,6 +26,7 @@ const updateExampleSchema = {
 };
 
 @ApiTags('portfolioType')
+@ApiExtraModels(UpdateTblPortfolioTypeDto)
 @Controller('portfolioType')
 export class TblPortfolioTypeController {
     constructor(private readonly portfolioTypeService: TblPortfolioTypeService) {}
@@ -123,17 +124,17 @@ export class TblPortfolioTypeController {
     }
 
     @Put('actualizar/:id')
-    @ApiOperation({ summary: 'Actualizar un tipo de cartera por su porty_id (campos vía query)' })
-    @ApiQuery({ name: 'porty_type', required: true, type: String, description: 'Tipo de cartera', example: updateExampleSchema.porty_type })
-    @ApiQuery({ name: 'porty_detail', required: true, type: String, description: 'Descripción de la cartera', example: updateExampleSchema.porty_detail })
-    @ApiQuery({ name: 'porty_state_type_id', required: true, type: Number, description: 'ID del tipo de estado', example: updateExampleSchema.porty_state_type_id })
-    @ApiQuery({ name: 'porty_responsible', required: true, type: String, description: 'Responsable de la gestión', example: updateExampleSchema.porty_responsible })
-    async update(@Param('id') id: string, @Query() query: UpdateTblPortfolioTypeDto) {
+    @ApiOperation({ summary: 'Actualizar un tipo de cartera por su porty_id' })
+    @ApiBody({
+        description: 'El JSON de abajo sirve de guía.',
+        schema: { allOf: [{ $ref: getSchemaPath(UpdateTblPortfolioTypeDto) }], example: updateExampleSchema },
+    })
+    async update(@Param('id') id: string, @Body() dto: UpdateTblPortfolioTypeDto) {
         const numId = Number(id);
         if (!Number.isInteger(numId) || numId <= 0) {
             throw new BadRequestException(userMsg.idUrlEntero);
         }
-        await this.portfolioTypeService.update({ ...query, porty_id: numId } as TblPortfolioType);
+        await this.portfolioTypeService.update({ ...dto, porty_id: numId } as TblPortfolioType);
         return { data: null, message: 'Registro actualizado correctamente' };
     }
 

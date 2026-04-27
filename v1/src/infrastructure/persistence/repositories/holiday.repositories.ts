@@ -1,4 +1,4 @@
-// Responsabilidad: implementación TypeORM de HolidayRepository.
+// Responsabilidad: implementación TypeORM de HolidayRepository (`tbl_holiday`).
 
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -6,10 +6,10 @@ import { DataSource, Repository } from 'typeorm';
 import { HolidayEntity } from '../entities/holiday.entities';
 import { Holiday } from '@domain/entities/holiday.entities';
 import { CreateHolidayInput, HolidayRepository } from '@domain/ports/holiday.ports';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 
 @Injectable()
-export class HolidayRepositoryImpl implements HolidayRepository {
+export class TblHolidayRepositoryImpl implements HolidayRepository {
   private readonly repo: Repository<HolidayEntity>;
 
   constructor(@InjectDataSource() dataSource: DataSource) {
@@ -19,109 +19,128 @@ export class HolidayRepositoryImpl implements HolidayRepository {
   async create(data: CreateHolidayInput): Promise<Holiday> {
     const now = new Date();
     const entity: Partial<HolidayEntity> = {
-      ...data,
-      date: this.toDateString(data.date),
-      is_working_day: data.is_working_day ? 1 : 0,
-      created_at: data.created_at ?? now,
-      updated_at: data.updated_at ?? now,
+      hldy_date: this.toDateString(data.hldy_date),
+      hldy_name: data.hldy_name,
+      hldy_country_code: data.hldy_country_code,
+      hldy_type: data.hldy_type,
+      hldy_is_working_day: data.hldy_is_working_day ? 1 : 0,
+      hldy_detail: data.hldy_detail,
+      hldy_state_type_id: data.hldy_state_type_id,
+      hldy_created_at: data.hldy_created_at ?? now,
+      hldy_updated_at: data.hldy_updated_at ?? now,
+      hldy_responsible: data.hldy_responsible,
     };
     const saved = await this.repo.save(entity as HolidayEntity);
-    return this.toDomain(saved);
+    return this.findById(saved.hldy_id);
   }
 
   async findAll(): Promise<Holiday[]> {
     const raw = await this.repo
       .createQueryBuilder('h')
-      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = h.state_type_id')
-      .select([
-        'h.id',
-        'h.date',
-        'h.name',
-        'h.country_code',
-        'h.type',
-        'h.is_working_day',
-        'h.detail',
-        'h.state_type_id',
-        'h.created_at',
-        'h.updated_at',
-        'h.responsible',
-      ])
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = h.hldy_state_type_id')
+      .select('h.hldy_id', 'hldy_id')
+      .addSelect('h.hldy_date', 'hldy_date')
+      .addSelect('h.hldy_name', 'hldy_name')
+      .addSelect('h.hldy_country_code', 'hldy_country_code')
+      .addSelect('h.hldy_type', 'hldy_type')
+      .addSelect('h.hldy_is_working_day', 'hldy_is_working_day')
+      .addSelect('h.hldy_detail', 'hldy_detail')
+      .addSelect('h.hldy_state_type_id', 'hldy_state_type_id')
+      .addSelect('h.hldy_created_at', 'hldy_created_at')
+      .addSelect('h.hldy_updated_at', 'hldy_updated_at')
+      .addSelect('h.hldy_responsible', 'hldy_responsible')
       .addSelect('st.stty_type', 'state_type_name')
-      .orderBy('h.id', 'DESC')
+      .orderBy('h.hldy_date', 'DESC')
       .getRawMany();
 
-    return raw.map((row: Record<string, unknown>) => ({
-      id: row.h_id as number,
-      date: new Date(row.h_date as string),
-      name: row.h_name as string,
-      country_code: row.h_country_code as string,
-      type: row.h_type as string,
-      is_working_day: (row.h_is_working_day as number) === 1,
-      detail: row.h_detail as string,
-      state_type_id: row.h_state_type_id as number,
-      state_type_name: (row.state_type_name as string) ?? '',
-      created_at: row.h_created_at as Date,
-      updated_at: row.h_updated_at as Date,
-      responsible: row.h_responsible as string,
-    }));
+    return raw.map((row: Record<string, unknown>) => this.rowToDomain(row));
   }
 
   async findById(id: number): Promise<Holiday> {
-    const found = await this.repo.findOne({ where: { id } });
-    if (!found) {
+    const raw = await this.repo
+      .createQueryBuilder('h')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = h.hldy_state_type_id')
+      .select('h.hldy_id', 'hldy_id')
+      .addSelect('h.hldy_date', 'hldy_date')
+      .addSelect('h.hldy_name', 'hldy_name')
+      .addSelect('h.hldy_country_code', 'hldy_country_code')
+      .addSelect('h.hldy_type', 'hldy_type')
+      .addSelect('h.hldy_is_working_day', 'hldy_is_working_day')
+      .addSelect('h.hldy_detail', 'hldy_detail')
+      .addSelect('h.hldy_state_type_id', 'hldy_state_type_id')
+      .addSelect('h.hldy_created_at', 'hldy_created_at')
+      .addSelect('h.hldy_updated_at', 'hldy_updated_at')
+      .addSelect('h.hldy_responsible', 'hldy_responsible')
+      .addSelect('st.stty_type', 'state_type_name')
+      .where('h.hldy_id = :id', { id })
+      .getRawOne<Record<string, unknown> | undefined>();
+
+    if (!raw) {
       throw new Error('Holiday not found');
     }
-    return this.toDomain(found);
+    return this.rowToDomain(raw);
   }
 
-  async findByDateAndCountry(date: Date, country_code: string, type?: string): Promise<Holiday | null> {
+  async findByDateAndCountry(date: Date, country_code: string): Promise<Holiday | null> {
     const dateStr = this.toDateString(date);
-    const where: Partial<HolidayEntity> = {
-      date: dateStr,
-      country_code,
-    };
-    if (type) {
-      where.type = type;
-    }
-    const found = await this.repo.findOne({ where });
-    return found ? this.toDomain(found) : null;
+    const found = await this.repo.findOne({
+      where: { hldy_date: dateStr, hldy_country_code: country_code },
+    });
+    return found ? this.entityToDomain(found) : null;
   }
 
   async update(data: Holiday): Promise<Holiday> {
-    const entity: HolidayEntity = {
-      id: data.id,
-      date: this.toDateString(data.date),
-      name: data.name,
-      country_code: data.country_code,
-      type: data.type,
-      is_working_day: data.is_working_day ? 1 : 0,
-      detail: data.detail,
-      state_type_id: data.state_type_id,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      responsible: data.responsible,
-    };
-    const saved = await this.repo.save(entity);
-    return this.toDomain(saved);
+    await this.repo.update(
+      { hldy_id: data.hldy_id },
+      {
+        hldy_date: this.toDateString(data.hldy_date),
+        hldy_name: data.hldy_name,
+        hldy_country_code: data.hldy_country_code,
+        hldy_type: data.hldy_type,
+        hldy_is_working_day: data.hldy_is_working_day ? 1 : 0,
+        hldy_detail: data.hldy_detail,
+        hldy_state_type_id: data.hldy_state_type_id,
+        hldy_responsible: data.hldy_responsible,
+        hldy_updated_at: data.hldy_updated_at,
+      },
+    );
+    return this.findById(data.hldy_id);
   }
 
   async delete(id: number): Promise<void> {
-    await this.repo.delete(id);
+    await this.repo.delete({ hldy_id: id });
   }
 
-  private toDomain(entity: HolidayEntity): Holiday {
+  private rowToDomain(row: Record<string, unknown>): Holiday {
     return {
-      id: entity.id,
-      date: new Date(entity.date),
-      name: entity.name,
-      country_code: entity.country_code,
-      type: entity.type,
-      is_working_day: entity.is_working_day === 1,
-      detail: entity.detail,
-      state_type_id: entity.state_type_id,
-      created_at: entity.created_at,
-      updated_at: entity.updated_at,
-      responsible: entity.responsible,
+      hldy_id: row.hldy_id as number,
+      hldy_date: new Date(row.hldy_date as string),
+      hldy_name: row.hldy_name as string,
+      hldy_country_code: row.hldy_country_code as string,
+      hldy_type: row.hldy_type as string,
+      hldy_is_working_day: (row.hldy_is_working_day as number) === 1,
+      hldy_detail: row.hldy_detail as string,
+      hldy_state_type_id: row.hldy_state_type_id as number,
+      state_type_name: (row.state_type_name as string) ?? '',
+      hldy_created_at: row.hldy_created_at as Date,
+      hldy_updated_at: row.hldy_updated_at as Date,
+      hldy_responsible: row.hldy_responsible as string,
+    };
+  }
+
+  private entityToDomain(entity: HolidayEntity): Holiday {
+    return {
+      hldy_id: entity.hldy_id,
+      hldy_date: new Date(entity.hldy_date),
+      hldy_name: entity.hldy_name,
+      hldy_country_code: entity.hldy_country_code,
+      hldy_type: entity.hldy_type,
+      hldy_is_working_day: entity.hldy_is_working_day === 1,
+      hldy_detail: entity.hldy_detail,
+      hldy_state_type_id: entity.hldy_state_type_id,
+      hldy_created_at: entity.hldy_created_at,
+      hldy_updated_at: entity.hldy_updated_at,
+      hldy_responsible: entity.hldy_responsible,
     };
   }
 
@@ -131,4 +150,3 @@ export class HolidayRepositoryImpl implements HolidayRepository {
     return date.toISOString().slice(0, 10);
   }
 }
-

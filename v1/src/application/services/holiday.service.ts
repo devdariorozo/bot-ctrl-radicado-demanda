@@ -1,6 +1,7 @@
 // Responsabilidad: servicio de aplicación para holidays.
 
 import {
+  ConflictException,
   UnprocessableEntityException,
   Inject,
   Injectable,
@@ -13,8 +14,8 @@ import {
   HolidayRepository,
   CreateHolidayInput,
 } from '@domain/ports/holiday.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 
@@ -37,23 +38,34 @@ export class HolidayService {
 
   async create(input: CreateHolidayInput): Promise<Holiday> {
     try {
-      TblStateTypeId.create(input.state_type_id);
+      TblStateTypeId.create(input.hldy_state_type_id);
     } catch {
       throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     try {
-      await this.stateTypeRepository.findById(input.state_type_id);
+      await this.stateTypeRepository.findById(input.hldy_state_type_id);
     } catch {
       throw new NotFoundException({ message: userMsg.notFoundEstado });
     }
 
+    const duplicate = await this.holidayRepository.findByDateAndCountry(
+      input.hldy_date,
+      (input.hldy_country_code ?? 'CO').toUpperCase(),
+    );
+    if (duplicate) {
+      throw new ConflictException({
+        message: 'El registro ya existe',
+        hldy_date: input.hldy_date,
+        hldy_country_code: input.hldy_country_code,
+      });
+    }
+
     const normalized: CreateHolidayInput = {
       ...input,
-      name: this.normalizeName(input.name),
-      detail: this.normalizeDetail(input.detail),
-      country_code: (input.country_code ?? 'CO').toUpperCase(),
-      responsible: input.responsible ?? 'BOT ctrl filed demand',
+      hldy_name: this.normalizeName(input.hldy_name),
+      hldy_detail: this.normalizeDetail(input.hldy_detail),
+      hldy_country_code: (input.hldy_country_code ?? 'CO').toUpperCase(),
     };
 
     try {
@@ -73,55 +85,68 @@ export class HolidayService {
 
   async findById(id: number): Promise<Holiday> {
     try {
-      const holiday = await this.holidayRepository.findById(id);
-      const state = await this.stateTypeRepository.findById(holiday.state_type_id);
-      return {
-        ...holiday,
-        state_type_name: state.stty_type,
-      };
+      return await this.holidayRepository.findById(id);
     } catch {
-      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
+      throw new NotFoundException({ message: 'Registro no encontrado', id });
     }
   }
 
   async update(holiday: Holiday): Promise<Holiday> {
     try {
-      TblStateTypeId.create(holiday.state_type_id);
+      TblStateTypeId.create(holiday.hldy_state_type_id);
     } catch {
       throw new UnprocessableEntityException(userMsg.idEstadoEntero);
     }
 
     let existing: Holiday;
     try {
-      existing = await this.holidayRepository.findById(holiday.id);
+      existing = await this.holidayRepository.findById(holiday.hldy_id);
     } catch {
-      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
+      throw new NotFoundException({ message: 'Registro no encontrado', id: holiday.hldy_id });
+    }
+
+    try {
+      await this.stateTypeRepository.findById(holiday.hldy_state_type_id);
+    } catch {
+      throw new NotFoundException({ message: userMsg.notFoundEstado });
     }
 
     const normalized: Holiday = {
       ...holiday,
-      name: this.normalizeName(holiday.name),
-      detail: this.normalizeDetail(holiday.detail),
-      country_code: (holiday.country_code ?? 'CO').toUpperCase(),
-      responsible: holiday.responsible ?? 'BOT ctrl filed demand',
+      hldy_name: this.normalizeName(holiday.hldy_name),
+      hldy_detail: this.normalizeDetail(holiday.hldy_detail),
+      hldy_country_code: (holiday.hldy_country_code ?? 'CO').toUpperCase(),
     };
 
+    const existingDateStr = existing.hldy_date instanceof Date
+      ? existing.hldy_date.toISOString().slice(0, 10)
+      : String(existing.hldy_date).slice(0, 10);
+    const newDateStr = normalized.hldy_date instanceof Date
+      ? normalized.hldy_date.toISOString().slice(0, 10)
+      : String(normalized.hldy_date).slice(0, 10);
+
     const hasChanges =
-      existing.date.getTime() !== normalized.date.getTime() ||
-      existing.name !== normalized.name ||
-      existing.country_code !== normalized.country_code ||
-      existing.type !== normalized.type ||
-      existing.is_working_day !== normalized.is_working_day ||
-      existing.detail !== normalized.detail ||
-      existing.state_type_id !== normalized.state_type_id ||
-      existing.responsible !== normalized.responsible;
+      existingDateStr !== newDateStr ||
+      existing.hldy_name !== normalized.hldy_name ||
+      existing.hldy_country_code !== normalized.hldy_country_code ||
+      existing.hldy_type !== normalized.hldy_type ||
+      existing.hldy_is_working_day !== normalized.hldy_is_working_day ||
+      existing.hldy_detail !== normalized.hldy_detail ||
+      existing.hldy_state_type_id !== normalized.hldy_state_type_id ||
+      existing.hldy_responsible !== normalized.hldy_responsible;
 
     if (!hasChanges) {
-      throw new UnprocessableEntityException({ message: userMsg.sinCambios });
+      throw new UnprocessableEntityException({ message: 'No hay cambios para actualizar', id: holiday.hldy_id });
     }
 
+    const toSave: Holiday = {
+      ...normalized,
+      hldy_created_at: existing.hldy_created_at,
+      hldy_updated_at: new Date(),
+    };
+
     try {
-      return await this.holidayRepository.update(normalized);
+      return await this.holidayRepository.update(toSave);
     } catch {
       throw new InternalServerErrorException(userMsg.noActualizar);
     }
@@ -131,7 +156,7 @@ export class HolidayService {
     try {
       await this.holidayRepository.findById(id);
     } catch {
-      throw new NotFoundException({ message: userMsg.registroNoEncontrado });
+      throw new NotFoundException({ message: 'Registro no encontrado', id });
     }
 
     try {
@@ -141,4 +166,3 @@ export class HolidayService {
     }
   }
 }
-

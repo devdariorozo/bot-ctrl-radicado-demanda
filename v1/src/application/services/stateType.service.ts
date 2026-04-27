@@ -1,8 +1,8 @@
 // Responsabilidad: fachada de aplicación que usará el controller.
 
 import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { TblStateType } from "@domain/entities/tblStateType.entities";
-import { CreateTblStateTypeInput, TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from "@domain/ports/tblStateType.ports";
+import { TblStateType } from "@domain/entities/stateType.entities";
+import { CreateTblStateTypeInput, TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from "@domain/ports/stateType.ports";
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 import { QueryFailedError } from 'typeorm';

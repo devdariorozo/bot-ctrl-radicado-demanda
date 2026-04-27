@@ -1,119 +1,92 @@
 // Responsabilidad: DTOs HTTP para holiday.
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 
 const COUNTRY_CODES = ['CO'] as const;
 
 export class HolidayDto {
-  @ApiPropertyOptional({ example: 1, description: 'ID (opcional en POST)' })
-  @IsNumber()
-  @IsOptional()
-  id?: number;
-
-  @ApiProperty({ example: '2026-03-24', description: 'Fecha del festivo (YYYY-MM-DD)' })
+  @ApiProperty({ example: '2026-01-01', description: 'Fecha del festivo (YYYY-MM-DD)' })
   @IsString()
   @IsNotEmpty()
-  date: string;
+  hldy_date: string;
 
-  @ApiProperty({ example: 'DÍA DE SAN JOSÉ', description: 'Nombre del festivo (mayúsculas)' })
+  @ApiProperty({ example: 'Año Nuevo', description: 'Nombre del festivo' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  hldy_name: string;
 
   @ApiProperty({ example: 'CO', description: 'Código de país ISO 3166-1 alpha-2' })
   @IsString()
   @IsIn(COUNTRY_CODES as unknown as string[])
-  country_code: string;
+  hldy_country_code: string;
 
-  @ApiProperty({ example: 'NATIONAL', description: 'Tipo de festivo (NATIONAL, JUDICIAL, etc.)' })
+  @ApiProperty({ example: 'NATIONAL', description: 'Tipo de festivo (NATIONAL, RELIGIOUS, JUDICIAL, etc.)' })
   @IsString()
   @IsNotEmpty()
-  type: string;
+  hldy_type: string;
 
-  @ApiProperty({ example: false, description: 'Si es día laborable para el bot (0 = no, 1 = sí)' })
+  @ApiProperty({ example: false, description: 'Indica si es día laborable (false = no laborable, true = laborable)' })
   @IsBoolean()
-  is_working_day: boolean;
+  hldy_is_working_day: boolean;
 
-  @ApiProperty({ example: 'Festivo oficial en Colombia', description: 'Detalle del festivo' })
+  @ApiProperty({ example: 'Se crea registro con exito.', description: 'Descripción del festivo' })
   @IsString()
   @IsNotEmpty()
-  detail: string;
+  hldy_detail: string;
 
-  @ApiProperty({ example: 1, description: 'ID del tipo de estado' })
-  @IsNumber()
-  @IsNotEmpty()
-  state_type_id: number;
+  @ApiProperty({ example: 1, description: 'ID del tipo de estado (stty_id)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  hldy_state_type_id: number;
 
-  @ApiPropertyOptional({ example: 'Active', description: 'Nombre del tipo de estado (solo respuesta)' })
-  @IsString()
-  @IsOptional()
-  state_type_name?: string;
-
-  @ApiPropertyOptional({ example: '2026-03-10T12:00:00.000Z', description: 'Fecha de creación' })
-  @IsDate()
-  @IsOptional()
-  created_at?: Date;
-
-  @ApiPropertyOptional({ example: '2026-03-10T12:00:00.000Z', description: 'Fecha de actualización' })
-  @IsDate()
-  @IsOptional()
-  updated_at?: Date;
-
-  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable' })
+  @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable del proceso' })
   @IsString()
   @IsNotEmpty()
-  responsible: string;
+  hldy_responsible: string;
 }
 
+/** Body JSON para PUT `actualizar/:id`. El hldy_id va en la URL. */
 export class UpdateHolidayDto {
-  @ApiProperty({ example: '2026-03-24', description: 'Fecha del festivo (YYYY-MM-DD)' })
+  @ApiProperty({ example: '2026-01-01', description: 'Fecha del festivo (YYYY-MM-DD)' })
   @IsString()
   @IsNotEmpty()
-  date: string;
+  hldy_date: string;
 
-  @ApiProperty({ example: 'DÍA DE SAN JOSÉ', description: 'Nombre del festivo (mayúsculas)' })
+  @ApiProperty({ example: 'Año Nuevo', description: 'Nombre del festivo' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  hldy_name: string;
 
   @ApiProperty({ example: 'CO', description: 'Código de país ISO 3166-1 alpha-2' })
   @IsString()
   @IsIn(COUNTRY_CODES as unknown as string[])
-  country_code: string;
+  hldy_country_code: string;
 
-  @ApiProperty({ example: 'NATIONAL', description: 'Tipo de festivo (NATIONAL, JUDICIAL, etc.)' })
+  @ApiProperty({ example: 'NATIONAL', description: 'Tipo de festivo (NATIONAL, RELIGIOUS, JUDICIAL, etc.)' })
   @IsString()
   @IsNotEmpty()
-  type: string;
+  hldy_type: string;
 
-  @ApiProperty({ example: false, description: 'Si es día laborable para el bot (0 = no, 1 = sí)' })
+  @ApiProperty({ example: false, description: 'Indica si es día laborable (false = no laborable, true = laborable)' })
   @IsBoolean()
-  is_working_day: boolean;
+  hldy_is_working_day: boolean;
 
-  @ApiProperty({ example: 'Festivo oficial en Colombia', description: 'Detalle del festivo' })
+  @ApiProperty({ example: 'Se crea registro con exito.', description: 'Descripción del festivo' })
   @IsString()
   @IsNotEmpty()
-  detail: string;
+  hldy_detail: string;
 
-  @ApiProperty({ example: 1, description: 'ID del tipo de estado' })
-  @IsNumber()
-  @IsNotEmpty()
-  state_type_id: number;
+  @ApiProperty({ example: 1, description: 'ID del tipo de estado (stty_id)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  hldy_state_type_id: number;
 
-  @ApiPropertyOptional({ example: '2026-03-10T12:00:00.000Z', description: 'Fecha de creación' })
-  @IsDate()
-  @IsOptional()
-  created_at?: Date;
-
-  @ApiPropertyOptional({ example: '2026-03-10T12:00:00.000Z', description: 'Fecha de actualización' })
-  @IsDate()
-  @IsOptional()
-  updated_at?: Date;
-
-  @ApiProperty({ example: 'BOT ctrl filed demand', description: 'Responsable' })
+  @ApiProperty({ example: 'BOT ctrl radicado demanda', description: 'Responsable del proceso' })
   @IsString()
   @IsNotEmpty()
-  responsible: string;
+  hldy_responsible: string;
 }
-

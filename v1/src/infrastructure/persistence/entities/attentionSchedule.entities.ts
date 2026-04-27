@@ -2,42 +2,41 @@
 
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('attention_schedule')
-export class AttentionScheduleEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('tbl_attention_schedule')
+export class TblAttentionScheduleEntity {
+  @PrimaryGeneratedColumn({ name: 'atsh_id' })
+  atsh_id: number;
 
-  @Column()
-  portfolio_type_id: number;
+  @Column({ name: 'atsh_portfolio_type_id' })
+  atsh_portfolio_type_id: number;
 
-  @Column('json')
-  days: string[];
+  @Column({ name: 'atsh_days', type: 'json' })
+  atsh_days: string[];
 
-  @Column({ type: 'time' })
-  start_time: string;
+  @Column({ name: 'atsh_start_time', type: 'time' })
+  atsh_start_time: string;
 
-  @Column({ type: 'time' })
-  start_recess: string;
+  @Column({ name: 'atsh_start_recess_time', type: 'time' })
+  atsh_start_recess_time: string;
 
-  @Column({ type: 'time' })
-  end_recess: string;
+  @Column({ name: 'atsh_end_recess_time', type: 'time' })
+  atsh_end_recess_time: string;
 
-  @Column({ type: 'time' })
-  end_time: string;
+  @Column({ name: 'atsh_end_time', type: 'time' })
+  atsh_end_time: string;
 
-  @Column()
-  detail: string;
+  @Column({ name: 'atsh_detail' })
+  atsh_detail: string;
 
-  @Column()
-  state_type_id: number;
+  @Column({ name: 'atsh_state_type_id' })
+  atsh_state_type_id: number;
 
-  @Column()
-  created_at: Date;
+  @Column({ name: 'atsh_created_at' })
+  atsh_created_at: Date;
 
-  @Column()
-  updated_at: Date;
+  @Column({ name: 'atsh_updated_at' })
+  atsh_updated_at: Date;
 
-  @Column()
-  responsible: string;
+  @Column({ name: 'atsh_responsible' })
+  atsh_responsible: string;
 }
-

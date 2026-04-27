@@ -10,20 +10,18 @@ import {
 } from '@nestjs/common';
 import { BasesConfig, DataBases } from '@domain/entities/dataBases.entities';
 import { CreateDataBasesInput, DataBasesRepository, DATABASES_REPOSITORY } from '@domain/ports/dataBases.ports';
-import { TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from '@domain/ports/tblEnvironmentType.ports';
-import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
-import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
-import { TblEnvironmentTypeId } from '@domain/value-objects/tblEnvironmentType.valueobjects';
-import { TblPortfolioTypeId } from '@domain/value-objects/tblPortfolioType.valueobjects';
-import { TblStateTypeId } from '@domain/value-objects/tblStateType.valueobjects';
+import { TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from '@domain/ports/environmentType.ports';
+import { TBL_PORTFOLIO_TYPE_REPOSITORY, TblPortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
+import { TBL_STATE_TYPE_REPOSITORY, TblStateTypeRepository } from '@domain/ports/stateType.ports';
+import { TblEnvironmentTypeId } from '@domain/value-objects/environmentType.valueobjects';
+import { TblPortfolioTypeId } from '@domain/value-objects/portfolioType.valueobjects';
+import { TblStateTypeId } from '@domain/value-objects/stateType.valueobjects';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { jsonStableStringify } from '@application/utils/jsonStableStringify.utils';
 
 function buildLabelDataBase(portfolioTypeName: string, environmentTypeName: string): string {
-  const env = (environmentTypeName || '').trim().toLowerCase();
-  if (env === 'pro') return portfolioTypeName;
-  return `${portfolioTypeName} ${environmentTypeName}`.trim();
+  return `${portfolioTypeName} - ${environmentTypeName}`.trim();
 }
 
 /** Excluir opciones cuyo entorno sea "producción" (heurística: pro, prod, production, producción). */
@@ -61,31 +59,39 @@ export class DataBasesService {
 
   async create(input: CreateDataBasesInput): Promise<DataBases> {
     try {
-      TblEnvironmentTypeId.create(input.environment_type_id);
-      TblPortfolioTypeId.create(input.portfolio_type_id);
-      TblStateTypeId.create(input.state_type_id);
+      TblEnvironmentTypeId.create(input.db_environment_type_id);
+      TblPortfolioTypeId.create(input.db_portfolio_type_id);
+      TblStateTypeId.create(input.db_state_type_id);
     } catch {
       throw new UnprocessableEntityException(userMsg.fkEnterosPositivos);
     }
 
     try {
-      await this.environmentTypeRepository.findById(input.environment_type_id);
-      await this.portfolioTypeRepository.findById(input.portfolio_type_id);
-      await this.stateTypeRepository.findById(input.state_type_id);
+      await this.environmentTypeRepository.findById(input.db_environment_type_id);
+      await this.portfolioTypeRepository.findById(input.db_portfolio_type_id);
+      await this.stateTypeRepository.findById(input.db_state_type_id);
     } catch {
       throw new NotFoundException({ message: 'Registro no encontrado' });
     }
 
-    if (!input.bases || typeof input.bases !== 'object' || Object.keys(input.bases).length === 0) {
+    if (!input.db_bases || typeof input.db_bases !== 'object' || Object.keys(input.db_bases).length === 0) {
       throw new UnprocessableEntityException(userMsg.alMenosUnaBase);
     }
 
-    const duplicate = await this.dataBasesRepository.findByDuplicateBases(input.bases);
+    const duplicate = await this.dataBasesRepository.findByEnvAndPortfolio(
+      input.db_environment_type_id,
+      input.db_portfolio_type_id,
+    );
     if (duplicate) {
-      throw new ConflictException({ message: 'El registro ya existe', db_bases: input.bases });
+      throw new ConflictException({
+        message: 'El registro ya existe',
+        db_environment_type_id: input.db_environment_type_id,
+        db_portfolio_type_id: input.db_portfolio_type_id,
+        db_id: duplicate.db_id,
+      });
     }
 
-    const normalizedInput = { ...input, detail: capitalizeFirstWord(input.detail) };
+    const normalizedInput = { ...input, db_detail: capitalizeFirstWord(input.db_detail) };
     try {
       return await this.dataBasesRepository.create(normalizedInput);
     } catch {
@@ -105,9 +111,9 @@ export class DataBasesService {
       const portfolioMap = new Map(portfolioTypes.map((p) => [p.porty_id, p]));
       const stateMap = new Map(stateTypes.map((s) => [s.stty_id, s]));
       return dbs.map((db) => {
-        const env = envMap.get(db.environment_type_id);
-        const portfolio = portfolioMap.get(db.portfolio_type_id);
-        const state = stateMap.get(db.state_type_id);
+        const env = envMap.get(db.db_environment_type_id);
+        const portfolio = portfolioMap.get(db.db_portfolio_type_id);
+        const state = stateMap.get(db.db_state_type_id);
         const envType = env?.env_type ?? '';
         const portfolioType = portfolio?.porty_type ?? '';
         const stateType = state?.stty_type ?? '';
@@ -115,20 +121,20 @@ export class DataBasesService {
           ? stateMap.get(portfolio.porty_state_type_id)?.stty_type ?? ''
           : '';
         return {
-          id: db.id,
-          environment_type_id: db.environment_type_id,
+          db_id: db.db_id,
+          db_environment_type_id: db.db_environment_type_id,
           environment_type_name: envType,
-          portfolio_type_id: db.portfolio_type_id,
+          db_portfolio_type_id: db.db_portfolio_type_id,
           portfolio_type_name: portfolioType,
           label_data_base: buildLabelDataBase(portfolioType, envType),
-          bases: db.bases,
-          detail: db.detail,
-          state_type_id: db.state_type_id,
+          db_bases: db.db_bases,
+          db_detail: db.db_detail,
+          db_state_type_id: db.db_state_type_id,
           state_type_name: stateType,
           portfolio_state_type_name: pStateName,
-          created_at: db.created_at,
-          updated_at: db.updated_at,
-          responsible: db.responsible,
+          db_created_at: db.db_created_at,
+          db_updated_at: db.db_updated_at,
+          db_responsible: db.db_responsible,
         };
       });
     } catch {
@@ -143,17 +149,15 @@ export class DataBasesService {
 
   /** `opcionesActivas`: estado de la fila (data_bases) activo, no inactivo en stty_type. */
   findOptionsActiveState(enriched: DataBases[]): DataBases[] {
-    return enriched.filter((r) => {
-      const n = (r.state_type_name ?? '').toLowerCase();
-      return n.length > 0 && !n.includes('inactiv');
-    });
+    // Criterio acordado: activo == stty_id = 1
+    return enriched.filter((r) => Number(r.db_state_type_id) === 1);
   }
 
-  async findByEnvAndPortf(environment_type_id: number, portfolio_type_id: number): Promise<DataBases[]> {
+  async findByEnvAndPortf(db_environment_type_id: number, db_portfolio_type_id: number): Promise<DataBases[]> {
     try {
       const all = await this.findAll();
       return all.filter(
-        (db) => db.environment_type_id === environment_type_id && db.portfolio_type_id === portfolio_type_id,
+        (db) => db.db_environment_type_id === db_environment_type_id && db.db_portfolio_type_id === db_portfolio_type_id,
       );
     } catch {
       throw new InternalServerErrorException(userMsg.noCargar);
@@ -177,51 +181,64 @@ export class DataBasesService {
 
   async update(dataBases: DataBases): Promise<DataBases> {
     try {
-      TblEnvironmentTypeId.create(dataBases.environment_type_id);
-      TblPortfolioTypeId.create(dataBases.portfolio_type_id);
-      TblStateTypeId.create(dataBases.state_type_id);
+      TblEnvironmentTypeId.create(dataBases.db_environment_type_id);
+      TblPortfolioTypeId.create(dataBases.db_portfolio_type_id);
+      TblStateTypeId.create(dataBases.db_state_type_id);
     } catch {
       throw new UnprocessableEntityException(userMsg.fkEnterosPositivos);
     }
 
     try {
-      await this.environmentTypeRepository.findById(dataBases.environment_type_id);
-      await this.portfolioTypeRepository.findById(dataBases.portfolio_type_id);
-      await this.stateTypeRepository.findById(dataBases.state_type_id);
+      await this.environmentTypeRepository.findById(dataBases.db_environment_type_id);
+      await this.portfolioTypeRepository.findById(dataBases.db_portfolio_type_id);
+      await this.stateTypeRepository.findById(dataBases.db_state_type_id);
     } catch {
       throw new NotFoundException({ message: 'Registro no encontrado' });
     }
 
     let existing: DataBases;
     try {
-      existing = await this.dataBasesRepository.findById(dataBases.id);
+      existing = await this.dataBasesRepository.findById(dataBases.db_id);
     } catch {
-      throw new NotFoundException({ message: 'Registro no encontrado', id: dataBases.id });
+      throw new NotFoundException({ message: 'Registro no encontrado', id: dataBases.db_id });
     }
 
-    const normalized = { ...dataBases, detail: capitalizeFirstWord(dataBases.detail) };
+    const normalized = { ...dataBases, db_detail: capitalizeFirstWord(dataBases.db_detail) };
     const hasChanges =
-      existing.environment_type_id !== normalized.environment_type_id ||
-      existing.portfolio_type_id !== normalized.portfolio_type_id ||
-      existing.state_type_id !== normalized.state_type_id ||
-      existing.detail !== normalized.detail ||
-      existing.responsible !== normalized.responsible ||
-      jsonStableStringify(existing.bases) !== jsonStableStringify(normalized.bases);
+      existing.db_environment_type_id !== normalized.db_environment_type_id ||
+      existing.db_portfolio_type_id !== normalized.db_portfolio_type_id ||
+      existing.db_state_type_id !== normalized.db_state_type_id ||
+      existing.db_detail !== normalized.db_detail ||
+      existing.db_responsible !== normalized.db_responsible ||
+      jsonStableStringify(existing.db_bases) !== jsonStableStringify(normalized.db_bases);
 
     if (!hasChanges) {
-      throw new UnprocessableEntityException({ message: 'No hay cambios para actualizar', id: dataBases.id });
+      throw new UnprocessableEntityException({ message: 'No hay cambios para actualizar', id: dataBases.db_id });
+    }
+
+    const dup = await this.dataBasesRepository.findByEnvAndPortfolio(
+      normalized.db_environment_type_id,
+      normalized.db_portfolio_type_id,
+    );
+    if (dup && dup.db_id !== existing.db_id) {
+      throw new ConflictException({
+        message: 'El registro ya existe',
+        db_environment_type_id: normalized.db_environment_type_id,
+        db_portfolio_type_id: normalized.db_portfolio_type_id,
+        db_id: dup.db_id,
+      });
     }
 
     const toSave: DataBases = {
-      id: existing.id,
-      environment_type_id: normalized.environment_type_id,
-      portfolio_type_id: normalized.portfolio_type_id,
-      bases: normalized.bases,
-      detail: normalized.detail,
-      state_type_id: normalized.state_type_id,
-      created_at: existing.created_at,
-      updated_at: new Date(),
-      responsible: normalized.responsible,
+      db_id: existing.db_id,
+      db_environment_type_id: normalized.db_environment_type_id,
+      db_portfolio_type_id: normalized.db_portfolio_type_id,
+      db_bases: normalized.db_bases,
+      db_detail: normalized.db_detail,
+      db_state_type_id: normalized.db_state_type_id,
+      db_created_at: existing.db_created_at,
+      db_updated_at: new Date(),
+      db_responsible: normalized.db_responsible,
     };
     try {
       return await this.dataBasesRepository.update(toSave);

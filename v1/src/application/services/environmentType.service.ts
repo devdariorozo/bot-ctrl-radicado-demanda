@@ -2,8 +2,8 @@
 
 import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UnprocessableEntityException } from '@nestjs/common';
-import { TblEnvironmentType } from "@domain/entities/tblEnvironmentType.entities";
-import { CreateTblEnvironmentTypeInput, TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from "@domain/ports/tblEnvironmentType.ports";
+import { TblEnvironmentType } from "@domain/entities/environmentType.entities";
+import { CreateTblEnvironmentTypeInput, TBL_ENVIRONMENT_TYPE_REPOSITORY, TblEnvironmentTypeRepository } from "@domain/ports/environmentType.ports";
 import { userMsg } from '@application/utils/apiUserMessages.utils';
 import { capitalizeFirstWord } from '@application/utils/string.utils';
 import { QueryFailedError } from 'typeorm';

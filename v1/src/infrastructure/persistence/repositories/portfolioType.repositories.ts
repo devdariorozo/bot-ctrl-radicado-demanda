@@ -2,11 +2,11 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { CreateTblPortfolioTypeInput, TblPortfolioTypeRepository } from '@domain/ports/tblPortfolioType.ports';
-import { TblPortfolioTypeEntity } from '../entities/tblPortfolioType.entities';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { CreateTblPortfolioTypeInput, TblPortfolioTypeRepository } from '@domain/ports/portfolioType.ports';
+import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 import { DataSource, Like, Repository } from 'typeorm';
-import { TblPortfolioType } from '@domain/entities/tblPortfolioType.entities';
+import { TblPortfolioType } from '@domain/entities/portfolioType.entities';
 
 @Injectable()
 export class TblPortfolioTypeRepositoryImpl implements TblPortfolioTypeRepository {

@@ -1,6 +1,6 @@
 // Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
 
-import { TblEnvironmentType } from "@domain/entities/tblEnvironmentType.entities";
+import { TblEnvironmentType } from "@domain/entities/environmentType.entities";
 
 /** Token para inyección del repositorio (las interfaces no existen en runtime en NestJS). */
 export const TBL_ENVIRONMENT_TYPE_REPOSITORY = Symbol('TBL_ENVIRONMENT_TYPE_REPOSITORY');

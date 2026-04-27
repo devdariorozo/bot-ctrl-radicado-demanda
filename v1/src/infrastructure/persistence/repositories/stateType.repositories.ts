@@ -2,10 +2,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { CreateTblStateTypeInput, TblStateTypeRepository } from '@domain/ports/tblStateType.ports';
-import { TblStateTypeEntity } from '../entities/tblStateType.entities';
+import { CreateTblStateTypeInput, TblStateTypeRepository } from '@domain/ports/stateType.ports';
+import { TblStateTypeEntity } from '../entities/stateType.entities';
 import { DataSource, Repository } from 'typeorm';
-import { TblStateType } from '@domain/entities/tblStateType.entities';
+import { TblStateType } from '@domain/entities/stateType.entities';
 
 @Injectable()
 export class TblStateTypeRepositoryImpl implements TblStateTypeRepository {

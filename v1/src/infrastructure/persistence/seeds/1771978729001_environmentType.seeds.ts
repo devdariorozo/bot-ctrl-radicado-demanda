@@ -1,7 +1,7 @@
 // Responsabilidad: insertar datos iniciales (semilla) para tipos de entorno.
 
 import { DataSource } from 'typeorm';
-import { TblEnvironmentTypeEntity } from '../entities/tblEnvironmentType.entities';
+import { TblEnvironmentTypeEntity } from '../entities/environmentType.entities';
 
 export const tblEnvironmentTypeSeeds = async (dataSource: DataSource) => {
   const repo = dataSource.getRepository(TblEnvironmentTypeEntity);

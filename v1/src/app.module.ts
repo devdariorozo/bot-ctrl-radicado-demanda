@@ -4,22 +4,21 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthModule } from './interfaces/modules/health.module';
-import { TblStateTypeEntity } from './infrastructure/persistence/entities/tblStateType.entities';
-import { TblStateTypeModule } from './interfaces/modules/tblStateType.module';
-import { TblPortfolioTypeEntity } from './infrastructure/persistence/entities/tblPortfolioType.entities';
-import { TblPortfolioTypeModule } from './interfaces/modules/tblPortfolioType.module';
-import { TblEnvironmentTypeEntity } from './infrastructure/persistence/entities/tblEnvironmentType.entities';
-import { TblEnvironmentTypeModule } from './interfaces/modules/tblEnvironmentType.module';
-import { TblEnvironmentTypeMigration1771978729001 } from '@infrastructure/persistence/migrations/1771978729001_tblEnvironmentType.migrations';
-import { TblStateTypeMigration1771978729002 } from '@infrastructure/persistence/migrations/1771978729002_tblStateType.migrations';
-import { TblPortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_tblPortfolioType.migrations';
+import { TblStateTypeEntity } from './infrastructure/persistence/entities/stateType.entities';
+import { TblStateTypeModule } from './interfaces/modules/stateType.module';
+import { TblPortfolioTypeEntity } from './infrastructure/persistence/entities/portfolioType.entities';
+import { TblPortfolioTypeModule } from './interfaces/modules/portfolioType.module';
+import { TblEnvironmentTypeEntity } from './infrastructure/persistence/entities/environmentType.entities';
+import { TblEnvironmentTypeModule } from './interfaces/modules/environmentType.module';
+import { TblEnvironmentTypeMigration1771978729001 } from '@infrastructure/persistence/migrations/1771978729001_environmentType.migrations';
+import { TblStateTypeMigration1771978729002 } from '@infrastructure/persistence/migrations/1771978729002_stateType.migrations';
+import { TblPortfolioTypeMigration1771978729003 } from '@infrastructure/persistence/migrations/1771978729003_portfolioType.migrations';
 import { DataBasesEntity } from './infrastructure/persistence/entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from '@infrastructure/persistence/migrations/1771978729004_dataBases.migrations';
-import { TblDataBasesAlign1771978729016 } from '@infrastructure/persistence/migrations/1771978729016_tblDataBasesAlign.migrations';
 import { DataBasesModule } from './interfaces/modules/dataBases.module';
-import { AttentionScheduleEntity } from './infrastructure/persistence/entities/attentionSchedule.entities';
-import { AttentionScheduleMigration1771978729005 } from '@infrastructure/persistence/migrations/1771978729005_attentionSchedule.migrations';
-import { AttentionScheduleModule } from './interfaces/modules/attentionSchedule.module';
+import { TblAttentionScheduleEntity } from './infrastructure/persistence/entities/attentionSchedule.entities';
+import { TblAttentionScheduleMigration1771978729005 } from '@infrastructure/persistence/migrations/1771978729005_attentionSchedule.migrations';
+import { TblAttentionScheduleModule } from './interfaces/modules/attentionSchedule.module';
 import { PortfolioCityConfigEntity } from './infrastructure/persistence/entities/portfolioCityConfig.entities';
 import { PortfolioCityConfigMigration1771978729006 } from '@infrastructure/persistence/migrations/1771978729006_portfolioCityConfig.migrations';
 import { PortfolioCityConfigModule } from './interfaces/modules/portfolioCityConfig.module';
@@ -67,7 +66,7 @@ import { LogsModule } from './interfaces/modules/logs.module';
           TblStateTypeEntity,
           TblPortfolioTypeEntity,
           DataBasesEntity,
-          AttentionScheduleEntity,
+          TblAttentionScheduleEntity,
           PortfolioCityConfigEntity,
           AmountTypeEntity,
           CompanyTypeEntity,
@@ -81,7 +80,7 @@ import { LogsModule } from './interfaces/modules/logs.module';
           TblStateTypeMigration1771978729002,
           TblPortfolioTypeMigration1771978729003,
           DataBasesMigration1771978729004,
-          AttentionScheduleMigration1771978729005,
+          TblAttentionScheduleMigration1771978729005,
           PortfolioCityConfigMigration1771978729006,
           AmountTypeMigration1771978729007,
           AlterAmountTypeJson1771978729010,
@@ -90,7 +89,6 @@ import { LogsModule } from './interfaces/modules/logs.module';
           HolidayMigration1771978729015,
           ManagementDemandsOnlineMigration1771978729008,
           BotControlMigration1771978729009,
-          TblDataBasesAlign1771978729016,
         ],
         migrationsTableName: 'migrations',
         synchronize: false,
@@ -104,7 +102,7 @@ import { LogsModule } from './interfaces/modules/logs.module';
     TblStateTypeModule,
     TblPortfolioTypeModule,
     DataBasesModule,
-    AttentionScheduleModule,
+    TblAttentionScheduleModule,
     PortfolioCityConfigModule,
     AmountTypeModule,
     CompanyTypeModule,

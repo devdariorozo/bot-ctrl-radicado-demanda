@@ -13,24 +13,24 @@ export interface VCitiesRow {
   city: string;
 }
 
-/** Datos mínimos para crear un registro de bases (id y fechas son opcionales). */
+/** Datos mínimos para crear un registro de bases (db_id y fechas son opcionales). */
 export type CreateDataBasesInput = Pick<
   DataBases,
-  'environment_type_id' | 'portfolio_type_id' | 'bases' | 'detail' | 'state_type_id' | 'responsible'
+  'db_environment_type_id' | 'db_portfolio_type_id' | 'db_bases' | 'db_detail' | 'db_state_type_id' | 'db_responsible'
 > & Partial<DataBases>;
 
 export interface DataBasesRepository {
-  // Crear un nuevo registro de bases
   create(input: CreateDataBasesInput): Promise<DataBases>;
   /** Mismo valor JSON (orden de claves ignorado) que `db_bases`, o null. */
   findByDuplicateBases(bases: BasesConfig): Promise<DataBases | null>;
-  // Obtener todos los registros de bases
+  /** Unicidad funcional: 1 registro por (entorno, cartera). */
+  findByEnvAndPortfolio(
+    db_environment_type_id: number,
+    db_portfolio_type_id: number,
+  ): Promise<DataBases | null>;
   findAll(): Promise<DataBases[]>;
-  // Obtener un registro por su id
   findById(id: number): Promise<DataBases>;
-  // Actualizar un registro de bases
   update(dataBases: DataBases): Promise<DataBases>;
-  // Eliminar un registro de bases
   delete(id: number): Promise<void>;
   /** Consultar la vista v_cities en la primera base del registro data_bases indicado. */
   fetchVCitiesFromFirstBase(idDataBases: number): Promise<VCitiesRow[]>;
@@ -41,4 +41,3 @@ export interface DataBasesRepository {
     params?: unknown[],
   ): Promise<Record<string, unknown>[]>;
 }
-

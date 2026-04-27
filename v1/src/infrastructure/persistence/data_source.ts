@@ -2,17 +2,16 @@
 
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { TblEnvironmentTypeEntity } from './entities/tblEnvironmentType.entities';
-import { TblEnvironmentTypeMigration1771978729001 } from './migrations/1771978729001_tblEnvironmentType.migrations';
-import { TblStateTypeEntity } from './entities/tblStateType.entities';
-import { TblStateTypeMigration1771978729002 } from './migrations/1771978729002_tblStateType.migrations';
-import { TblPortfolioTypeEntity } from './entities/tblPortfolioType.entities';
-import { TblPortfolioTypeMigration1771978729003 } from './migrations/1771978729003_tblPortfolioType.migrations';
+import { TblEnvironmentTypeEntity } from './entities/environmentType.entities';
+import { TblEnvironmentTypeMigration1771978729001 } from './migrations/1771978729001_environmentType.migrations';
+import { TblStateTypeEntity } from './entities/stateType.entities';
+import { TblStateTypeMigration1771978729002 } from './migrations/1771978729002_stateType.migrations';
+import { TblPortfolioTypeEntity } from './entities/portfolioType.entities';
+import { TblPortfolioTypeMigration1771978729003 } from './migrations/1771978729003_portfolioType.migrations';
 import { DataBasesEntity } from './entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from './migrations/1771978729004_dataBases.migrations';
-import { TblDataBasesAlign1771978729016 } from './migrations/1771978729016_tblDataBasesAlign.migrations';
-import { AttentionScheduleEntity } from './entities/attentionSchedule.entities';
-import { AttentionScheduleMigration1771978729005 } from './migrations/1771978729005_attentionSchedule.migrations';
+import { TblAttentionScheduleEntity } from './entities/attentionSchedule.entities';
+import { TblAttentionScheduleMigration1771978729005 } from './migrations/1771978729005_attentionSchedule.migrations';
 import { PortfolioCityConfigEntity } from './entities/portfolioCityConfig.entities';
 import { PortfolioCityConfigMigration1771978729006 } from './migrations/1771978729006_portfolioCityConfig.migrations';
 import { AmountTypeEntity } from './entities/amountType.entities';
@@ -43,7 +42,7 @@ export const dataSource = new DataSource({
     TblStateTypeEntity,
     TblPortfolioTypeEntity,
     DataBasesEntity,
-    AttentionScheduleEntity,
+    TblAttentionScheduleEntity,
     PortfolioCityConfigEntity,
     AmountTypeEntity,
     CompanyTypeEntity,
@@ -57,7 +56,7 @@ export const dataSource = new DataSource({
     TblStateTypeMigration1771978729002,
     TblPortfolioTypeMigration1771978729003,
     DataBasesMigration1771978729004,
-    AttentionScheduleMigration1771978729005,
+    TblAttentionScheduleMigration1771978729005,
     PortfolioCityConfigMigration1771978729006,
     AmountTypeMigration1771978729007,
     AlterAmountTypeJson1771978729010,
@@ -66,7 +65,6 @@ export const dataSource = new DataSource({
     HolidayMigration1771978729015,
     ManagementDemandsOnlineMigration1771978729008,
     BotControlMigration1771978729009,
-    TblDataBasesAlign1771978729016,
   ],
   synchronize: false,
   logging: process.env.DB_CONFIG_LOGGING === 'true',

@@ -1,6 +1,6 @@
 // Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
 
-import { TblPortfolioType } from '@domain/entities/tblPortfolioType.entities';
+import { TblPortfolioType } from '@domain/entities/portfolioType.entities';
 
 export const TBL_PORTFOLIO_TYPE_REPOSITORY = Symbol('TBL_PORTFOLIO_TYPE_REPOSITORY');
 

@@ -1,6 +1,6 @@
 // Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
 
-import { TblStateType } from "@domain/entities/tblStateType.entities";
+import { TblStateType } from "@domain/entities/stateType.entities";
 
 export const TBL_STATE_TYPE_REPOSITORY = Symbol('TBL_STATE_TYPE_REPOSITORY');
 
