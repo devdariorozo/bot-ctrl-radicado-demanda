@@ -41,16 +41,14 @@ import { LawyerDataModule } from './interfaces/modules/lawyerData.module';
 import { HolidayModule } from './interfaces/modules/holiday.module';
 import { ManagementCtrlFiledDemandModule } from './interfaces/modules/managementCtrlFiledDemand.module';
 import { AutomationEmailModule } from './interfaces/modules/automationEmail.module';
-import { ManagementDemandsOnlineEntity } from './infrastructure/persistence/entities/managementDemandsOnline.entities';
-import { ManagementDemandsOnlineMigration1771978729008 } from '@infrastructure/persistence/migrations/1771978729008_managementDemandsOnline.migrations';
-import { ManagementDemandsOnlineModule } from './interfaces/modules/managementDemandsOnline.module';
 import { BotControlEntity } from './infrastructure/persistence/entities/botControl.entities';
 import { BotControlMigration1771978729009 } from '@infrastructure/persistence/migrations/1771978729009_botControl.migrations';
 import { TblBotControlMigration1771978729018 } from '@infrastructure/persistence/migrations/1771978729018_tblBotControl.migrations';
-import { DemandsPendingSyncModule } from './interfaces/modules/demandsPendingSync.module';
+import { AlterAttentionScheduleTimeToVarchar1771978729021 } from '@infrastructure/persistence/migrations/1771978729021_alterAttentionScheduleTimeToVarchar.migrations';
+import { CartPropiasDemandsModule } from './interfaces/modules/cartPropiasDemandsSync.module';
 import { BotControlModule } from './interfaces/modules/botControl.module';
 import { LoggerModule } from './infrastructure/logging/logger.module';
-import { DemandsOnlineAutomationModule } from './interfaces/modules/demandsOnlineAutomation.module';
+import { CartPropiasEmailAutomationModule } from './interfaces/modules/cartPropiasEmailAutomation.module';
 import { LogsModule } from './interfaces/modules/logs.module';
 
 @Module({
@@ -79,7 +77,6 @@ import { LogsModule } from './interfaces/modules/logs.module';
           CompanyTypeEntity,
           LawyerDataEntity,
           HolidayEntity,
-          ManagementDemandsOnlineEntity,
           BotControlEntity,
           ManagementCtrlFiledDemandEntity,
           AutomationEmailEntity,
@@ -96,11 +93,11 @@ import { LogsModule } from './interfaces/modules/logs.module';
           CompanyTypeMigration1771978729008,
           LawyerDataMigration1771978729013,
           HolidayMigration1771978729015,
-          ManagementDemandsOnlineMigration1771978729008,
           BotControlMigration1771978729009,
           TblBotControlMigration1771978729018,
           TblAutomationEmailMigration1771978729016,
           TblManagementCtrlFiledDemandMigration1771978729017,
+          AlterAttentionScheduleTimeToVarchar1771978729021,
         ],
         migrationsTableName: 'migrations',
         synchronize: false,
@@ -122,10 +119,9 @@ import { LogsModule } from './interfaces/modules/logs.module';
     HolidayModule,
     AutomationEmailModule,
     ManagementCtrlFiledDemandModule,
-    ManagementDemandsOnlineModule,
     BotControlModule,
-    DemandsPendingSyncModule,
-    DemandsOnlineAutomationModule,
+    CartPropiasDemandsModule,
+    CartPropiasEmailAutomationModule,
     LogsModule,
   ],
 })

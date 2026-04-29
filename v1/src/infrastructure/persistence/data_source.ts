@@ -23,8 +23,6 @@ import { LawyerDataEntity } from './entities/lawyerData.entities';
 import { LawyerDataMigration1771978729013 } from './migrations/1771978729013_lawyerData.migrations';
 import { HolidayEntity } from './entities/holiday.entities';
 import { HolidayMigration1771978729015 } from './migrations/1771978729015_holiday.migrations';
-import { ManagementDemandsOnlineEntity } from './entities/managementDemandsOnline.entities';
-import { ManagementDemandsOnlineMigration1771978729008 } from './migrations/1771978729008_managementDemandsOnline.migrations';
 import { BotControlEntity } from './entities/botControl.entities';
 import { BotControlMigration1771978729009 } from './migrations/1771978729009_botControl.migrations';
 import { TblBotControlMigration1771978729018 } from './migrations/1771978729018_tblBotControl.migrations';
@@ -53,7 +51,6 @@ export const dataSource = new DataSource({
     CompanyTypeEntity,
     LawyerDataEntity,
     HolidayEntity,
-    ManagementDemandsOnlineEntity,
     BotControlEntity,
     ManagementCtrlFiledDemandEntity,
     AutomationEmailEntity,
@@ -70,7 +67,6 @@ export const dataSource = new DataSource({
     CompanyTypeMigration1771978729008,
     LawyerDataMigration1771978729013,
     HolidayMigration1771978729015,
-    ManagementDemandsOnlineMigration1771978729008,
     BotControlMigration1771978729009,
     TblBotControlMigration1771978729018,
     TblAutomationEmailMigration1771978729016,

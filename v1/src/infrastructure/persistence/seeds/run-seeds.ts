@@ -11,7 +11,6 @@ import { amountTypeSeeds } from './1771978729007_amountType.seeds';
 import { companyTypeSeeds } from './1771978729008_companyType.seeds';
 import { lawyerDataSeeds } from './1771978729013_lawyerData.seeds';
 import { holidaySeeds } from './1771978729015_holiday.seeds';
-import { managementDemandsOnlineSeeds } from './1771978729008_managementDemandsOnline.seeds';
 import { botControlSeeds } from './1771978729009_botControl.seeds';
 import { QueryRunner } from 'typeorm';
 import { HolidayMigration1771978729015 } from '../migrations/1771978729015_holiday.migrations';
@@ -62,7 +61,6 @@ async function runSeeds() {
       await truncateIfExists(qr, 'tbl_data_bases');
       await truncateIfExists(qr, 'tbl_attention_schedule');
       await truncateIfExists(qr, 'portfolio_city_config');
-      await truncateIfExists(qr, 'management_demands_online');
       await truncateIfExists(qr, 'bot_control');
       await qr.query('SET FOREIGN_KEY_CHECKS = 1');
     } finally {
@@ -79,7 +77,6 @@ async function runSeeds() {
     await companyTypeSeeds(dataSource);
     await lawyerDataSeeds(dataSource);
     await holidaySeeds(dataSource);
-    await managementDemandsOnlineSeeds(dataSource);
     await botControlSeeds(dataSource);
   } catch (error) {
     console.error('Error ejecutando seeds:', error);

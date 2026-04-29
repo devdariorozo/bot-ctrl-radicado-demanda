@@ -13,16 +13,16 @@ export class TblAttentionScheduleEntity {
   @Column({ name: 'atsh_days', type: 'json' })
   atsh_days: string[];
 
-  @Column({ name: 'atsh_start_time', type: 'time' })
+  @Column({ name: 'atsh_start_time', type: 'varchar', length: 5 })
   atsh_start_time: string;
 
-  @Column({ name: 'atsh_start_recess_time', type: 'time' })
+  @Column({ name: 'atsh_start_recess_time', type: 'varchar', length: 5 })
   atsh_start_recess_time: string;
 
-  @Column({ name: 'atsh_end_recess_time', type: 'time' })
+  @Column({ name: 'atsh_end_recess_time', type: 'varchar', length: 5 })
   atsh_end_recess_time: string;
 
-  @Column({ name: 'atsh_end_time', type: 'time' })
+  @Column({ name: 'atsh_end_time', type: 'varchar', length: 5 })
   atsh_end_time: string;
 
   @Column({ name: 'atsh_detail' })

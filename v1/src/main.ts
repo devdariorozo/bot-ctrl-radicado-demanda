@@ -25,11 +25,6 @@ import { AmountTypeDto, UpdateAmountTypeDto } from '@interfaces/http/dto/amountT
 import { CompanyTypeDto, UpdateCompanyTypeDto } from '@interfaces/http/dto/companyType.dto';
 import { LawyerDataDto, UpdateLawyerDataDto } from '@interfaces/http/dto/lawyerData.dto';
 import { HolidayDto, UpdateHolidayDto } from '@interfaces/http/dto/holiday.dto';
-import {
-  ManagementDemandsOnlineDto,
-  UpdateManagementDemandsOnlineDto,
-} from '@interfaces/http/dto/managementDemandsOnline.dto';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
@@ -127,7 +122,6 @@ async function bootstrap() {
     .addTag('amountType', 'Tipo de cuantía (mayor, menor, mínima)')
     .addTag('companyType', 'Configuración de compañías por cartera')
     .addTag('lawyerData', 'Datos base de abogados por cartera')
-    .addTag('managementDemandsOnline', 'Gestión de demandas pendientes')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
@@ -152,8 +146,6 @@ async function bootstrap() {
       UpdateHolidayDto,
       LawyerDataDto,
       UpdateLawyerDataDto,
-      ManagementDemandsOnlineDto,
-      UpdateManagementDemandsOnlineDto,
     ],
   });
   SwaggerModule.setup('docs', app, document);

@@ -31,7 +31,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       mcfd_lawsuits_filings_id: input.mcfd_lawsuits_filings_id,
       mcfd_client_id: input.mcfd_client_id,
       mcfd_automation_email_id: null,
-      mcfd_last_execution: null,
+      mcfd_last_execution: now,
       mcfd_retries: 0,
       mcfd_filing_date: input.mcfd_filing_date ? this.toDateString(input.mcfd_filing_date) : null,
       mcfd_filing_date_action: null,
@@ -144,6 +144,19 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       throw new Error('ManagementCtrlFiledDemand not found');
     }
     return this.rowToDomain(raw);
+  }
+
+  async findNextForEmailProcessing(portfolioTypeId: number): Promise<ManagementCtrlFiledDemand | null> {
+    const found = await this.repo.findOne({
+      where: [
+        { mcfd_portfolio_type_id: portfolioTypeId, mcfd_management_status: 'Abierto' },
+        { mcfd_portfolio_type_id: portfolioTypeId, mcfd_management_status: 'En proceso' },
+        { mcfd_portfolio_type_id: portfolioTypeId, mcfd_management_status: 'Novedad correo' },
+      ],
+      order: { mcfd_created_at: 'ASC' },
+    });
+    if (!found) return null;
+    return this.entityToDomain(found);
   }
 
   async findActiveForDemand(portfolio_type_id: number, lawsuit_id: number, lawsuits_filings_id: number): Promise<ManagementCtrlFiledDemand | null> {

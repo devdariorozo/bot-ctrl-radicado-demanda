@@ -16,7 +16,8 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { BotControlService } from '@application/services/botControl.service';
-import { DemandsPendingSyncService } from '@application/services/demandsPendingSync.service';
+import { CartPropiasDemandsSyncService } from '@application/services/cartPropiasDemandsSyncService.service';
+import { CartPropiasEmailAutomationService } from '@application/services/cartPropiasEmailAutomation.service';
 import { IniciarBotControlDto, DetenerBotControlDto } from '../dto/botControl.dto';
 import { getListQueryDateRange } from '@application/utils/listQueryDateRange.utils';
 import { paginateArray } from '@application/utils/pagination.utils';
@@ -28,7 +29,8 @@ import { BotControl } from '@domain/entities/botControl.entities';
 export class BotControlController {
   constructor(
     private readonly botControlService: BotControlService,
-    private readonly demandsPendingSyncService: DemandsPendingSyncService,
+    private readonly cartPropiasDemandsSyncService: CartPropiasDemandsSyncService,
+    private readonly cartPropiasEmailAutomationService: CartPropiasEmailAutomationService,
   ) {}
 
   @Post('iniciar')
@@ -53,7 +55,8 @@ export class BotControlController {
       bctrl_detail: dto.bctrl_detail,
       bctrl_responsible: dto.bctrl_responsible,
     });
-    void this.demandsPendingSyncService.tick();
+    void this.cartPropiasDemandsSyncService.tick();
+    void this.cartPropiasEmailAutomationService.tick();
     return { data: [this.toRow(record)], message: 'Bot iniciado correctamente' };
   }
 

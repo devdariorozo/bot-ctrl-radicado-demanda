@@ -37,6 +37,8 @@ export interface ManagementCtrlFiledDemandRepository {
   findAll(filters?: FindAllManagementCtrlFiledDemandFilters): Promise<ManagementCtrlFiledDemand[]>;
   findById(id: number): Promise<ManagementCtrlFiledDemand>;
   findActiveForDemand(portfolio_type_id: number, lawsuit_id: number, lawsuits_filings_id: number): Promise<ManagementCtrlFiledDemand | null>;
+  /** Devuelve el siguiente registro con estado Abierto o Novedad correo para el tipo de cartera. Orden: más antiguo primero. */
+  findNextForEmailProcessing(portfolioTypeId: number): Promise<ManagementCtrlFiledDemand | null>;
   findOpciones(): Promise<{ mcfd_management_status: string }[]>;
   findOpcionesActivas(): Promise<{ mcfd_management_status: string }[]>;
   update(data: ManagementCtrlFiledDemand): Promise<void>;
