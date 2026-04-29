@@ -32,14 +32,21 @@ import { LawyerDataEntity } from './infrastructure/persistence/entities/lawyerDa
 import { LawyerDataMigration1771978729013 } from '@infrastructure/persistence/migrations/1771978729013_lawyerData.migrations';
 import { HolidayEntity } from './infrastructure/persistence/entities/holiday.entities';
 import { HolidayMigration1771978729015 } from '@infrastructure/persistence/migrations/1771978729015_holiday.migrations';
+import { AutomationEmailEntity } from './infrastructure/persistence/entities/automationEmail.entities';
+import { TblAutomationEmailMigration1771978729016 } from '@infrastructure/persistence/migrations/1771978729016_automationEmail.migrations';
+import { ManagementCtrlFiledDemandEntity } from './infrastructure/persistence/entities/managementCtrlFiledDemand.entities';
+import { TblManagementCtrlFiledDemandMigration1771978729017 } from '@infrastructure/persistence/migrations/1771978729017_managementCtrlFiledDemand.migrations';
 import { CompanyTypeModule } from './interfaces/modules/companyType.module';
 import { LawyerDataModule } from './interfaces/modules/lawyerData.module';
 import { HolidayModule } from './interfaces/modules/holiday.module';
+import { ManagementCtrlFiledDemandModule } from './interfaces/modules/managementCtrlFiledDemand.module';
+import { AutomationEmailModule } from './interfaces/modules/automationEmail.module';
 import { ManagementDemandsOnlineEntity } from './infrastructure/persistence/entities/managementDemandsOnline.entities';
 import { ManagementDemandsOnlineMigration1771978729008 } from '@infrastructure/persistence/migrations/1771978729008_managementDemandsOnline.migrations';
 import { ManagementDemandsOnlineModule } from './interfaces/modules/managementDemandsOnline.module';
 import { BotControlEntity } from './infrastructure/persistence/entities/botControl.entities';
 import { BotControlMigration1771978729009 } from '@infrastructure/persistence/migrations/1771978729009_botControl.migrations';
+import { TblBotControlMigration1771978729018 } from '@infrastructure/persistence/migrations/1771978729018_tblBotControl.migrations';
 import { DemandsPendingSyncModule } from './interfaces/modules/demandsPendingSync.module';
 import { BotControlModule } from './interfaces/modules/botControl.module';
 import { LoggerModule } from './infrastructure/logging/logger.module';
@@ -74,6 +81,8 @@ import { LogsModule } from './interfaces/modules/logs.module';
           HolidayEntity,
           ManagementDemandsOnlineEntity,
           BotControlEntity,
+          ManagementCtrlFiledDemandEntity,
+          AutomationEmailEntity,
         ],
         migrations: [
           TblEnvironmentTypeMigration1771978729001,
@@ -89,6 +98,9 @@ import { LogsModule } from './interfaces/modules/logs.module';
           HolidayMigration1771978729015,
           ManagementDemandsOnlineMigration1771978729008,
           BotControlMigration1771978729009,
+          TblBotControlMigration1771978729018,
+          TblAutomationEmailMigration1771978729016,
+          TblManagementCtrlFiledDemandMigration1771978729017,
         ],
         migrationsTableName: 'migrations',
         synchronize: false,
@@ -108,6 +120,8 @@ import { LogsModule } from './interfaces/modules/logs.module';
     CompanyTypeModule,
     LawyerDataModule,
     HolidayModule,
+    AutomationEmailModule,
+    ManagementCtrlFiledDemandModule,
     ManagementDemandsOnlineModule,
     BotControlModule,
     DemandsPendingSyncModule,

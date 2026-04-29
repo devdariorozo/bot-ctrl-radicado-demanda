@@ -53,13 +53,13 @@ export class LogsService {
   }
 
   /** Devuelve el resumen de logs para una fecha dada, tomando N líneas desde la más reciente. */
-  async listByDate(log_date: string, number_lines: number): Promise<LogsListResult> {
+  async listByDate(log_date: string, number_lines: number): Promise<LogsListResult | null> {
     const normalizedDate = this.validateDate(log_date);
     const normalizedLines = this.validateLines(number_lines);
 
     const filePath = this.getFilePathByDate(normalizedDate);
     if (!fs.existsSync(filePath)) {
-      throw new NotFoundException({ message: userMsg.logNoArchivo });
+      return null;
     }
 
     const raw = fs.readFileSync(filePath, 'utf-8');
@@ -84,7 +84,7 @@ export class LogsService {
         // Si la línea no es JSON válido, la devolvemos como mensaje plano.
         const fallback = this.normalizeStatus(undefined);
         lines.push({
-          timestamp: new Date().toISOString(),
+          timestamp: this.formatTimestamp(new Date().toISOString()),
           level: 'log',
           status: fallback.status,
           icon: fallback.icon,
@@ -101,7 +101,7 @@ export class LogsService {
       const normalized = this.normalizeStatus(parsed.status as LogStatus | undefined);
 
       const entry: LogEntry = {
-        timestamp: String(parsed.timestamp ?? new Date().toISOString()),
+        timestamp: this.formatTimestamp(String(parsed.timestamp ?? new Date().toISOString())),
         level: String(parsed.level ?? 'log'),
         status: normalized.status,
         icon: normalized.icon,
@@ -184,6 +184,10 @@ export class LogsService {
 
   private getFilePathByDate(date: string): string {
     return path.join(this.logsDir, `${date}-logs-${this.systemName}.log`);
+  }
+
+  private formatTimestamp(iso: string): string {
+    return iso.replace('T', ' ').slice(0, 19);
   }
 
   /** Normaliza el status interno (nuevo o legacy) a SUCCESS, INFO, WARNING, ERROR + símbolo. */

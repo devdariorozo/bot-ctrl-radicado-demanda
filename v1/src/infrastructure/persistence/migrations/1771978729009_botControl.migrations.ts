@@ -6,6 +6,9 @@ export class BotControlMigration1771978729009 implements MigrationInterface {
   name = 'BotControlMigration1771978729009';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    await queryRunner.query(`DROP TABLE IF EXISTS bot_control`);
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
     await queryRunner.query(`
       CREATE TABLE bot_control (
         id INT NOT NULL AUTO_INCREMENT,

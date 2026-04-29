@@ -21,6 +21,7 @@ import {
   LAWYER_DATA_REPOSITORY,
   LawyerDataRepository,
 } from '@domain/ports/lawyerData.ports';
+import { DemandsTraceService } from './demandsTrace.service';
 
 @Injectable()
 export class DemandsOnlineAutomationService {
@@ -46,6 +47,7 @@ export class DemandsOnlineAutomationService {
     private readonly dataBasesService: DataBasesService,
     private readonly appLogger: AppLogger,
     private readonly configService: ConfigService,
+    private readonly demandsTraceService: DemandsTraceService,
   ) {
     const v = this.configService.get<number>('BROWSERLESS_CONCURRENT_BROWSERS', 1);
     const n = Number(v);
@@ -396,6 +398,18 @@ export class DemandsOnlineAutomationService {
       },
     });
 
+    const correlationId = this.demandsTraceService.generateCorrelationId();
+    const traceCtx = {
+      correlationId,
+      managementDemandsOnlineId: demanda.id,
+      lawsuitId: demanda.lawsuit_id,
+      dataBasesId: currentDataBasesId,
+      baseName: demanda.name_data_base,
+    };
+    this.demandsTraceService.traceProcessStart(traceCtx, {
+      management_status: demanda.management_status,
+    });
+
     // Resolver configuración del servicio PDF según la base de datos de la demanda
     const pdfServiceConfig = dbBases[demanda.name_data_base]?.generate_pdf_demand_service;
     if (!pdfServiceConfig?.url) {
@@ -558,6 +572,9 @@ export class DemandsOnlineAutomationService {
             demandaRegistrada: true,
           },
         });
+        this.demandsTraceService.traceFiledExtraction(traceCtx, numberFiled ?? null);
+        this.demandsTraceService.traceStatusChange(traceCtx, 'En proceso', 'Registrada');
+        this.demandsTraceService.traceResult(traceCtx, 'SUCCESS', { numberFiled });
       } else {
         let detailFinal: string;
         let managementStatusFinal: 'Novedad' | 'En proceso';
@@ -648,6 +665,11 @@ export class DemandsOnlineAutomationService {
             pdfDemandaAdjuntado: pdfDemandaAdjuntado === true,
           },
         });
+        this.demandsTraceService.traceStatusChange(traceCtx, 'En proceso', managementStatusFinal);
+        this.demandsTraceService.traceResult(traceCtx, 'NOT_FOUND', {
+          managementStatus: managementStatusFinal,
+          failureStage,
+        });
       }
       return { processed: true };
     } catch (err) {
@@ -725,6 +747,9 @@ export class DemandsOnlineAutomationService {
         },
         stack: error.stack,
       });
+      const errorCode = isRestriction ? 'PORTAL_SCHEDULE_RESTRICTION' : 'AUTOMATION_ERROR';
+      this.demandsTraceService.traceError(traceCtx, error, errorCode);
+      this.demandsTraceService.traceResult(traceCtx, 'ERROR', { errorCode });
       if (isRestriction) {
         throw error;
       }

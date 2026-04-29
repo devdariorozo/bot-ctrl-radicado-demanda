@@ -4,6 +4,9 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class TblEnvironmentTypeMigration1771978729001 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
+      await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
+      await queryRunner.query(`DROP TABLE IF EXISTS tbl_environment_type`);
+      await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
       await queryRunner.query(`
         CREATE TABLE tbl_environment_type (
           env_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,7 +21,6 @@ export class TblEnvironmentTypeMigration1771978729001 implements MigrationInterf
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-      await queryRunner.query(`DROP TABLE tbl_environment_type`);
+      await queryRunner.query(`DROP TABLE IF EXISTS tbl_environment_type`);
     }
   }
-

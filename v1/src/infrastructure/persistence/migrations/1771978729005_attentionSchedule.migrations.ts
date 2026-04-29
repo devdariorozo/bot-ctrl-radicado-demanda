@@ -4,6 +4,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class TblAttentionScheduleMigration1771978729005 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    await queryRunner.query(`DROP TABLE IF EXISTS tbl_attention_schedule`);
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
     await queryRunner.query(`
       CREATE TABLE tbl_attention_schedule (
         atsh_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,6 +30,6 @@ export class TblAttentionScheduleMigration1771978729005 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE tbl_attention_schedule');
+    await queryRunner.query('DROP TABLE IF EXISTS tbl_attention_schedule');
   }
 }

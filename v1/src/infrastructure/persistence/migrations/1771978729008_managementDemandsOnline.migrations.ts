@@ -4,6 +4,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class ManagementDemandsOnlineMigration1771978729008 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    await queryRunner.query(`DROP TABLE IF EXISTS management_demands_online`);
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
     await queryRunner.query(`
       CREATE TABLE management_demands_online (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +42,6 @@ export class ManagementDemandsOnlineMigration1771978729008 implements MigrationI
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE management_demands_online`);
+    await queryRunner.query(`DROP TABLE IF EXISTS management_demands_online`);
   }
 }

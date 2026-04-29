@@ -9,6 +9,7 @@ import { ManagementDemandsOnlineModule } from './managementDemandsOnline.module'
 import { AmountTypeModule } from './amountType.module';
 import { BotControlModule } from './botControl.module';
 import { DemandsOnlineAutomationModule } from './demandsOnlineAutomation.module';
+import { LogsModule } from './logs.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DemandsOnlineAutomationModule } from './demandsOnlineAutomation.module'
     AmountTypeModule,
     forwardRef(() => BotControlModule),
     DemandsOnlineAutomationModule,
+    LogsModule,
   ],
   providers: [DemandsPendingSyncService],
   exports: [DemandsPendingSyncService],

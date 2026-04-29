@@ -14,6 +14,7 @@ import { BrowserlessHealthService } from '@infrastructure/browser/browserlessHea
 import { DemandPdfHttpAdapter } from '@infrastructure/http/demandPdfHttp.adapter';
 import { CompanyTypeModule } from './companyType.module';
 import { LawyerDataModule } from './lawyerData.module';
+import { LogsModule } from './logs.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LawyerDataModule } from './lawyerData.module';
     CompanyTypeModule,
     LawyerDataModule,
     LoggerModule,
+    LogsModule,
   ],
   providers: [
     DemandsOnlineAutomationService,

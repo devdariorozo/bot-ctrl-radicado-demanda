@@ -17,6 +17,7 @@ import { AMOUNT_TYPE_REPOSITORY, AmountTypeRepository } from '@domain/ports/amou
 import { BotControlService } from './botControl.service';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
 import { DemandsOnlineAutomationService } from './demandsOnlineAutomation.service';
+import { DemandsTraceService } from './demandsTrace.service';
 
 const DEFAULT_STATE_TYPE_ID = 1;
 const LAWSUITS_PK = 'id'; // lawsuits se consulta por id = lawsuit_id
@@ -41,6 +42,7 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
     private readonly botControlService: BotControlService,
     private readonly appLogger: AppLogger,
     private readonly demandsOnlineAutomationService: DemandsOnlineAutomationService,
+    private readonly demandsTraceService: DemandsTraceService,
   ) {}
 
   /** Ejecuta el sync: por cada data_bases y cada base, cruce lawsuits × lca × pcc, resolución amount_type, creación en management_demands_online. */
@@ -268,6 +270,15 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
               },
             });
             await this.managementDemandsOnlineRepository.create(input);
+            this.demandsTraceService.traceProcessStart(
+              {
+                correlationId: this.demandsTraceService.generateCorrelationId(),
+                lawsuitId,
+                dataBasesId: dbRecord.db_id,
+                baseName,
+              },
+              { phase: 'SYNC_QUEUE', action: 'created', lawsuitCourtAssignmentsId },
+            );
             created++;
           }
         } catch (err) {
@@ -551,14 +562,19 @@ export class DemandsPendingSyncService implements OnModuleInit, OnModuleDestroy 
 
       const runtime = await this.botControlService.checkRuntimeConditions();
       if (!runtime.ok) {
+        const standbyDetail = runtime.reason ?? 'En standby';
         this.appLogger.structured({
           level: 'debug',
           context: DemandsPendingSyncService.name,
           type: 'AUTOMATION_LOOP',
           status: 'WARN',
           message: 'Bot en standby (fuera de horario o festivo); se reintentará más tarde.',
-          meta: { reason: runtime.reason },
+          meta: { reason: standbyDetail },
         });
+        const currentId = this.botControlService.getCurrentDataBasesId();
+        if (currentId) {
+          await this.botControlService.actualizarDetail(currentId, standbyDetail);
+        }
         await sleep(this.getStandbySleepSec() * 1000);
         continue;
       }

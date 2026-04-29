@@ -4,6 +4,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CompanyTypeMigration1771978729008 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    await queryRunner.query(`DROP TABLE IF EXISTS company_type`);
+    await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
     await queryRunner.query(`
       CREATE TABLE company_type (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -31,7 +34,7 @@ export class CompanyTypeMigration1771978729008 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE company_type');
+    await queryRunner.query('DROP TABLE IF EXISTS company_type');
   }
 }
 

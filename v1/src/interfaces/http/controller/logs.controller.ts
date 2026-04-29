@@ -4,7 +4,7 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { LogsService } from '@application/services/logs.service';
 import { LogsResponseDto } from '../dto/logs.dto';
-import { dataEmpty, dataOne } from '@application/utils/response.utils';
+import { dataEmpty } from '@application/utils/response.utils';
 
 @ApiTags('logs')
 @Controller('logs')
@@ -32,15 +32,12 @@ export class LogsController {
   async list(@Query('log_date') log_date: string, @Query('number_lines') number_lines: number) {
     const result = await this.logsService.listByDate(log_date, Number(number_lines));
 
-    const response: LogsResponseDto = result;
-
-    // Estructura estándar enriquecida para este endpoint.
     return {
       status: 200,
       type: 'success',
       title: 'Filtrar Registros',
       message: 'Operación de consulta ejecutada correctamente.',
-      ...dataOne(response),
+      data: result ?? null,
     };
   }
 

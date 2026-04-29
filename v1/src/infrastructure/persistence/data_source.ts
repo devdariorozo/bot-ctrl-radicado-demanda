@@ -27,6 +27,11 @@ import { ManagementDemandsOnlineEntity } from './entities/managementDemandsOnlin
 import { ManagementDemandsOnlineMigration1771978729008 } from './migrations/1771978729008_managementDemandsOnline.migrations';
 import { BotControlEntity } from './entities/botControl.entities';
 import { BotControlMigration1771978729009 } from './migrations/1771978729009_botControl.migrations';
+import { TblBotControlMigration1771978729018 } from './migrations/1771978729018_tblBotControl.migrations';
+import { ManagementCtrlFiledDemandEntity } from './entities/managementCtrlFiledDemand.entities';
+import { TblAutomationEmailMigration1771978729016 } from './migrations/1771978729016_automationEmail.migrations';
+import { AutomationEmailEntity } from './entities/automationEmail.entities';
+import { TblManagementCtrlFiledDemandMigration1771978729017 } from './migrations/1771978729017_managementCtrlFiledDemand.migrations';
 
 const dbPort = parseInt(process.env.DB_CONFIG_PORT ?? '3306', 10);
 
@@ -50,6 +55,8 @@ export const dataSource = new DataSource({
     HolidayEntity,
     ManagementDemandsOnlineEntity,
     BotControlEntity,
+    ManagementCtrlFiledDemandEntity,
+    AutomationEmailEntity,
   ],
   migrations: [
     TblEnvironmentTypeMigration1771978729001,
@@ -65,6 +72,9 @@ export const dataSource = new DataSource({
     HolidayMigration1771978729015,
     ManagementDemandsOnlineMigration1771978729008,
     BotControlMigration1771978729009,
+    TblBotControlMigration1771978729018,
+    TblAutomationEmailMigration1771978729016,
+    TblManagementCtrlFiledDemandMigration1771978729017,
   ],
   synchronize: false,
   logging: process.env.DB_CONFIG_LOGGING === 'true',

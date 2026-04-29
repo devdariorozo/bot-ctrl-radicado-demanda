@@ -1,7 +1,4 @@
-// Responsabilidad: insertar datos iniciales (semilla) para bot_control.
-//
-// Se crean tres registros asociados a data_bases_id 1 (dev), 2 (qa) y 3 (pro) de la cartera propia,
-// todos con el bot detenido (running = false).
+// Responsabilidad: insertar datos iniciales (semilla) para tbl_bot_control.
 
 import { DataSource } from 'typeorm';
 import { BotControlEntity } from '../entities/botControl.entities';
@@ -11,28 +8,21 @@ export const botControlSeeds = async (dataSource: DataSource) => {
   const now = new Date();
 
   const basePayload = {
-    running: false,
-    last_started_at: null,
-    last_stopped_at: now,
-    reason: 'Bot detenido',
-    created_at: now,
-    updated_at: now,
-    responsible: 'BOT ctrl filed demand',
+    bctrl_running: false,
+    bctrl_last_started_at: null,
+    bctrl_last_stopped_at: now,
+    bctrl_reason: 'Bot detenido',
+    bctrl_detail: 'Bot detenido correctamente.',
+    bctrl_created_at: now,
+    bctrl_updated_at: now,
+    bctrl_responsible: 'BOT ctrl radicado demanda',
   };
 
+  await repo.query('TRUNCATE TABLE tbl_bot_control');
+
   await repo.save([
-    {
-      data_bases_id: 1,
-      ...basePayload,
-    },
-    {
-      data_bases_id: 2,
-      ...basePayload,
-    },
-    {
-      data_bases_id: 3,
-      ...basePayload,
-    },
+    { bctrl_data_bases_id: 1, ...basePayload },
+    { bctrl_data_bases_id: 2, ...basePayload },
+    { bctrl_data_bases_id: 3, ...basePayload },
   ]);
 };
-
