@@ -15,11 +15,6 @@ import {
 import { ManagementCtrlFiledDemand } from '@domain/entities/managementCtrlFiledDemand.entities';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
 
-const SUBJECT_KEYWORDS = [
-  'Generación de demanda',
-  'Acta de reparto',
-  'Radicación de demanda',
-];
 const THREE_WEEKS_MS = 21 * 24 * 60 * 60 * 1000;
 const DEFAULT_STATE_TYPE_ID = 1;
 
@@ -80,7 +75,7 @@ export class EmailInboxAutomationService implements OnModuleInit, OnModuleDestro
     let emails: Awaited<ReturnType<EmailInboxPort['fetchMatchingEmails']>>;
     try {
       // bodyMustContain='' → sin filtro de cuerpo; se descargan todos los que coincidan con el asunto
-      emails = await this.emailInboxPort.fetchMatchingEmails(SUBJECT_KEYWORDS, '');
+      emails = await this.emailInboxPort.fetchMatchingEmails(this.getSubjectKeywords(), '');
     } catch (err) {
       this.appLogger.structured({
         level: 'warn',
@@ -250,6 +245,14 @@ export class EmailInboxAutomationService implements OnModuleInit, OnModuleDestro
       managementStatus: 'Correo Automatizado',
       detail: 'Correo recibido y automatizado correctamente',
     };
+  }
+
+  private getSubjectKeywords(): string[] {
+    const raw = this.configService.get<string>(
+      'MAIL_SUBJECT_KEYWORDS',
+      'Generación de demanda,Acta de reparto,Radicación de demanda',
+    );
+    return raw.split(',').map((k) => k.trim()).filter(Boolean);
   }
 
   private getSyncIntervalMinutes(): number {
