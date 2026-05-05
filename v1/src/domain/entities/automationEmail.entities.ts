@@ -2,6 +2,7 @@
 
 export class AutomationEmail {
   autm_id: number;
+  autm_message_id: string;
   autm_from_email: string;
   autm_to_email: string;
   // Campo informativo (texto) tal como viene del correo.

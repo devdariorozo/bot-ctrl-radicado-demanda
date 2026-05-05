@@ -32,6 +32,7 @@ import { paginateArray } from '@application/utils/pagination.utils';
 import { dataMany, dataOne } from '@application/utils/response.utils';
 
 const createExampleSchema = {
+  autm_message_id: '<202604281151.1633827@deaj.ramajudicial.gov.co>',
   autm_from_email: 'demandaenlinea1@deaj.ramajudicial.gov.co',
   autm_to_email: 'DEMANDAS@CONTACTOSOLUTIONS.COM; repartojcmpalsoledad@cendoj.ramajudicial.gov.co',
   autm_date_received: 'martes, 7 de abril de 2026 11:51 a. m.',
@@ -63,6 +64,7 @@ const createExampleSchema = {
 };
 
 const updateExampleSchema = {
+  autm_message_id: '<202604281151.1633827@deaj.ramajudicial.gov.co>',
   autm_from_email: 'demandaenlinea1@deaj.ramajudicial.gov.co',
   autm_to_email: 'DEMANDAS@CONTACTOSOLUTIONS.COM; repartojcmpalsoledad@cendoj.ramajudicial.gov.co',
   autm_date_received: 'martes, 7 de abril de 2026 11:51 a. m.',
@@ -110,6 +112,7 @@ export class AutomationEmailController {
   })
   async create(@Body() dto: CreateAutomationEmailDto) {
     const input: CreateAutomationEmailInput = {
+      autm_message_id: dto.autm_message_id,
       autm_from_email: dto.autm_from_email,
       autm_to_email: dto.autm_to_email,
       autm_date_received: dto.autm_date_received,
@@ -273,6 +276,7 @@ export class AutomationEmailController {
 
     const toUpdate: AutomationEmail = {
       autm_id: numId,
+      autm_message_id: body.autm_message_id,
       autm_from_email: body.autm_from_email,
       autm_to_email: body.autm_to_email,
       autm_date_received: body.autm_date_received,
@@ -323,6 +327,7 @@ export class AutomationEmailController {
   private toRow(item: AutomationEmail): Record<string, unknown> {
     const o: Record<string, unknown> = {
       autm_id: item.autm_id,
+      autm_message_id: item.autm_message_id,
       autm_from_email: item.autm_from_email,
       autm_to_email: item.autm_to_email,
       autm_date_received: item.autm_date_received,

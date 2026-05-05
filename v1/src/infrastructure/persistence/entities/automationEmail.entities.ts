@@ -7,6 +7,9 @@ export class AutomationEmailEntity {
   @PrimaryGeneratedColumn()
   autm_id: number;
 
+  @Column({ type: 'varchar', length: 500, unique: true })
+  autm_message_id: string;
+
   @Column({ type: 'varchar', length: 255 })
   autm_from_email: string;
 

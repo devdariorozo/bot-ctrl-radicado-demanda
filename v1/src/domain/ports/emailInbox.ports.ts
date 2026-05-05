@@ -27,6 +27,7 @@ export interface ParsedEmailFields {
 
 export interface FetchedEmail {
   uid: string;
+  messageId: string;
   from: string;
   to: string;
   dateReceived: string;

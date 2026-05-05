@@ -5,6 +5,14 @@ import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateAutomationEmailDto {
+  @ApiProperty({
+    example: '<CAGz3...@mail.gmail.com>',
+    description: 'Message-ID único del correo (header Message-ID: RFC 2822). Garantiza idempotencia.',
+  })
+  @IsString()
+  @IsNotEmpty()
+  autm_message_id: string;
+
   @ApiProperty({ example: 'remitente@ejemplo.com', description: 'Correo del remitente' })
   @IsString()
   @IsNotEmpty()
@@ -152,6 +160,14 @@ export class CreateAutomationEmailDto {
 }
 
 export class UpdateAutomationEmailDto {
+  @ApiProperty({
+    example: '<CAGz3...@mail.gmail.com>',
+    description: 'Message-ID único del correo (header Message-ID: RFC 2822). Garantiza idempotencia.',
+  })
+  @IsString()
+  @IsNotEmpty()
+  autm_message_id: string;
+
   @ApiProperty({ example: 'remitente@ejemplo.com', description: 'Correo del remitente' })
   @IsString()
   @IsNotEmpty()

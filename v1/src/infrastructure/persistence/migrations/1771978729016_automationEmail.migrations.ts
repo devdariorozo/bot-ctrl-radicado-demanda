@@ -10,6 +10,7 @@ export class TblAutomationEmailMigration1771978729016 implements MigrationInterf
     await queryRunner.query(`
       CREATE TABLE tbl_automation_email (
         autm_id INT AUTO_INCREMENT PRIMARY KEY,
+        autm_message_id VARCHAR(500) NOT NULL,
         autm_from_email VARCHAR(255) NOT NULL,
         autm_to_email VARCHAR(255) NOT NULL,
         autm_date_received VARCHAR(255) NOT NULL,
@@ -41,7 +42,8 @@ export class TblAutomationEmailMigration1771978729016 implements MigrationInterf
         autm_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         autm_responsible VARCHAR(100) NOT NULL DEFAULT 'BOT ctrl radicado demanda',
         CONSTRAINT FK_tbl_autm_state_type
-          FOREIGN KEY (autm_status_type_id) REFERENCES tbl_state_type(stty_id)
+          FOREIGN KEY (autm_status_type_id) REFERENCES tbl_state_type(stty_id),
+        CONSTRAINT UQ_tbl_autm_message_id UNIQUE (autm_message_id)
       )
     `);
   }

@@ -5,6 +5,7 @@ import { AutomationEmail } from '@domain/entities/automationEmail.entities';
 export const AUTOMATION_EMAIL_REPOSITORY = Symbol('AUTOMATION_EMAIL_REPOSITORY');
 
 export type CreateAutomationEmailInput = {
+  autm_message_id: string;
   autm_from_email: string;
   autm_to_email: string;
   autm_date_received: string;
@@ -66,7 +67,8 @@ export interface AutomationEmailRepository {
   create(data: CreateAutomationEmailInput): Promise<AutomationEmail>;
   findAll(filters?: FindAllAutomationEmailFilters): Promise<AutomationEmail[]>;
   findById(id: number): Promise<AutomationEmail>;
-  findBySubjectAndDate(subject: string, dateReceived: string): Promise<AutomationEmail | null>;
+  findByMessageId(messageId: string): Promise<AutomationEmail | null>;
+  findByDocumentNumber2(identification: string): Promise<AutomationEmail | null>;
   findOpciones(): Promise<{ autm_automation_status: string }[]>;
   findOpcionesActivas(): Promise<{ autm_automation_status: string }[]>;
   update(data: AutomationEmail): Promise<void>;

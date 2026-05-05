@@ -24,6 +24,7 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
   async create(input: CreateAutomationEmailInput): Promise<AutomationEmail> {
     const now = new Date();
     const entity: Partial<AutomationEmailEntity> = {
+      autm_message_id: input.autm_message_id,
       autm_from_email: input.autm_from_email,
       autm_to_email: input.autm_to_email,
       autm_date_received: input.autm_date_received,
@@ -64,6 +65,7 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       .createQueryBuilder('m')
       .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = m.autm_status_type_id')
       .select('m.autm_id', 'autm_id')
+      .addSelect('m.autm_message_id', 'autm_message_id')
       .addSelect('m.autm_from_email', 'autm_from_email')
       .addSelect('m.autm_to_email', 'autm_to_email')
       .addSelect('m.autm_date_received', 'autm_date_received')
@@ -179,6 +181,7 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       .createQueryBuilder('m')
       .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = m.autm_status_type_id')
       .select('m.autm_id', 'autm_id')
+      .addSelect('m.autm_message_id', 'autm_message_id')
       .addSelect('m.autm_from_email', 'autm_from_email')
       .addSelect('m.autm_to_email', 'autm_to_email')
       .addSelect('m.autm_date_received', 'autm_date_received')
@@ -219,21 +222,64 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
     return this.rowToDomain(raw);
   }
 
-  async findBySubjectAndDate(subject: string, dateReceived: string): Promise<AutomationEmail | null> {
-    const found = await this.repo.findOne({
-      where: {
-        autm_subject: subject,
-        autm_date_received: dateReceived,
-      },
-    });
+  async findByMessageId(messageId: string): Promise<AutomationEmail | null> {
+    const found = await this.repo.findOne({ where: { autm_message_id: messageId } });
     if (!found) return null;
     return this.entityToDomain(found);
+  }
+
+  async findByDocumentNumber2(identification: string): Promise<AutomationEmail | null> {
+    const raw = await this.repo
+      .createQueryBuilder('m')
+      .leftJoin(TblStateTypeEntity, 'st', 'st.stty_id = m.autm_status_type_id')
+      .select('m.autm_id', 'autm_id')
+      .addSelect('m.autm_message_id', 'autm_message_id')
+      .addSelect('m.autm_from_email', 'autm_from_email')
+      .addSelect('m.autm_to_email', 'autm_to_email')
+      .addSelect('m.autm_date_received', 'autm_date_received')
+      .addSelect('m.autm_subject', 'autm_subject')
+      .addSelect('m.autm_departament', 'autm_departament')
+      .addSelect('m.autm_city', 'autm_city')
+      .addSelect('m.autm_locality', 'autm_locality')
+      .addSelect('m.autm_specialty', 'autm_specialty')
+      .addSelect('m.autm_process_class', 'autm_process_class')
+      .addSelect('m.autm_subject_demanding', 'autm_subject_demanding')
+      .addSelect('m.autm_artificial_person', 'autm_artificial_person')
+      .addSelect('m.autm_document_type_1', 'autm_document_type_1')
+      .addSelect('m.autm_document_number_1', 'autm_document_number_1')
+      .addSelect('m.autm_email_1', 'autm_email_1')
+      .addSelect('m.autm_address_1', 'autm_address_1')
+      .addSelect('m.autm_phone_number_1', 'autm_phone_number_1')
+      .addSelect('m.autm_subject_defendant', 'autm_subject_defendant')
+      .addSelect('m.autm_natural_person', 'autm_natural_person')
+      .addSelect('m.autm_document_type_2', 'autm_document_type_2')
+      .addSelect('m.autm_document_number_2', 'autm_document_number_2')
+      .addSelect('m.autm_email_2', 'autm_email_2')
+      .addSelect('m.autm_address_2', 'autm_address_2')
+      .addSelect('m.autm_phone_number_2', 'autm_phone_number_2')
+      .addSelect('m.autm_number_filed', 'autm_number_filed')
+      .addSelect('m.autm_automation_status', 'autm_automation_status')
+      .addSelect('m.autm_detail', 'autm_detail')
+      .addSelect('m.autm_status_type_id', 'autm_status_type_id')
+      .addSelect('m.autm_created_at', 'autm_created_at')
+      .addSelect('m.autm_updated_at', 'autm_updated_at')
+      .addSelect('m.autm_responsible', 'autm_responsible')
+      .addSelect('st.stty_type', 'state_type_name')
+      .where('TRIM(m.autm_document_number_2) = :identification', { identification: identification.trim() })
+      .andWhere("m.autm_automation_status != 'Correo gestionado'")
+      .orderBy('m.autm_id', 'ASC')
+      .limit(1)
+      .getRawOne<Record<string, unknown> | undefined>();
+
+    if (!raw) return null;
+    return this.rowToDomain(raw);
   }
 
   async update(data: AutomationEmail): Promise<void> {
     await this.repo.update(
       { autm_id: data.autm_id },
       {
+        autm_message_id: data.autm_message_id,
         autm_from_email: data.autm_from_email,
         autm_to_email: data.autm_to_email,
         autm_date_received: data.autm_date_received,
@@ -294,6 +340,7 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
   private rowToDomain(row: Record<string, unknown>): AutomationEmail {
     return {
       autm_id: row.autm_id as number,
+      autm_message_id: row.autm_message_id as string,
       autm_from_email: row.autm_from_email as string,
       autm_to_email: row.autm_to_email as string,
       autm_date_received: row.autm_date_received as string,
@@ -331,6 +378,7 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
   private entityToDomain(entity: AutomationEmailEntity): AutomationEmail {
     return {
       autm_id: entity.autm_id,
+      autm_message_id: entity.autm_message_id,
       autm_from_email: entity.autm_from_email,
       autm_to_email: entity.autm_to_email,
       autm_date_received: entity.autm_date_received,

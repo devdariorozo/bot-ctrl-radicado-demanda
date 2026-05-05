@@ -25,16 +25,12 @@ export class AutomationEmailService {
   ) {}
 
   async create(input: CreateAutomationEmailInput): Promise<AutomationEmail> {
-    const existing = await this.repository.findBySubjectAndDate(
-      input.autm_subject,
-      input.autm_date_received,
-    );
+    const existing = await this.repository.findByMessageId(input.autm_message_id);
 
     if (existing) {
       throw new ConflictException({
         message: 'El registro ya existe',
-        autm_subject: input.autm_subject,
-        autm_date_received: input.autm_date_received,
+        autm_message_id: input.autm_message_id,
       });
     }
 
@@ -72,6 +68,7 @@ export class AutomationEmailService {
     const toText = (v: string | null | undefined): string => (v ? String(v).trim() : '');
 
     const hasChanges =
+      existing.autm_message_id !== data.autm_message_id ||
       existing.autm_from_email !== data.autm_from_email ||
       existing.autm_to_email !== data.autm_to_email ||
       toText(existing.autm_date_received) !== toText(data.autm_date_received) ||

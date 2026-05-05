@@ -117,9 +117,11 @@ export class Pop3InboxAdapter implements EmailInboxPort {
                 ? parsed.to.map((a) => a.text).join('; ')
                 : (parsed.to?.text?.trim() ?? '');
               const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
+              const messageId = parsed.messageId ?? '';
 
               results.push({
                 uid: String(msgnumber),
+                messageId,
                 from,
                 to,
                 subject,

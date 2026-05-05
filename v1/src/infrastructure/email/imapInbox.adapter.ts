@@ -76,9 +76,11 @@ export class ImapInboxAdapter implements EmailInboxPort {
             : (parsed.to?.text?.trim() ?? '');
           const subject = parsed.subject ?? '';
           const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
+          const messageId = parsed.messageId ?? '';
 
           results.push({
             uid: String(uid),
+            messageId,
             from,
             to,
             subject,

@@ -1,4 +1,4 @@
-// Responsabilidad: job de sincronización inicial de demandas "Presentada" y "Presentada por aplicativo"
+// Responsabilidad: job de sincronización inicial de demandas "Presentada", "Presentada por aplicativo" y "Sin presentar"
 // para el flujo exclusivo de Carteras Propias → crea registros en tbl_management_ctrl_filed_demand.
 
 import { Injectable, Inject, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
@@ -32,7 +32,7 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
 
   /**
    * Ejecuta el sync de Carteras Propias:
-   * - Consulta tbl_lawsuits con status Presentada / Presentada por aplicativo.
+   * - Consulta tbl_lawsuits con status Presentada / Presentada por aplicativo / Sin presentar.
    * - Cruza con lawsuits_filings donde filing_number es null o < 23 caracteres.
    * - Crea el registro inicial en tbl_management_ctrl_filed_demand si no existe.
    */
@@ -106,7 +106,7 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
       context: CartPropiasDemandsSyncService.name,
       type: 'CART_PROPIAS_SYNC',
       status: 'OK',
-      message: 'Iniciando sync Carteras Propias — demandas Presentada / Presentada por aplicativo',
+      message: 'Iniciando sync Carteras Propias — demandas Presentada / Presentada por aplicativo / Sin presentar',
       meta: { dataBasesId: dbRecord.db_id, bases: Object.keys(dbRecord.db_bases) },
     });
 
@@ -118,7 +118,7 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
           context: CartPropiasDemandsSyncService.name,
           type: 'CART_PROPIAS_SYNC',
           status: 'OK',
-          message: 'Demandas Presentada encontradas en base',
+          message: 'Demandas Presentada / Sin presentar encontradas en base',
           meta: { dataBasesId: dbRecord.db_id, baseName, total: rows.length },
         });
 
@@ -200,8 +200,8 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
   }
 
   /**
-   * Consulta en la base externa las demandas con lawsuit_status 'Presentada' o
-   * 'Presentada por aplicativo', deleted_at IS NULL, cruzadas con lawsuits_filings
+   * Consulta en la base externa las demandas con lawsuit_status 'Presentada',
+   * 'Presentada por aplicativo' o 'Sin presentar', deleted_at IS NULL, cruzadas con lawsuits_filings
    * donde filing_number IS NULL o CHAR_LENGTH < 23.
    *
    * Modo manual (DEMANDS_PRESENTED_SYNC_MANUAL=true):
@@ -240,7 +240,7 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
       FROM \`${baseName}\`.lawsuits l
       INNER JOIN \`${baseName}\`.lawsuits_filings lf
         ON lf.lawsuit_id = l.id
-      WHERE l.lawsuit_status IN ('Presentada', 'Presentada por aplicativo')
+      WHERE l.lawsuit_status IN ('Presentada', 'Presentada por aplicativo', 'Sin presentar')
         AND l.deleted_at IS NULL
         AND (
           lf.filing_number IS NULL
