@@ -9,8 +9,9 @@ import { ConfigService } from '@nestjs/config';
 import * as tls from 'tls';
 import { simpleParser } from 'mailparser';
 import type { ParsedMail } from 'mailparser';
-import { EmailInboxPort, FetchedEmail, ParsedEmailFields } from '@domain/ports/emailInbox.ports';
+import { EmailInboxPort, FetchedEmail } from '@domain/ports/emailInbox.ports';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
+import { parseEmailFields } from '@application/utils/emailParser.utils';
 
 class Pop3Session {
   private buffer = '';
@@ -155,13 +156,10 @@ export class Pop3InboxAdapter implements EmailInboxPort {
         /\b(postmaster|mailer-daemon|mail.?delivery.?system)\b/i.test(fromLine)
       ) continue;
 
-      // Todas las palabras de la keyword deben aparecer en el asunto (orden irrelevante)
+      // La frase completa de la keyword debe aparecer en el asunto en el mismo orden (subcadena exacta normalizada)
       const subjectNorm = normalizeText(subject);
       const matchesKeyword = subjectKeywords.some((kw) =>
-        normalizeText(kw)
-          .split(/\s+/)
-          .filter(Boolean)
-          .every((word) => subjectNorm.includes(word)),
+        subjectNorm.includes(normalizeText(kw)),
       );
       if (!matchesKeyword) continue;
 
@@ -197,7 +195,7 @@ export class Pop3InboxAdapter implements EmailInboxPort {
           to,
           subject: parsed.subject ?? subject,
           dateReceived,
-          parsed: this.parseEmailFields(content),
+          parsed: parseEmailFields(content, from),
         });
       } catch {
         // correo malformado, se omite
@@ -237,113 +235,6 @@ export class Pop3InboxAdapter implements EmailInboxPort {
       .replace(/&gt;/gi, '>')
       .replace(/\s+/g, ' ')
       .trim();
-  }
-
-  private cleanValue(raw: string | undefined | null): string | null {
-    if (!raw) return null;
-    const v = raw.trim();
-    if (!v || v === '-') return null;
-    return v;
-  }
-
-  // label puede tener texto adicional antes del colon: "Localidad Demandado(s): VALOR"
-  private extractField(text: string, label: string): string | null {
-    const regex = new RegExp(`${label}[^:\\n\\r]*:\\s*([^\\n\\r]+)`, 'i');
-    const match = text.match(regex);
-    return match ? this.cleanValue(match[1]) : null;
-  }
-
-  private extractSectionContent(
-    text: string,
-    startPattern: string,
-    endPatterns: string[],
-  ): string {
-    const startIdx = text.search(new RegExp(startPattern, 'i'));
-    if (startIdx < 0) return '';
-    let endIdx = text.length;
-    for (const pattern of endPatterns) {
-      const idx = text.search(new RegExp(pattern, 'i'));
-      if (idx > startIdx && idx < endIdx) endIdx = idx;
-    }
-    return text.slice(startIdx, endIdx);
-  }
-
-  // Formato estructurado: "Documento: CC - 72261493" o "Documento: NIT - 9000975439"
-  // Formato inline:       "C.C 63287644" / "NIT 9000975439" al final de una línea
-  private extractDocumentFields(text: string): { type: string | null; number: string | null } {
-    const structured = text.match(/Documento:\s*([A-Z]+)\s*[-–]\s*(\d+)/i);
-    if (structured) {
-      return { type: this.cleanValue(structured[1]), number: this.cleanValue(structured[2]) };
-    }
-    const inline = text.match(/\b(C\.?C\.?|NIT|C\.?E\.?|T\.?I\.?|P\.?P\.?)\s*\.?\s*(\d{5,})/i);
-    if (inline) {
-      const type = inline[1].replace(/\./g, '').toUpperCase();
-      return { type, number: this.cleanValue(inline[2]) };
-    }
-    return { type: null, number: null };
-  }
-
-  // Extrae nombre de persona/empresa de una línea "DEMANDANTE: Nombre" o "DEMANDADO: Nombre DOC"
-  private extractInlinePartyName(text: string, label: string): string | null {
-    const regex = new RegExp(`${label}\\s*:\\s*([^\\n\\r]+)`, 'i');
-    const match = text.match(regex);
-    if (!match) return null;
-    // Quitar la parte del documento si viene pegada al nombre: "LOZANO PRIETO MARLENE C.C 63287644"
-    const value = match[1]
-      .replace(/\b(C\.?C\.?|NIT|C\.?E\.?|T\.?I\.?|P\.?P\.?)\s*\.?\s*\d+\b/gi, '')
-      .trim();
-    return this.cleanValue(value);
-  }
-
-  private parseEmailFields(content: string): ParsedEmailFields {
-    const demandanteSection = this.extractSectionContent(
-      content,
-      'DEMANDANTE|SOLICITANTE',
-      ['DEMANDADO'],
-    );
-    const demandadoSection = this.extractSectionContent(content, 'DEMANDADO', []);
-
-    const demandanteDoc = this.extractDocumentFields(demandanteSection);
-    const demandadoDoc = this.extractDocumentFields(demandadoSection);
-
-    return {
-      departament: this.extractField(content, 'Departamento'),
-      city: this.extractField(content, 'Ciudad'),
-      locality: this.extractField(content, 'Localidad'),
-      specialty: this.extractField(content, 'Especialidad'),
-      process_class: this.extractField(content, 'Clase de proceso'),
-      subject_demanding: demandanteSection ? 'DEMANDANTE O SOLICITANTE' : null,
-      // Formato estructurado primero, luego formato simple "DEMANDANTE: Nombre"
-      artificial_person:
-        this.extractField(demandanteSection, 'Persona Jurídica') ??
-        this.extractField(demandanteSection, 'Persona Juridica') ??
-        this.extractInlinePartyName(demandanteSection, 'DEMANDANTE') ??
-        this.extractInlinePartyName(demandanteSection, 'SOLICITANTE'),
-      document_type_1: demandanteDoc.type,
-      document_number_1: demandanteDoc.number,
-      email_1: this.extractField(demandanteSection, 'Correo Electrónico'),
-      address_1:
-        this.extractField(demandanteSection, 'Dirección') ??
-        this.extractField(demandanteSection, 'Direccion'),
-      phone_number_1:
-        this.extractField(demandanteSection, 'Teléfono') ??
-        this.extractField(demandanteSection, 'Telefono'),
-      subject_defendant: demandadoSection ? 'DEMANDADO' : null,
-      // Formato estructurado primero, luego formato simple "DEMANDADO: Nombre C.C 12345"
-      natural_person:
-        this.extractField(demandadoSection, 'Persona Natural') ??
-        this.extractInlinePartyName(demandadoSection, 'DEMANDADO'),
-      document_type_2: demandadoDoc.type,
-      document_number_2: demandadoDoc.number,
-      email_2: this.extractField(demandadoSection, 'Correo Electrónico'),
-      address_2:
-        this.extractField(demandadoSection, 'Dirección') ??
-        this.extractField(demandadoSection, 'Direccion'),
-      phone_number_2:
-        this.extractField(demandadoSection, 'Teléfono') ??
-        this.extractField(demandadoSection, 'Telefono'),
-      number_filed: null,
-    };
   }
 }
 
