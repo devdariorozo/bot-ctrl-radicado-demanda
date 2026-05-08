@@ -75,7 +75,7 @@ export class EmailInboxAutomationService implements OnModuleInit, OnModuleDestro
     let emails: Awaited<ReturnType<EmailInboxPort['fetchMatchingEmails']>>;
     try {
       // bodyMustContain='' → sin filtro de cuerpo; se descargan todos los que coincidan con el asunto
-      emails = await this.emailInboxPort.fetchMatchingEmails(this.getSubjectKeywords(), '');
+      emails = await this.emailInboxPort.fetchMatchingEmails(this.getSubjectKeywords(), '', this.getPdfAttachmentPatterns());
     } catch (err) {
       this.appLogger.structured({
         level: 'warn',
@@ -253,6 +253,11 @@ export class EmailInboxAutomationService implements OnModuleInit, OnModuleDestro
       'Generación de la Demanda,ACTA REPARTO N°,RADICACIÓN DEMANDA,RADICACION DE DEMANDA',
     );
     return raw.split(',').map((k) => k.trim()).filter(Boolean);
+  }
+
+  private getPdfAttachmentPatterns(): string[] {
+    const raw = this.configService.get<string>('MAIL_PDF_ATTACHMENT_PATTERNS', '');
+    return raw.split(',').map((p) => p.trim()).filter(Boolean);
   }
 
   private getSyncIntervalMinutes(): number {

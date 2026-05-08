@@ -9,6 +9,8 @@ import type { ParsedMail } from 'mailparser';
 import { EmailInboxPort, FetchedEmail } from '@domain/ports/emailInbox.ports';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
 import { parseEmailFields } from '@application/utils/emailParser.utils';
+import { extractMatchingPdfs } from '@application/utils/pdfAttachment.utils';
+import { parsePdfActaReparto, mergeWithPdfFields } from '@application/utils/pdfActaReparto.parser';
 
 @Injectable()
 export class ImapInboxAdapter implements EmailInboxPort {
@@ -33,6 +35,7 @@ export class ImapInboxAdapter implements EmailInboxPort {
   async fetchMatchingEmails(
     subjectKeywords: string[],
     bodyMustContain: string,
+    pdfAttachmentPatterns: string[],
   ): Promise<FetchedEmail[]> {
     const folder = this.configService.get<string>('MAIL_FOLDER', 'INBOX');
     const client = this.buildClient();
@@ -67,9 +70,11 @@ export class ImapInboxAdapter implements EmailInboxPort {
           const parsed: ParsedMail = await simpleParser(fetchMsg.source);
           const bodyText = parsed.text ?? '';
           const bodyHtml = typeof parsed.html === 'string' ? parsed.html : '';
-          const content = bodyText || this.stripHtml(bodyHtml);
+          const emailContent = bodyText || this.stripHtml(bodyHtml);
 
-          if (!content.toLowerCase().includes(bodyMustContain.toLowerCase())) continue;
+          if (!emailContent.toLowerCase().includes(bodyMustContain.toLowerCase())) continue;
+
+          const pdfs = await extractMatchingPdfs(parsed.attachments ?? [], pdfAttachmentPatterns);
 
           const subject = parsed.subject ?? '';
           const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
@@ -84,6 +89,11 @@ export class ImapInboxAdapter implements EmailInboxPort {
             ? parsed.to.map((a) => a.text).join('; ')
             : (parsed.to?.text?.trim() ?? '');
 
+          let parsedFields = parseEmailFields(emailContent, from);
+          for (const pdf of pdfs) {
+            parsedFields = mergeWithPdfFields(parsedFields, parsePdfActaReparto(pdf.text, pdf.filename));
+          }
+
           results.push({
             uid: String(uid),
             messageId,
@@ -91,7 +101,7 @@ export class ImapInboxAdapter implements EmailInboxPort {
             to,
             subject,
             dateReceived,
-            parsed: parseEmailFields(content, from),
+            parsed: parsedFields,
           });
         } catch (err) {
           this.appLogger.structured({

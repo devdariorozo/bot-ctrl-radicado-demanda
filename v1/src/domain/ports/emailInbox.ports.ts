@@ -39,11 +39,13 @@ export interface EmailInboxPort {
   /**
    * Busca correos cuyo asunto contenga alguna de las palabras clave
    * Y cuyo cuerpo contenga bodyMustContain.
+   * pdfAttachmentPatterns: substrings a buscar en nombres de archivo PDF adjunto.
    * Devuelve de más antiguo a más reciente.
    */
   fetchMatchingEmails(
     subjectKeywords: string[],
     bodyMustContain: string,
+    pdfAttachmentPatterns: string[],
   ): Promise<FetchedEmail[]>;
 
   markAsRead(uid: string): Promise<void>;

@@ -8,9 +8,15 @@ import { ParsedEmailFields } from '@domain/ports/emailInbox.ports';
 // ─── Punto de entrada público ─────────────────────────────────────────────────
 
 export function parseEmailFields(content: string, from?: string): ParsedEmailFields {
-  return isStructuredFormat(content)
+  const fields = isStructuredFormat(content)
     ? parseStructuredFormat(content)
     : parseInlineFormat(content, from);
+
+  if (!fields.number_filed) {
+    fields.number_filed = extractFiledNumber(content);
+  }
+
+  return fields;
 }
 
 // ─── Detección de formato ─────────────────────────────────────────────────────
@@ -213,6 +219,27 @@ function formatNitNumber(raw: string): string {
     return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
   }
   return raw;
+}
+
+// ─── Extracción: número de radicado ──────────────────────────────────────────
+// Variante A — 23 dígitos directos: "radicado asignado ... es el 05001418900620260027500"
+// Variante B — con guiones (sin guiones = 23 dígitos): "radicación 255944089001-2026-00038-00"
+// Variante C — con etiqueta explícita: "El radicado de la demanda es: 63001400300420260032000"
+// Fallback   — cualquier secuencia de exactamente 23 dígitos en el texto
+
+function extractFiledNumber(content: string): string | null {
+  // Busca "radicado" o "radicación" + hasta 60 chars no-dígito + número (con o sin guiones)
+  const contextRe = /\b(?:radicad[oa]|radicaci[oó]n)\b[^0-9\n\r]{0,60}([0-9][0-9\-]{18,30})/gi;
+  for (const m of content.matchAll(contextRe)) {
+    const digits = m[1].replace(/\D/g, '');
+    if (digits.length === 23) return digits;
+  }
+
+  // Fallback: primer número de exactamente 23 dígitos en el texto
+  const standalone = content.match(/\b(\d{23})\b/);
+  if (standalone) return standalone[1];
+
+  return null;
 }
 
 function cleanValue(raw: string | undefined | null): string | null {

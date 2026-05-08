@@ -12,6 +12,8 @@ import type { ParsedMail } from 'mailparser';
 import { EmailInboxPort, FetchedEmail } from '@domain/ports/emailInbox.ports';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
 import { parseEmailFields } from '@application/utils/emailParser.utils';
+import { extractMatchingPdfs } from '@application/utils/pdfAttachment.utils';
+import { parsePdfActaReparto, mergeWithPdfFields } from '@application/utils/pdfActaReparto.parser';
 
 class Pop3Session {
   private buffer = '';
@@ -72,6 +74,7 @@ export class Pop3InboxAdapter implements EmailInboxPort {
   async fetchMatchingEmails(
     subjectKeywords: string[],
     bodyMustContain: string,
+    pdfAttachmentPatterns: string[],
   ): Promise<FetchedEmail[]> {
     const host = this.configService.get<string>('MAIL_HOST', '');
     const port = this.configService.get<number>('MAIL_PORT', 995);
@@ -93,7 +96,7 @@ export class Pop3InboxAdapter implements EmailInboxPort {
       socket.on('error', (err) => settle(() => reject(err)));
 
       socket.on('secureConnect', () => {
-        void this.runSession(socket, user, pass, subjectKeywords, bodyMustContain)
+        void this.runSession(socket, user, pass, subjectKeywords, bodyMustContain, pdfAttachmentPatterns)
           .then((r) => settle(() => resolve(r)))
           .catch((e: Error) => settle(() => reject(e)))
           .finally(() => { try { socket.destroy(); } catch { /* ignore */ } });
@@ -116,6 +119,7 @@ export class Pop3InboxAdapter implements EmailInboxPort {
     pass: string,
     subjectKeywords: string[],
     bodyMustContain: string,
+    pdfAttachmentPatterns: string[],
   ): Promise<FetchedEmail[]> {
     const session = new Pop3Session(socket);
     const results: FetchedEmail[] = [];
@@ -175,11 +179,13 @@ export class Pop3InboxAdapter implements EmailInboxPort {
 
         const bodyText = parsed.text ?? '';
         const bodyHtml = typeof parsed.html === 'string' ? parsed.html : '';
-        const content = bodyText || this.stripHtml(bodyHtml);
+        const emailContent = bodyText || this.stripHtml(bodyHtml);
 
-        if (bodyMustContain && !content.toLowerCase().includes(bodyMustContain.toLowerCase())) {
+        if (bodyMustContain && !emailContent.toLowerCase().includes(bodyMustContain.toLowerCase())) {
           continue;
         }
+
+        const pdfs = await extractMatchingPdfs(parsed.attachments ?? [], pdfAttachmentPatterns);
 
         const from = parsed.from?.text?.trim() ?? '';
         const to = Array.isArray(parsed.to)
@@ -188,6 +194,11 @@ export class Pop3InboxAdapter implements EmailInboxPort {
         const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
         const messageId = parsed.messageId ?? '';
 
+        let parsedFields = parseEmailFields(emailContent, from);
+        for (const pdf of pdfs) {
+          parsedFields = mergeWithPdfFields(parsedFields, parsePdfActaReparto(pdf.text, pdf.filename));
+        }
+
         results.push({
           uid: String(i),
           messageId,
@@ -195,7 +206,7 @@ export class Pop3InboxAdapter implements EmailInboxPort {
           to,
           subject: parsed.subject ?? subject,
           dateReceived,
-          parsed: parseEmailFields(content, from),
+          parsed: parsedFields,
         });
       } catch {
         // correo malformado, se omite
