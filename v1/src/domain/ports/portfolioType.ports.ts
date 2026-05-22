@@ -1,0 +1,19 @@
+// Responsabilidad: contratos del dominio (interfaces) que la infraestructura debe implementar.
+
+import { TblPortfolioType } from '@domain/entities/portfolioType.entities';
+
+export const TBL_PORTFOLIO_TYPE_REPOSITORY = Symbol('TBL_PORTFOLIO_TYPE_REPOSITORY');
+
+export type CreateTblPortfolioTypeInput = Pick<TblPortfolioType, 'porty_type' | 'porty_detail' | 'porty_state_type_id' | 'porty_responsible'> & Partial<TblPortfolioType>;
+
+export interface TblPortfolioTypeRepository {
+    create(input: CreateTblPortfolioTypeInput): Promise<TblPortfolioType>;
+    findByDuplicate(porty_type: string): Promise<TblPortfolioType | null>;
+    findAll(): Promise<TblPortfolioType[]>;
+    /** Carteras cuyo tipo de estado asociado se considera activo (mismo criterio que `tbl_state_type` en opcionesActivas). */
+    findAllActive(): Promise<TblPortfolioType[]>;
+    findById(id: number): Promise<TblPortfolioType>;
+    findByType(type: string): Promise<TblPortfolioType>;
+    update(input: TblPortfolioType): Promise<TblPortfolioType>;
+    delete(id: number): Promise<void>;
+}

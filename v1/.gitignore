@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# package-lock.json
+package-lock.json
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs (solo versionar .gitkeep; el resto se ignora)
+logs/*
+!logs/.gitkeep
+*.log
+
+# PDFs temporales (adjuntos bot) — solo versionar .gitkeep
+tmp/*
+!tmp/.gitkeep
+npm-debug.log*
+
+# Test
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo

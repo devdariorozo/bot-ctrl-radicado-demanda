@@ -1,0 +1,86 @@
+{
+  "name": "bot-ctrl-filed-demand",
+  "version": "1.0.0",
+  "description": "Bot para **controlar y actualizar el número de radicado** de demandas a partir de fuentes operativas (correo) y del portal unificado de consultas de la Rama Judicial de Colombia ([consultaprocesos](https://consultaprocesos.ramajudicial.gov.co/Procesos/Index)). Orquesta la lectura de registros pendientes en `management_ctrl_filed_demand`, automatiza la consulta/validación del radicado en el portal, persiste el resultado y la trazabilidad (incluyendo novedades) y opera en horario laboral configurable, excluyendo fines de semana y dias feriados o no laborables.",
+  "author": "Ramón Dario Rozo Torres",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "dev": "nest start --watch",
+    "qa": "node dist/main",
+    "pro": "node dist/main",
+    "debug": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migrations": "npm run typeorm -- migration:run -d src/infrastructure/persistence/data_source.ts",
+    "migrations:revert": "npm run typeorm -- migration:revert -d src/infrastructure/persistence/data_source.ts",
+    "seeds": "ts-node -r tsconfig-paths/register src/infrastructure/persistence/seeds/run-seeds.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/swagger": "^7.4.2",
+    "@nestjs/typeorm": "^10.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "imapflow": "^1.3.3",
+    "mailparser": "^3.9.8",
+    "mysql2": "^3.11.0",
+    "pdf-parse": "^2.4.5",
+    "pg": "^8.21.0",
+    "poplib": "^0.1.7",
+    "puppeteer": "^24.15.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20",
+    "undici": "^7.24.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@nestjs/schematics": "^10.2.3",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^22.10.1",
+    "@types/pdf-parse": "^1.1.5",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "source-map-support": "^0.5.21",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
