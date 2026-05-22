@@ -7,13 +7,17 @@ import { ParsedEmailFields } from '@domain/ports/emailInbox.ports';
 
 // ─── Punto de entrada público ─────────────────────────────────────────────────
 
-export function parseEmailFields(content: string, from?: string): ParsedEmailFields {
+export function parseEmailFields(content: string, from?: string, to?: string): ParsedEmailFields {
   const fields = isStructuredFormat(content)
     ? parseStructuredFormat(content)
     : parseInlineFormat(content, from);
 
   if (!fields.number_filed) {
     fields.number_filed = extractFiledNumber(content);
+  }
+
+  if (!fields.court_name && to) {
+    fields.court_name = extractCourtNameFromToEmail(to);
   }
 
   return fields;
@@ -40,11 +44,16 @@ function parseStructuredFormat(content: string): ParsedEmailFields {
   const demandanteDoc = extractDocumentFields(demandanteSection);
   const demandadoDoc  = extractDocumentFields(demandadoSection);
 
+  const rawCourtName = extractField(content, 'Entidad') ?? extractField(content, 'Despacho');
+  const court_name = rawCourtName ? rawCourtName.toUpperCase() : null;
+
   return {
     departament:      extractField(content, 'Departamento'),
     city:             extractField(content, 'Ciudad'),
     locality:         extractField(content, 'Localidad') ?? 'SIN LOCALIDAD',
+    court_name,
     specialty:        extractField(content, 'Especialidad'),
+    office_name:      null,
     process_class:    extractField(content, 'Clase de Proceso'),
     subject_demanding:  demandanteSection ? 'DEMANDANTE O SOLICITANTE' : null,
     artificial_person:  extractField(demandanteSection, 'Persona Jur[ií]dica'),
@@ -91,12 +100,15 @@ function parseInlineFormat(content: string, from?: string): ParsedEmailFields {
     departament = fallback.departament;
   }
 
-  // Especialidad desde firma "Juzgado NN [tipo] de [Ciudad]" + cuantía en asunto/cuerpo
+  // Nombre completo del juzgado + especialidad desde "Juzgado NN [tipo] de [Ciudad]"
+  let court_name: string | null = null;
   let specialty: string | null = null;
   // (?:de\s+)? salta el "de" cuando aparece entre número y tipo (ej. "Juzgado 01 de Pequeñas Causas...")
-  const juzgadoMatch = content.match(/Juzgado\s+\d+\s+(?:de\s+)?(.+?)\s+de\s+[A-ZÁÉÍÓÚÜ][a-záéíóú]/);
+  const juzgadoMatch = content.match(/Juzgado\s+(\d+)\s+(?:de\s+)?(.+?)\s+de\s+[A-ZÁÉÍÓÚÜ][a-záéíóú]/i);
   if (juzgadoMatch) {
-    const juzgadoType = juzgadoMatch[1].trim().toUpperCase();
+    const juzgadoNum  = juzgadoMatch[1].trim();
+    const juzgadoType = juzgadoMatch[2].trim().toUpperCase();
+    court_name = `JUZGADO ${juzgadoNum} ${juzgadoType}`;
     const cuantiaMatch = content.match(/\b(M[ÍI]NIMA|MENOR|MAYOR|[ÚU]NICA)\s+CUANT[ÍI]A/i);
     if (cuantiaMatch) {
       const cuantia = cuantiaMatch[0]
@@ -125,7 +137,9 @@ function parseInlineFormat(content: string, from?: string): ParsedEmailFields {
     departament,
     city,
     locality:           'SIN LOCALIDAD',
+    court_name,
     specialty,
+    office_name:        null,
     process_class:      null,
     subject_demanding:  demandanteLine ? 'DEMANDANTE O SOLICITANTE' : null,
     artificial_person:  demandanteParty?.name    ?? null,
@@ -222,20 +236,29 @@ function formatNitNumber(raw: string): string {
 }
 
 // ─── Extracción: número de radicado ──────────────────────────────────────────
-// Variante A — 23 dígitos directos: "radicado asignado ... es el 05001418900620260027500"
-// Variante B — con guiones (sin guiones = 23 dígitos): "radicación 255944089001-2026-00038-00"
-// Variante C — con etiqueta explícita: "El radicado de la demanda es: 63001400300420260032000"
-// Fallback   — cualquier secuencia de exactamente 23 dígitos en el texto
+// El número de radicado colombiano (SIGLO XXI) tiene siempre exactamente 23 dígitos.
+// Variante A — continuo: "05001418900620260027500"
+// Variante B — con guiones: "255944089001-2026-00038-00"
+// Variante C — con espacios: "05 440 40 89 001 2026 00382 00"
+// Fallback   — cualquier secuencia continua de exactamente 23 dígitos en el texto
 
 function extractFiledNumber(content: string): string | null {
-  // Busca "radicado" o "radicación" + hasta 60 chars no-dígito + número (con o sin guiones)
+  // Variante A/B: número continuo o separado únicamente por guiones
   const contextRe = /\b(?:radicad[oa]|radicaci[oó]n)\b[^0-9\n\r]{0,60}([0-9][0-9\-]{18,30})/gi;
   for (const m of content.matchAll(contextRe)) {
     const digits = m[1].replace(/\D/g, '');
     if (digits.length === 23) return digits;
   }
 
-  // Fallback: primer número de exactamente 23 dígitos en el texto
+  // Variante C: grupos de dígitos separados por espacios y/o guiones
+  // "05 440 40 89 001 2026 00382 00" → limpiar → "05440408900120260038200" (23 dígitos)
+  const spacedRe = /\b(?:radicad[oa]|radicaci[oó]n)\b[^0-9\n\r]{0,80}(\d{1,6}(?:[ \-]\d{1,6}){3,10})/gi;
+  for (const m of content.matchAll(spacedRe)) {
+    const digits = m[1].replace(/\D/g, '');
+    if (digits.length === 23) return digits;
+  }
+
+  // Fallback sin contexto: primer número continuo de exactamente 23 dígitos
   const standalone = content.match(/\b(\d{23})\b/);
   if (standalone) return standalone[1];
 
@@ -247,4 +270,21 @@ function cleanValue(raw: string | undefined | null): string | null {
   const v = raw.trim().replace(/,$/, '').trim(); // elimina coma final de campos como "9000975439,"
   if (!v || v === '-') return null;
   return v;
+}
+
+// ─── Extracción: nombre del juzgado desde el campo To del correo ──────────────
+// Formato esperado: "Juzgado NN Tipo - Departamento - Ciudad" <email>
+// Ejemplo: "Juzgado 07 Pequeñas Causas Competencia Múltiple - Magdalena - Santa Marta" <j07...>
+// Resultado: JUZGADO 07 PEQUEÑAS CAUSAS COMPETENCIA MÚLTIPLE
+function extractCourtNameFromToEmail(to: string): string | null {
+  for (const part of to.split(';')) {
+    const displayMatch = part.trim().match(/^"([^"]+)"/);
+    if (!displayMatch) continue;
+    const displayName = displayMatch[1].trim();
+    if (!/^juzgado\s+\d+/i.test(displayName)) continue;
+    const dashIdx = displayName.indexOf(' - ');
+    const courtPart = dashIdx >= 0 ? displayName.slice(0, dashIdx).trim() : displayName;
+    return courtPart.toUpperCase();
+  }
+  return null;
 }

@@ -8,7 +8,7 @@ const { description, version } = JSON.parse(
   readFileSync(join(process.cwd(), 'package.json'), 'utf-8'),
 ) as { description: string; version: string };
 import { UnprocessableEntityException, Logger, ValidationPipe } from '@nestjs/common';
-import type { Request, Response, NextFunction } from 'express';
+// import type { Request, Response, NextFunction } from 'express'; // usado por el middleware CORS (ver #region CORS)
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppLogger } from './infrastructure/logging/appLogger.service';
@@ -20,17 +20,24 @@ import { TblStateTypeDto, UpdateTblStateTypeDto } from '@interfaces/http/dto/sta
 import { TblPortfolioTypeDto, UpdateTblPortfolioTypeDto } from '@interfaces/http/dto/portfolioType.dto';
 import { DataBasesDto, UpdateDataBasesDto } from '@interfaces/http/dto/dataBases.dto';
 import { CreateTblAttentionScheduleDto, UpdateTblAttentionScheduleDto } from '@interfaces/http/dto/attentionSchedule.dto';
-import { PortfolioCityConfigDto, UpdatePortfolioCityConfigDto } from '@interfaces/http/dto/portfolioCityConfig.dto';
-import { AmountTypeDto, UpdateAmountTypeDto } from '@interfaces/http/dto/amountType.dto';
-import { CompanyTypeDto, UpdateCompanyTypeDto } from '@interfaces/http/dto/companyType.dto';
-import { LawyerDataDto, UpdateLawyerDataDto } from '@interfaces/http/dto/lawyerData.dto';
 import { HolidayDto, UpdateHolidayDto } from '@interfaces/http/dto/holiday.dto';
+
+// Validar SCHEMA antes de inicializar la aplicación. Falla rápido para evitar errores crípticos en TypeORM.
+const _dbSchema = (process.env.SCHEMA ?? '').trim().toLowerCase();
+if (!['mysql', 'postgres'].includes(_dbSchema)) {
+  new Logger('Bootstrap').error(
+    `Variable de entorno SCHEMA no definida o inválida. ` +
+    `Valor recibido: '${_dbSchema || '(vacío)'}'. ` +
+    `Valores permitidos: 'mysql' | 'postgres'.`,
+  );
+  process.exit(1);
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
 
-  // Prefijo global: api/{VERSION_API} (ej. api/v1)
   const versionApi = process.env.VERSION_API ?? 'v1';
   app.setGlobalPrefix(`api/${versionApi}`);
 
@@ -38,51 +45,50 @@ async function bootstrap() {
   app.useLogger(appLogger);
   const logger = new Logger('Bootstrap');
 
-  const corsRaw = process.env.CORS_ALLOWED_ORIGINS?.trim() ?? '';
-  const corsAllowAll = corsRaw === '*';
-  const corsAllowedOrigins = corsAllowAll
-    ? []
-    : corsRaw
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter((origin) => origin.length > 0);
+  // #region CORS — comentado temporalmente; descomentar si se requiere restringir orígenes
+  // const corsRaw = process.env.CORS_ALLOWED_ORIGINS?.trim() ?? '';
+  // const corsAllowAll = corsRaw === '*';
+  // const corsAllowedOrigins = corsAllowAll
+  //   ? []
+  //   : corsRaw
+  //       .split(',')
+  //       .map((origin) => origin.trim())
+  //       .filter((origin) => origin.length > 0);
 
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || corsAllowAll || corsAllowedOrigins.length === 0) {
-        return callback(null, true);
-      }
+  // app.enableCors({
+  //   origin: (origin, callback) => {
+  //     if (!origin || corsAllowAll || corsAllowedOrigins.length === 0) {
+  //       return callback(null, true);
+  //     }
 
-      if (corsAllowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+  //     if (corsAllowedOrigins.includes(origin)) {
+  //       return callback(null, true);
+  //     }
 
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true,
-  });
+  //     return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  //   },
+  //   credentials: true,
+  // });
 
-  // Handler Express-level para errores CORS (ocurren antes del pipeline de NestJS).
-  // El middleware cors llama a next(err) cuando el origen no está permitido,
-  // lo que escapa al ExceptionFilter global y produciría un 500 sin formato.
-  const expressApp = app.getHttpAdapter().getInstance() as {
-    use: (...args: unknown[]) => void;
-  };
-  expressApp.use(
-    (err: Error, _req: Request, res: Response, next: NextFunction) => {
-      if (err?.message?.includes('not allowed by CORS')) {
-        res.status(403).json({
-          status: 403,
-          type: 'warning',
-          title: 'Acceso denegado',
-          message: 'Origen no autorizado para acceder a este recurso.',
-          data: null,
-        });
-        return;
-      }
-      next(err);
-    },
-  );
+  // const expressApp = app.getHttpAdapter().getInstance() as {
+  //   use: (...args: unknown[]) => void;
+  // };
+  // expressApp.use(
+  //   (err: Error, _req: Request, res: Response, next: NextFunction) => {
+  //     if (err?.message?.includes('not allowed by CORS')) {
+  //       res.status(403).json({
+  //         status: 403,
+  //         type: 'warning',
+  //         title: 'Acceso denegado',
+  //         message: 'Origen no autorizado para acceder a este recurso.',
+  //         data: null,
+  //       });
+  //       return;
+  //     }
+  //     next(err);
+  //   },
+  // );
+  // #endregion CORS
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -118,10 +124,6 @@ async function bootstrap() {
     .addTag('dataBases', 'Configuración de bases (tbl_data_bases) por entorno, cartera y estado')
     .addTag('attentionSchedule', 'Horarios de atención por tipo de cartera')
     .addTag('holiday', 'Días festivos por país')
-    .addTag('portfolioCityConfig', 'Configuración de ciudades por cartera')
-    .addTag('amountType', 'Tipo de cuantía (mayor, menor, mínima)')
-    .addTag('companyType', 'Configuración de compañías por cartera')
-    .addTag('lawyerData', 'Datos base de abogados por cartera')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
@@ -136,16 +138,8 @@ async function bootstrap() {
       UpdateDataBasesDto,
       CreateTblAttentionScheduleDto,
       UpdateTblAttentionScheduleDto,
-      PortfolioCityConfigDto,
-      UpdatePortfolioCityConfigDto,
-      AmountTypeDto,
-      UpdateAmountTypeDto,
-      CompanyTypeDto,
-      UpdateCompanyTypeDto,
       HolidayDto,
       UpdateHolidayDto,
-      LawyerDataDto,
-      UpdateLawyerDataDto,
     ],
   });
   SwaggerModule.setup('docs', app, document);

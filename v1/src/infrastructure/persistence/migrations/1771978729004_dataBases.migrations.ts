@@ -2,6 +2,7 @@
 // Un solo archivo en desarrollo; la clase conserva el nombre registrado en la tabla `migrations`.
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { isPostgres } from './migration.helpers';
 
 type FkMeta = {
   constraint_name: string;
@@ -12,6 +13,30 @@ type FkMeta = {
 
 export class DataBasesMigration1771978729004 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    if (isPostgres(queryRunner)) {
+      await queryRunner.query(`DROP TABLE IF EXISTS tbl_data_bases CASCADE`);
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS tbl_data_bases (
+          db_id                  SERIAL        PRIMARY KEY,
+          db_environment_type_id INT           NOT NULL,
+          db_portfolio_type_id   INT           NOT NULL,
+          db_bases               JSON          NOT NULL,
+          db_detail              VARCHAR(255)  NOT NULL,
+          db_state_type_id       INT           NOT NULL,
+          db_created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          db_updated_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          db_responsible         VARCHAR(100)  NOT NULL DEFAULT 'BOT ctrl radicado demanda',
+          CONSTRAINT FK_tbl_data_bases_environment_type
+            FOREIGN KEY (db_environment_type_id) REFERENCES tbl_environment_type(env_id),
+          CONSTRAINT FK_tbl_data_bases_portfolio_type
+            FOREIGN KEY (db_portfolio_type_id) REFERENCES tbl_portfolio_type(porty_id),
+          CONSTRAINT FK_tbl_data_bases_state_type
+            FOREIGN KEY (db_state_type_id) REFERENCES tbl_state_type(stty_id)
+        )
+      `);
+      return;
+    }
+
     // --- 1) Alineación: `data_bases` → `tbl_data_bases`, quitar unique env+cartera si existe (legacy)
     for (const table of ['data_bases', 'tbl_data_bases'] as const) {
       const hasTable = await queryRunner.query(
@@ -116,6 +141,7 @@ export class DataBasesMigration1771978729004 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE \`tbl_data_bases\` DROP FOREIGN KEY \`${fk.constraint_name}\``);
       }
 
+      await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 0`);
       await queryRunner.query(`
         ALTER TABLE tbl_data_bases
           ADD CONSTRAINT FK_tbl_data_bases_environment_type
@@ -125,6 +151,22 @@ export class DataBasesMigration1771978729004 implements MigrationInterface {
           ADD CONSTRAINT FK_tbl_data_bases_state_type
             FOREIGN KEY (db_state_type_id) REFERENCES tbl_state_type(stty_id)
       `);
+      await queryRunner.query(`SET FOREIGN_KEY_CHECKS = 1`);
+
+      // --- 5) Garantizar que db_bases sea columna JSON (no LONGTEXT)
+      const isLongtext: unknown[] = await queryRunner.query(`
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name   = 'tbl_data_bases'
+          AND column_name  = 'db_bases'
+          AND data_type    = 'longtext'
+        LIMIT 1
+      `);
+      if (Array.isArray(isLongtext) && isLongtext.length > 0) {
+        await queryRunner.query(`
+          ALTER TABLE tbl_data_bases MODIFY COLUMN db_bases JSON NOT NULL
+        `);
+      }
     } else {
       // --- 4) Crear tabla si no existía (instalación nueva)
       await queryRunner.query(`
@@ -150,6 +192,10 @@ export class DataBasesMigration1771978729004 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS `tbl_data_bases`');
+    if (isPostgres(queryRunner)) {
+      await queryRunner.query(`DROP TABLE IF EXISTS tbl_data_bases CASCADE`);
+    } else {
+      await queryRunner.query('DROP TABLE IF EXISTS `tbl_data_bases`');
+    }
   }
 }

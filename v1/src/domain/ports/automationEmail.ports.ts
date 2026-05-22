@@ -13,8 +13,13 @@ export type CreateAutomationEmailInput = {
   autm_departament?: string | null;
   autm_city?: string | null;
   autm_locality?: string | null;
+  autm_court_name?: string | null;
   autm_specialty?: string | null;
+  autm_office_name?: string | null;
+  autm_year?: string | null;
   autm_process_class?: string | null;
+  autm_process_code?: string | null;
+  autm_resource_process?: string | null;
   autm_subject_demanding?: string | null;
   autm_artificial_person?: string | null;
   autm_document_type_1?: string | null;
@@ -45,8 +50,13 @@ export type FindAllAutomationEmailFilters = {
   autm_departament?: string;
   autm_city?: string;
   autm_locality?: string;
+  autm_court_name?: string;
   autm_specialty?: string;
+  autm_office_name?: string;
+  autm_year?: string;
   autm_process_class?: string;
+  autm_process_code?: string;
+  autm_resource_process?: string;
   autm_subject_demanding?: string;
   autm_artificial_person?: string;
   autm_document_number_1?: string;
@@ -69,8 +79,10 @@ export interface AutomationEmailRepository {
   findById(id: number): Promise<AutomationEmail>;
   findByMessageId(messageId: string): Promise<AutomationEmail | null>;
   findByDocumentNumber2(identification: string): Promise<AutomationEmail | null>;
+  findAllMessageIds(): Promise<Set<string>>;
   findOpciones(): Promise<{ autm_automation_status: string }[]>;
   findOpcionesActivas(): Promise<{ autm_automation_status: string }[]>;
   update(data: AutomationEmail): Promise<void>;
   delete(id: number): Promise<void>;
+  deleteOlderThan(days: number): Promise<number>;
 }

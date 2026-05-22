@@ -12,7 +12,8 @@ export function parsePdfActaReparto(text: string, filename: string): Partial<Par
   extractRadicado(text, filename, result);
   extractProcessClass(text, result);
   extractCity(text, result);
-  extractSpecialty(text, result);
+  extractCourtNameAndSpecialty(text, result);
+  extractOfficeNumber(text, result);
   extractDemandante(text, result);
   extractDemandado(text, result);
 
@@ -76,14 +77,29 @@ function extractCity(text: string, result: Partial<ParsedEmailFields>): void {
   if (juzgMun) result.city = juzgMun[1].trim();
 }
 
-// ─── Extracción: especialidad (despacho) ─────────────────────────────────────
+// ─── Extracción: nombre del juzgado (court_name) y especialidad (specialty) ──
 
-function extractSpecialty(text: string, result: Partial<ParsedEmailFields>): void {
+function extractCourtNameAndSpecialty(text: string, result: Partial<ParsedEmailFields>): void {
   // "JUZGADO CUARTO CIVIL MUNICIPAL" / "JUZGADO PRIMERO DE PEQUEÑAS CAUSAS..."
   const m = text.match(
     /\b(JUZGADO\s+(?:\w+\s+){0,5}(?:CIVIL|PENAL|FAMILIA|LABORAL|MUNICIPAL|ADMINISTRATIVO|PEQUE[ÑN]AS?\s+CAUSAS?)\s*\w*)/i,
   );
-  if (m) result.specialty = m[1].trim().toUpperCase().replace(/\s+/g, ' ');
+  if (!m) return;
+  const fullName = m[1].trim().toUpperCase().replace(/\s+/g, ' ');
+  // court_name = nombre completo (ej. "JUZGADO CUARTO CIVIL MUNICIPAL")
+  if (!result.court_name) result.court_name = fullName;
+  // specialty = solo el tipo, sin número ordinal (ej. "CIVIL MUNICIPAL")
+  const typeMatch = fullName.match(
+    /JUZGADO\s+\w+\s+(?:DE\s+)?(CIVIL\b.*|PENAL\b.*|FAMILIA\b.*|LABORAL\b.*|PEQUE[ÑN]AS?\s+CAUSAS?.*|ADMINISTRATIVO\b.*)/i,
+  );
+  if (!result.specialty && typeMatch) result.specialty = typeMatch[1].trim();
+}
+
+// ─── Extracción: número de despacho (office_name) ────────────────────────────
+
+function extractOfficeNumber(text: string, result: Partial<ParsedEmailFields>): void {
+  const m = text.match(/N[ÚU]MERO\s+DESPACHO\s*[:=]?\s*([^\n\r]+)/i);
+  if (m) result.office_name = m[1].trim() || null;
 }
 
 // ─── Extracción: demandante (NIT empresa) ────────────────────────────────────

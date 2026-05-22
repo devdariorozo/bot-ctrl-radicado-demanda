@@ -14,6 +14,7 @@ import {
 } from '@domain/ports/automationEmail.ports';
 import { ManagementCtrlFiledDemand } from '@domain/entities/managementCtrlFiledDemand.entities';
 import { AppLogger } from '@infrastructure/logging/appLogger.service';
+import { extractYear, extractProcessCode } from '@application/utils/nameVariants.utils';
 
 const THREE_WEEKS_MS = 21 * 24 * 60 * 60 * 1000;
 const DEFAULT_STATE_TYPE_ID = 1;
@@ -105,21 +106,26 @@ export class EmailInboxAutomationService implements OnModuleInit, OnModuleDestro
           autm_to_email: email.to,
           autm_date_received: email.dateReceived,
           autm_subject: email.subject,
-          autm_departament: email.parsed.departament ?? '-',
-          autm_city: email.parsed.city ?? '-',
-          autm_locality: email.parsed.locality ?? '-',
-          autm_specialty: email.parsed.specialty ?? '-',
-          autm_process_class: email.parsed.process_class ?? '-',
-          autm_subject_demanding: email.parsed.subject_demanding ?? '-',
-          autm_artificial_person: email.parsed.artificial_person ?? '-',
-          autm_document_type_1: email.parsed.document_type_1 ?? '-',
+          autm_departament: (email.parsed.departament ?? '-').toUpperCase(),
+          autm_city: (email.parsed.city ?? '-').toUpperCase(),
+          autm_locality: (email.parsed.locality ?? '-').toUpperCase(),
+          autm_court_name: (email.parsed.court_name ?? '-').toUpperCase(),
+          autm_specialty: (email.parsed.specialty ?? '-').toUpperCase(),
+          autm_office_name: (email.parsed.office_name ?? '-').toUpperCase(),
+          autm_year: extractYear(email.dateReceived),
+          autm_process_class: (email.parsed.process_class ?? '-').toUpperCase(),
+          autm_process_code: extractProcessCode(email.parsed.process_class ?? '') || '-',
+          autm_resource_process: '-',
+          autm_subject_demanding: (email.parsed.subject_demanding ?? '-').toUpperCase(),
+          autm_artificial_person: (email.parsed.artificial_person ?? '-').toUpperCase(),
+          autm_document_type_1: (email.parsed.document_type_1 ?? '-').toUpperCase(),
           autm_document_number_1: email.parsed.document_number_1 ?? '-',
           autm_email_1: email.parsed.email_1 ?? '-',
           autm_address_1: email.parsed.address_1 ?? '-',
           autm_phone_number_1: email.parsed.phone_number_1 ?? '-',
-          autm_subject_defendant: email.parsed.subject_defendant ?? '-',
-          autm_natural_person: email.parsed.natural_person ?? '-',
-          autm_document_type_2: email.parsed.document_type_2 ?? '-',
+          autm_subject_defendant: (email.parsed.subject_defendant ?? '-').toUpperCase(),
+          autm_natural_person: (email.parsed.natural_person ?? '-').toUpperCase(),
+          autm_document_type_2: (email.parsed.document_type_2 ?? '-').toUpperCase(),
           autm_document_number_2: email.parsed.document_number_2 ?? '-',
           autm_email_2: email.parsed.email_2 ?? '-',
           autm_address_2: email.parsed.address_2 ?? '-',

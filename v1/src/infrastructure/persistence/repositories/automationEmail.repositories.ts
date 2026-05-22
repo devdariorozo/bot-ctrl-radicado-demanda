@@ -32,8 +32,13 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       autm_departament: input.autm_departament ?? null,
       autm_city: input.autm_city ?? null,
       autm_locality: input.autm_locality ?? null,
+      autm_court_name: input.autm_court_name ?? null,
       autm_specialty: input.autm_specialty ?? null,
+      autm_office_name: input.autm_office_name ?? null,
+      autm_year: input.autm_year ?? null,
       autm_process_class: input.autm_process_class ?? null,
+      autm_process_code: input.autm_process_code ?? null,
+      autm_resource_process: input.autm_resource_process ?? null,
       autm_subject_demanding: input.autm_subject_demanding ?? null,
       autm_artificial_person: input.autm_artificial_person ?? null,
       autm_document_type_1: input.autm_document_type_1 ?? null,
@@ -73,8 +78,13 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       .addSelect('m.autm_departament', 'autm_departament')
       .addSelect('m.autm_city', 'autm_city')
       .addSelect('m.autm_locality', 'autm_locality')
+      .addSelect('m.autm_court_name', 'autm_court_name')
       .addSelect('m.autm_specialty', 'autm_specialty')
+      .addSelect('m.autm_office_name', 'autm_office_name')
+      .addSelect('m.autm_year', 'autm_year')
       .addSelect('m.autm_process_class', 'autm_process_class')
+      .addSelect('m.autm_process_code', 'autm_process_code')
+      .addSelect('m.autm_resource_process', 'autm_resource_process')
       .addSelect('m.autm_subject_demanding', 'autm_subject_demanding')
       .addSelect('m.autm_artificial_person', 'autm_artificial_person')
       .addSelect('m.autm_document_type_1', 'autm_document_type_1')
@@ -122,11 +132,23 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
     if (filters.autm_locality) {
       qb.andWhere('m.autm_locality LIKE :autm_locality', { autm_locality: `%${filters.autm_locality}%` });
     }
+    if (filters.autm_court_name) {
+      qb.andWhere('m.autm_court_name LIKE :autm_court_name', { autm_court_name: `%${filters.autm_court_name}%` });
+    }
     if (filters.autm_specialty) {
       qb.andWhere('m.autm_specialty LIKE :autm_specialty', { autm_specialty: `%${filters.autm_specialty}%` });
     }
+    if (filters.autm_office_name) {
+      qb.andWhere('m.autm_office_name LIKE :autm_office_name', { autm_office_name: `%${filters.autm_office_name}%` });
+    }
+    if (filters.autm_year) {
+      qb.andWhere('m.autm_year = :autm_year', { autm_year: filters.autm_year });
+    }
     if (filters.autm_process_class) {
       qb.andWhere('m.autm_process_class LIKE :autm_process_class', { autm_process_class: `%${filters.autm_process_class}%` });
+    }
+    if (filters.autm_process_code) {
+      qb.andWhere('m.autm_process_code LIKE :autm_process_code', { autm_process_code: `%${filters.autm_process_code}%` });
     }
     if (filters.autm_subject_demanding) {
       qb.andWhere('m.autm_subject_demanding LIKE :autm_subject_demanding', { autm_subject_demanding: `%${filters.autm_subject_demanding}%` });
@@ -287,8 +309,13 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
         autm_departament: data.autm_departament ?? null,
         autm_city: data.autm_city ?? null,
         autm_locality: data.autm_locality ?? null,
+        autm_court_name: data.autm_court_name ?? null,
         autm_specialty: data.autm_specialty ?? null,
+        autm_office_name: data.autm_office_name ?? null,
+        autm_year: data.autm_year ?? null,
         autm_process_class: data.autm_process_class ?? null,
+        autm_process_code: data.autm_process_code ?? null,
+        autm_resource_process: data.autm_resource_process ?? null,
         autm_subject_demanding: data.autm_subject_demanding ?? null,
         autm_artificial_person: data.autm_artificial_person ?? null,
         autm_document_type_1: data.autm_document_type_1 ?? null,
@@ -311,6 +338,14 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
         autm_updated_at: data.autm_updated_at,
       },
     );
+  }
+
+  async findAllMessageIds(): Promise<Set<string>> {
+    const rows = await this.repo
+      .createQueryBuilder('m')
+      .select('m.autm_message_id', 'autm_message_id')
+      .getRawMany<{ autm_message_id: string }>();
+    return new Set(rows.map((r) => r.autm_message_id).filter(Boolean));
   }
 
   async findOpciones(): Promise<{ autm_automation_status: string }[]> {
@@ -337,6 +372,18 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
     await this.repo.delete({ autm_id: id });
   }
 
+  async deleteOlderThan(days: number): Promise<number> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const result = await this.repo
+      .createQueryBuilder()
+      .delete()
+      .from(AutomationEmailEntity)
+      .where('autm_created_at < :cutoff', { cutoff })
+      .execute();
+    return result.affected ?? 0;
+  }
+
   private rowToDomain(row: Record<string, unknown>): AutomationEmail {
     return {
       autm_id: row.autm_id as number,
@@ -348,8 +395,13 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       autm_departament: (row.autm_departament as string) ?? null,
       autm_city: (row.autm_city as string) ?? null,
       autm_locality: (row.autm_locality as string) ?? null,
+      autm_court_name: (row.autm_court_name as string) ?? null,
       autm_specialty: (row.autm_specialty as string) ?? null,
+      autm_office_name: (row.autm_office_name as string) ?? null,
+      autm_year: (row.autm_year as string) ?? null,
       autm_process_class: (row.autm_process_class as string) ?? null,
+      autm_process_code: (row.autm_process_code as string) ?? null,
+      autm_resource_process: (row.autm_resource_process as string) ?? null,
       autm_subject_demanding: (row.autm_subject_demanding as string) ?? null,
       autm_artificial_person: (row.autm_artificial_person as string) ?? null,
       autm_document_type_1: (row.autm_document_type_1 as string) ?? null,
@@ -386,8 +438,13 @@ export class AutomationEmailRepositoryImpl implements AutomationEmailRepository 
       autm_departament: entity.autm_departament ?? null,
       autm_city: entity.autm_city ?? null,
       autm_locality: entity.autm_locality ?? null,
+      autm_court_name: entity.autm_court_name ?? null,
       autm_specialty: entity.autm_specialty ?? null,
+      autm_office_name: entity.autm_office_name ?? null,
+      autm_year: entity.autm_year ?? null,
       autm_process_class: entity.autm_process_class ?? null,
+      autm_process_code: entity.autm_process_code ?? null,
+      autm_resource_process: entity.autm_resource_process ?? null,
       autm_subject_demanding: entity.autm_subject_demanding ?? null,
       autm_artificial_person: entity.autm_artificial_person ?? null,
       autm_document_type_1: entity.autm_document_type_1 ?? null,

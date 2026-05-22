@@ -37,6 +37,7 @@ const createExampleSchema = {
   mcfd_lawsuit_id: 1001,
   mcfd_lawsuits_filings_id: 2001,
   mcfd_client_id: 3001,
+  mcfd_data_courts: 10,
   mcfd_filing_date: '2026-01-15',
   mcfd_number_filed: '11001400300120260001200',
   mcfd_management_status: 'Abierto',
@@ -51,6 +52,7 @@ const updateExampleSchema = {
   mcfd_lawsuit_id: 1001,
   mcfd_lawsuits_filings_id: 2001,
   mcfd_client_id: 3001,
+  mcfd_data_courts: 10,
   mcfd_automation_email_id: 5001,
   mcfd_last_execution: '2026-04-28T10:30:00.000Z',
   mcfd_retries: 1,
@@ -85,10 +87,10 @@ export class ManagementCtrlFiledDemandController {
       mcfd_lawsuit_id: dto.mcfd_lawsuit_id,
       mcfd_lawsuits_filings_id: dto.mcfd_lawsuits_filings_id,
       mcfd_client_id: dto.mcfd_client_id,
+      mcfd_data_courts: dto.mcfd_data_courts ?? null,
       mcfd_filing_date: dto.mcfd_filing_date ? new Date(dto.mcfd_filing_date) : null,
       mcfd_number_filed: dto.mcfd_number_filed ?? null,
       mcfd_management_status: dto.mcfd_management_status,
-      // Normalizamos el texto de detalle al crear, según requerimiento del endpoint.
       mcfd_detail: 'Demanda pendiente por gestionar radicado',
       mcfd_state_type_id: dto.mcfd_state_type_id,
       mcfd_responsible: dto.mcfd_responsible,
@@ -193,6 +195,7 @@ export class ManagementCtrlFiledDemandController {
       mcfd_lawsuit_id: body.mcfd_lawsuit_id,
       mcfd_lawsuits_filings_id: body.mcfd_lawsuits_filings_id,
       mcfd_client_id: body.mcfd_client_id,
+      mcfd_data_courts: body.mcfd_data_courts ?? null,
       mcfd_automation_email_id: body.mcfd_automation_email_id ?? null,
       mcfd_last_execution: body.mcfd_last_execution ? new Date(body.mcfd_last_execution) : null,
       mcfd_retries: body.mcfd_retries ?? 0,
@@ -233,6 +236,7 @@ export class ManagementCtrlFiledDemandController {
     o.mcfd_lawsuit_id = item.mcfd_lawsuit_id;
     o.mcfd_lawsuits_filings_id = item.mcfd_lawsuits_filings_id;
     o.mcfd_client_id = item.mcfd_client_id;
+    o.mcfd_data_courts = item.mcfd_data_courts;
     o.mcfd_automation_email_id = item.mcfd_automation_email_id;
     o.mcfd_last_execution = item.mcfd_last_execution;
     o.mcfd_retries = item.mcfd_retries;

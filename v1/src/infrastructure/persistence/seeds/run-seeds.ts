@@ -6,10 +6,6 @@ import { tblStateTypeSeeds } from './1771978729002_stateType.seeds';
 import { tblPortfolioTypeSeeds } from './1771978729003_portfolioType.seeds';
 import { dataBasesSeeds } from './1771978729004_dataBases.seeds';
 import { tblAttentionScheduleSeeds } from './1771978729005_attentionSchedule.seeds';
-import { portfolioCityConfigSeeds } from './1771978729006_portfolioCityConfig.seeds';
-import { amountTypeSeeds } from './1771978729007_amountType.seeds';
-import { companyTypeSeeds } from './1771978729008_companyType.seeds';
-import { lawyerDataSeeds } from './1771978729013_lawyerData.seeds';
 import { holidaySeeds } from './1771978729015_holiday.seeds';
 import { botControlSeeds } from './1771978729009_botControl.seeds';
 import { QueryRunner } from 'typeorm';
@@ -31,8 +27,6 @@ async function runSeeds() {
 
     await dataSource.runMigrations();
 
-    // En algunos entornos la tabla puede no existir aunque la migración figure ejecutada.
-    // Garantizamos que exista antes de truncar/sembrar.
     const ensureQr = dataSource.createQueryRunner();
     await ensureQr.connect();
     try {
@@ -54,13 +48,9 @@ async function runSeeds() {
       await truncateIfExists(qr, 'tbl_environment_type');
       await truncateIfExists(qr, 'tbl_state_type');
       await truncateIfExists(qr, 'tbl_portfolio_type');
-      await truncateIfExists(qr, 'company_type');
-      await truncateIfExists(qr, 'lawyer_data');
       await truncateIfExists(qr, 'tbl_holiday');
-      await truncateIfExists(qr, 'amount_type');
       await truncateIfExists(qr, 'tbl_data_bases');
       await truncateIfExists(qr, 'tbl_attention_schedule');
-      await truncateIfExists(qr, 'portfolio_city_config');
       await truncateIfExists(qr, 'bot_control');
       await qr.query('SET FOREIGN_KEY_CHECKS = 1');
     } finally {
@@ -72,10 +62,6 @@ async function runSeeds() {
     await tblPortfolioTypeSeeds(dataSource);
     await dataBasesSeeds(dataSource);
     await tblAttentionScheduleSeeds(dataSource);
-    await portfolioCityConfigSeeds(dataSource);
-    await amountTypeSeeds(dataSource);
-    await companyTypeSeeds(dataSource);
-    await lawyerDataSeeds(dataSource);
     await holidaySeeds(dataSource);
     await botControlSeeds(dataSource);
   } catch (error) {

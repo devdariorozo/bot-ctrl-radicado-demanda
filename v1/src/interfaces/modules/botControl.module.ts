@@ -8,7 +8,7 @@ import { DataBasesModule } from './dataBases.module';
 import { TblAttentionScheduleModule } from './attentionSchedule.module';
 import { HolidayModule } from './holiday.module';
 import { CartPropiasDemandsModule } from './cartPropiasDemandsSync.module';
-import { CartPropiasEmailAutomationModule } from './cartPropiasEmailAutomation.module';
+import { CartPropiasManagementCycleModule } from './cartPropiasManagementCycle.module';
 import { BOT_CONTROL_REPOSITORY } from '@domain/ports/botControl.ports';
 import { BotControlRepositoryImpl } from '@infrastructure/persistence/repositories/botControl.repositories';
 
@@ -19,7 +19,7 @@ import { BotControlRepositoryImpl } from '@infrastructure/persistence/repositori
     TblAttentionScheduleModule,
     HolidayModule,
     forwardRef(() => CartPropiasDemandsModule),
-    forwardRef(() => CartPropiasEmailAutomationModule),
+    forwardRef(() => CartPropiasManagementCycleModule),
   ],
   providers: [
     BotControlService,

@@ -25,18 +25,16 @@ export class ManagementCtrlFiledDemandService {
   ) {}
 
   async create(input: CreateManagementCtrlFiledDemandInput): Promise<ManagementCtrlFiledDemand> {
-    const active = await this.repository.findActiveForDemand(
-      input.mcfd_portfolio_type_id,
-      input.mcfd_lawsuit_id,
-      input.mcfd_lawsuits_filings_id,
-    );
+    const active = await this.repository.findActiveForDemand({
+      portfolio_type_id: input.mcfd_portfolio_type_id,
+      name_data_base: input.mcfd_name_data_base,
+      lawsuit_id: input.mcfd_lawsuit_id,
+      lawsuits_filings_id: input.mcfd_lawsuits_filings_id,
+    });
 
     if (active) {
       throw new ConflictException({
-        message: 'Ya existe un registro activo para esta demanda',
-        mcfd_portfolio_type_id: input.mcfd_portfolio_type_id,
-        mcfd_lawsuit_id: input.mcfd_lawsuit_id,
-        mcfd_lawsuits_filings_id: input.mcfd_lawsuits_filings_id,
+        message: 'El registro ya existe',
       });
     }
 

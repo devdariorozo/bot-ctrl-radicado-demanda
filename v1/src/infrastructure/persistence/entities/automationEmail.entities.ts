@@ -31,11 +31,26 @@ export class AutomationEmailEntity {
   @Column({ type: 'varchar', length: 100, nullable: true, default: null })
   autm_locality: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  autm_court_name: string | null;
+
   @Column({ type: 'varchar', length: 100, nullable: true, default: null })
   autm_specialty: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true, default: null })
+  autm_office_name: string | null;
+
+  @Column({ type: 'varchar', length: 10, nullable: true, default: null })
+  autm_year: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true, default: null })
   autm_process_class: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  autm_process_code: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  autm_resource_process: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true, default: null })
   autm_subject_demanding: string | null;

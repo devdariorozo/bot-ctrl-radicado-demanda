@@ -46,6 +46,13 @@ export class CreateManagementCtrlFiledDemandDto {
   @Min(1)
   mcfd_client_id: number;
 
+  @ApiPropertyOptional({ example: 10, description: 'ID del juzgado (tabla data_courts)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  mcfd_data_courts?: number;
+
   @ApiPropertyOptional({ example: '2026-01-15', description: 'Fecha de radicado (YYYY-MM-DD)' })
   @IsOptional()
   @IsString()
@@ -112,6 +119,13 @@ export class UpdateManagementCtrlFiledDemandDto {
   @IsInt()
   @Min(1)
   mcfd_client_id: number;
+
+  @ApiPropertyOptional({ example: 10, description: 'ID del juzgado (tabla data_courts)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  mcfd_data_courts?: number;
 
   @ApiPropertyOptional({ example: 5001, description: 'ID del correo de automatización (tabla automation_email)' })
   @IsOptional()

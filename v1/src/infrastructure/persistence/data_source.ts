@@ -12,15 +12,6 @@ import { DataBasesEntity } from './entities/dataBases.entities';
 import { DataBasesMigration1771978729004 } from './migrations/1771978729004_dataBases.migrations';
 import { TblAttentionScheduleEntity } from './entities/attentionSchedule.entities';
 import { TblAttentionScheduleMigration1771978729005 } from './migrations/1771978729005_attentionSchedule.migrations';
-import { PortfolioCityConfigEntity } from './entities/portfolioCityConfig.entities';
-import { PortfolioCityConfigMigration1771978729006 } from './migrations/1771978729006_portfolioCityConfig.migrations';
-import { AmountTypeEntity } from './entities/amountType.entities';
-import { AmountTypeMigration1771978729007 } from './migrations/1771978729007_amountType.migrations';
-import { AlterAmountTypeJson1771978729010 } from './migrations/1771978729010_alterAmountTypeJson.migrations';
-import { CompanyTypeEntity } from './entities/companyType.entities';
-import { CompanyTypeMigration1771978729008 } from './migrations/1771978729008_companyType.migrations';
-import { LawyerDataEntity } from './entities/lawyerData.entities';
-import { LawyerDataMigration1771978729013 } from './migrations/1771978729013_lawyerData.migrations';
 import { HolidayEntity } from './entities/holiday.entities';
 import { HolidayMigration1771978729015 } from './migrations/1771978729015_holiday.migrations';
 import { BotControlEntity } from './entities/botControl.entities';
@@ -30,13 +21,17 @@ import { ManagementCtrlFiledDemandEntity } from './entities/managementCtrlFiledD
 import { TblAutomationEmailMigration1771978729016 } from './migrations/1771978729016_automationEmail.migrations';
 import { AutomationEmailEntity } from './entities/automationEmail.entities';
 import { TblManagementCtrlFiledDemandMigration1771978729017 } from './migrations/1771978729017_managementCtrlFiledDemand.migrations';
+import { AlterAutomationEmailDateReceivedToVarchar1771978729020 } from './migrations/1771978729020_alter_automationEmail_date_received_to_varchar.migrations';
+import { AlterAttentionScheduleTimeToVarchar1771978729021 } from './migrations/1771978729021_alterAttentionScheduleTimeToVarchar.migrations';
 
-const dbPort = parseInt(process.env.DB_CONFIG_PORT ?? '3306', 10);
+const schema = ((process.env.SCHEMA ?? '').trim().toLowerCase()) as 'mysql' | 'postgres';
+const defaultPort = schema === 'postgres' ? '5432' : '3306';
+const dbPort = parseInt(process.env.DB_CONFIG_PORT ?? defaultPort, 10);
 
 export const dataSource = new DataSource({
-  type: 'mysql',
+  type: schema,
   host: process.env.DB_CONFIG_HOST ?? 'localhost',
-  port: Number.isNaN(dbPort) ? 3306 : dbPort,
+  port: Number.isNaN(dbPort) ? (schema === 'postgres' ? 5432 : 3306) : dbPort,
   username: process.env.DB_CONFIG_USER ?? 'root',
   password: process.env.DB_CONFIG_PASSWORD ?? '',
   database: process.env.DB_CONFIG_DATABASE ?? 'bot_demandas_online',
@@ -46,10 +41,6 @@ export const dataSource = new DataSource({
     TblPortfolioTypeEntity,
     DataBasesEntity,
     TblAttentionScheduleEntity,
-    PortfolioCityConfigEntity,
-    AmountTypeEntity,
-    CompanyTypeEntity,
-    LawyerDataEntity,
     HolidayEntity,
     BotControlEntity,
     ManagementCtrlFiledDemandEntity,
@@ -61,16 +52,13 @@ export const dataSource = new DataSource({
     TblPortfolioTypeMigration1771978729003,
     DataBasesMigration1771978729004,
     TblAttentionScheduleMigration1771978729005,
-    PortfolioCityConfigMigration1771978729006,
-    AmountTypeMigration1771978729007,
-    AlterAmountTypeJson1771978729010,
-    CompanyTypeMigration1771978729008,
-    LawyerDataMigration1771978729013,
     HolidayMigration1771978729015,
     BotControlMigration1771978729009,
     TblBotControlMigration1771978729018,
     TblAutomationEmailMigration1771978729016,
     TblManagementCtrlFiledDemandMigration1771978729017,
+    AlterAutomationEmailDateReceivedToVarchar1771978729020,
+    AlterAttentionScheduleTimeToVarchar1771978729021,
   ],
   synchronize: false,
   logging: process.env.DB_CONFIG_LOGGING === 'true',

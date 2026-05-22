@@ -51,22 +51,47 @@ export class CreateAutomationEmailDto {
   @IsString()
   autm_locality?: string;
 
-  @ApiPropertyOptional({ example: 'Medicina General', description: 'Especialidad demandada' })
+  @ApiPropertyOptional({ example: 'JUZGADO CUARTO CIVIL MUNICIPAL', description: 'Nombre completo del juzgado' })
+  @IsOptional()
+  @IsString()
+  autm_court_name?: string;
+
+  @ApiPropertyOptional({ example: 'CIVIL MUNICIPAL', description: 'Especialidad del juzgado' })
   @IsOptional()
   @IsString()
   autm_specialty?: string;
 
-  @ApiPropertyOptional({ example: 'Ordinario', description: 'Clase de proceso demandado' })
+  @ApiPropertyOptional({ example: '01-12', description: 'Número de despacho (del acta de reparto)' })
+  @IsOptional()
+  @IsString()
+  autm_office_name?: string;
+
+  @ApiPropertyOptional({ example: '2026', description: 'Año del proceso' })
+  @IsOptional()
+  @IsString()
+  autm_year?: string;
+
+  @ApiPropertyOptional({ example: 'EJECUTIVO SINGULAR', description: 'Clase de proceso' })
   @IsOptional()
   @IsString()
   autm_process_class?: string;
 
-  @ApiPropertyOptional({ example: 'Persona Natural', description: 'Tipo de sujeto demandante' })
+  @ApiPropertyOptional({ example: '04', description: 'Código de proceso' })
+  @IsOptional()
+  @IsString()
+  autm_process_code?: string;
+
+  @ApiPropertyOptional({ example: '-', description: 'Recurso del proceso (por defecto -)' })
+  @IsOptional()
+  @IsString()
+  autm_resource_process?: string;
+
+  @ApiPropertyOptional({ example: 'DEMANDANTE O SOLICITANTE', description: 'Tipo de sujeto demandante' })
   @IsOptional()
   @IsString()
   autm_subject_demanding?: string;
 
-  @ApiPropertyOptional({ example: 'EPS Salud Total S.A.', description: 'Persona jurídica (demandante)' })
+  @ApiPropertyOptional({ example: 'CONTACTO SOLUTIONS SAS', description: 'Persona jurídica demandante (siempre en mayúsculas)' })
   @IsOptional()
   @IsString()
   autm_artificial_person?: string;
@@ -96,7 +121,7 @@ export class CreateAutomationEmailDto {
   @IsString()
   autm_phone_number_1?: string;
 
-  @ApiPropertyOptional({ example: 'Persona Natural', description: 'Tipo de sujeto demandado' })
+  @ApiPropertyOptional({ example: 'DEMANDADO', description: 'Tipo de sujeto demandado' })
   @IsOptional()
   @IsString()
   autm_subject_defendant?: string;
@@ -206,22 +231,47 @@ export class UpdateAutomationEmailDto {
   @IsString()
   autm_locality?: string;
 
-  @ApiPropertyOptional({ example: 'Medicina General', description: 'Especialidad demandada' })
+  @ApiPropertyOptional({ example: 'JUZGADO CUARTO CIVIL MUNICIPAL', description: 'Nombre completo del juzgado' })
+  @IsOptional()
+  @IsString()
+  autm_court_name?: string;
+
+  @ApiPropertyOptional({ example: 'CIVIL MUNICIPAL', description: 'Especialidad del juzgado' })
   @IsOptional()
   @IsString()
   autm_specialty?: string;
 
-  @ApiPropertyOptional({ example: 'Ordinario', description: 'Clase de proceso demandado' })
+  @ApiPropertyOptional({ example: '01-12', description: 'Número de despacho (del acta de reparto)' })
+  @IsOptional()
+  @IsString()
+  autm_office_name?: string;
+
+  @ApiPropertyOptional({ example: '2026', description: 'Año del proceso' })
+  @IsOptional()
+  @IsString()
+  autm_year?: string;
+
+  @ApiPropertyOptional({ example: 'EJECUTIVO SINGULAR', description: 'Clase de proceso' })
   @IsOptional()
   @IsString()
   autm_process_class?: string;
 
-  @ApiPropertyOptional({ example: 'Persona Natural', description: 'Tipo de sujeto demandante' })
+  @ApiPropertyOptional({ example: '04', description: 'Código de proceso' })
+  @IsOptional()
+  @IsString()
+  autm_process_code?: string;
+
+  @ApiPropertyOptional({ example: '-', description: 'Recurso del proceso (por defecto -)' })
+  @IsOptional()
+  @IsString()
+  autm_resource_process?: string;
+
+  @ApiPropertyOptional({ example: 'DEMANDANTE O SOLICITANTE', description: 'Tipo de sujeto demandante' })
   @IsOptional()
   @IsString()
   autm_subject_demanding?: string;
 
-  @ApiPropertyOptional({ example: 'EPS Salud Total S.A.', description: 'Persona jurídica (demandante)' })
+  @ApiPropertyOptional({ example: 'CONTACTO SOLUTIONS SAS', description: 'Persona jurídica demandante (siempre en mayúsculas)' })
   @IsOptional()
   @IsString()
   autm_artificial_person?: string;
@@ -251,7 +301,7 @@ export class UpdateAutomationEmailDto {
   @IsString()
   autm_phone_number_1?: string;
 
-  @ApiPropertyOptional({ example: 'Persona Natural', description: 'Tipo de sujeto demandado' })
+  @ApiPropertyOptional({ example: 'DEMANDADO', description: 'Tipo de sujeto demandado' })
   @IsOptional()
   @IsString()
   autm_subject_defendant?: string;

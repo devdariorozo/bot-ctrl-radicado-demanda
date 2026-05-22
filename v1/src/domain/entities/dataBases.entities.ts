@@ -8,7 +8,7 @@ export interface DataBaseServiceConfig {
 
 /** Servicios disponibles para una base de datos. */
 export interface DataBaseServices {
-  generate_pdf_demand_service: DataBaseServiceConfig;
+  generate_pdf_demand_service?: DataBaseServiceConfig;
 }
 
 /** Mapa de bases de datos con sus configuraciones de servicios. */

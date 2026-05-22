@@ -89,7 +89,7 @@ export class ImapInboxAdapter implements EmailInboxPort {
             ? parsed.to.map((a) => a.text).join('; ')
             : (parsed.to?.text?.trim() ?? '');
 
-          let parsedFields = parseEmailFields(emailContent, from);
+          let parsedFields = parseEmailFields(emailContent, from, to);
           for (const pdf of pdfs) {
             parsedFields = mergeWithPdfFields(parsedFields, parsePdfActaReparto(pdf.text, pdf.filename));
           }

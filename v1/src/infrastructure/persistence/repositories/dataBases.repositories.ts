@@ -85,7 +85,7 @@ export class TblDataBasesRepositoryImpl implements DataBasesRepository {
       environment_type_name: (raw.environment_type_name as string) ?? '',
       db_portfolio_type_id: raw.db_portfolio_type_id as number,
       portfolio_type_name: (raw.portfolio_type_name as string) ?? '',
-      db_bases: raw.db_bases as DataBases['db_bases'],
+      db_bases: parseDbBases(raw.db_bases),
       db_detail: raw.db_detail as string,
       db_state_type_id: raw.db_state_type_id as number,
       state_type_name: (raw.state_type_name as string) ?? '',
@@ -122,7 +122,7 @@ export class TblDataBasesRepositoryImpl implements DataBasesRepository {
       environment_type_name: (row.environment_type_name as string) ?? '',
       db_portfolio_type_id: row.db_portfolio_type_id as number,
       portfolio_type_name: (row.portfolio_type_name as string) ?? '',
-      db_bases: row.db_bases as DataBases['db_bases'],
+      db_bases: parseDbBases(row.db_bases),
       db_detail: row.db_detail as string,
       db_state_type_id: row.db_state_type_id as number,
       state_type_name: (row.state_type_name as string) ?? '',
@@ -165,7 +165,7 @@ export class TblDataBasesRepositoryImpl implements DataBasesRepository {
       environment_type_name: (raw.environment_type_name as string) ?? '',
       db_portfolio_type_id: raw.db_portfolio_type_id as number,
       portfolio_type_name: (raw.portfolio_type_name as string) ?? '',
-      db_bases: raw.db_bases as DataBases['db_bases'],
+      db_bases: parseDbBases(raw.db_bases),
       db_detail: raw.db_detail as string,
       db_state_type_id: raw.db_state_type_id as number,
       state_type_name: (raw.state_type_name as string) ?? '',
@@ -221,4 +221,17 @@ export class TblDataBasesRepositoryImpl implements DataBasesRepository {
     const rows = await this.repo.manager.query(sql, params);
     return (rows ?? []) as Record<string, unknown>[];
   }
+}
+
+// getRawOne/getRawMany no aplican transformers TypeORM. Si db_bases viene como
+// string (columna LONGTEXT), se parsea aquí; si ya es objeto (columna JSON), se devuelve tal cual.
+function parseDbBases(value: unknown): DataBases['db_bases'] {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as DataBases['db_bases'];
+    } catch {
+      return {} as DataBases['db_bases'];
+    }
+  }
+  return (value ?? {}) as DataBases['db_bases'];
 }

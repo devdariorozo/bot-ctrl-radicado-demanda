@@ -23,6 +23,9 @@ export class ManagementCtrlFiledDemandEntity {
   mcfd_client_id: number;
 
   @Column({ type: 'int', nullable: true, default: null })
+  mcfd_data_courts: number | null;
+
+  @Column({ type: 'int', nullable: true, default: null })
   mcfd_automation_email_id: number | null;
 
   @Column({ type: 'datetime', nullable: true, default: null })

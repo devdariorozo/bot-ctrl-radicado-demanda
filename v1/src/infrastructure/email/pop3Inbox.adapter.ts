@@ -49,6 +49,22 @@ class Pop3Session {
     });
   }
 
+  async uidl(): Promise<Map<number, string>> {
+    this.send('UIDL');
+    const resp = await this.readLine();
+    if (!resp.startsWith('+OK')) return new Map();
+    const raw = await this.readMultiLine();
+    const map = new Map<number, string>();
+    for (const line of raw.split('\r\n')) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const num = parseInt(parts[0], 10);
+        if (!isNaN(num)) map.set(num, parts[1]);
+      }
+    }
+    return map;
+  }
+
   async readMultiLine(): Promise<string> {
     const lines: string[] = [];
     while (true) {
@@ -75,11 +91,15 @@ export class Pop3InboxAdapter implements EmailInboxPort {
     subjectKeywords: string[],
     bodyMustContain: string,
     pdfAttachmentPatterns: string[],
+    knownIds: Set<string> = new Set(),
+    batchSize?: number,
   ): Promise<FetchedEmail[]> {
     const host = this.configService.get<string>('MAIL_HOST', '');
     const port = this.configService.get<number>('MAIL_PORT', 995);
     const user = this.configService.get<string>('MAIL_USER', '');
     const pass = this.configService.get<string>('MAIL_PASSWORD', '');
+    const timeoutMs = this.getTimeoutMs();
+    const resolvedBatchSize = batchSize ?? this.getBatchSize();
 
     const connectPromise = new Promise<FetchedEmail[]>((resolve, reject) => {
       let settled = false;
@@ -96,21 +116,34 @@ export class Pop3InboxAdapter implements EmailInboxPort {
       socket.on('error', (err) => settle(() => reject(err)));
 
       socket.on('secureConnect', () => {
-        void this.runSession(socket, user, pass, subjectKeywords, bodyMustContain, pdfAttachmentPatterns)
+        void this.runSession(socket, user, pass, subjectKeywords, bodyMustContain, pdfAttachmentPatterns, knownIds, resolvedBatchSize)
           .then((r) => settle(() => resolve(r)))
           .catch((e: Error) => settle(() => reject(e)))
           .finally(() => { try { socket.destroy(); } catch { /* ignore */ } });
       });
     });
 
+    const timeoutMinutes = Math.round(timeoutMs / 60_000);
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(
-        () => reject(new Error('POP3 timeout: sin respuesta del servidor en 8 minutos')),
-        480_000,
+        () => reject(new Error(`POP3 timeout: sin respuesta del servidor en ${timeoutMinutes} minutos`)),
+        timeoutMs,
       ),
     );
 
     return Promise.race([connectPromise, timeoutPromise]);
+  }
+
+  private getTimeoutMs(): number {
+    const v = this.configService.get<number>('MAIL_POP3_TIMEOUT_MS', 480_000);
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 480_000;
+  }
+
+  private getBatchSize(): number {
+    const v = this.configService.get<number>('MAIL_POP3_BATCH_SIZE', 100);
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 100;
   }
 
   private async runSession(
@@ -120,6 +153,8 @@ export class Pop3InboxAdapter implements EmailInboxPort {
     subjectKeywords: string[],
     bodyMustContain: string,
     pdfAttachmentPatterns: string[],
+    knownIds: Set<string>,
+    batchSize: number,
   ): Promise<FetchedEmail[]> {
     const session = new Pop3Session(socket);
     const results: FetchedEmail[] = [];
@@ -142,76 +177,129 @@ export class Pop3InboxAdapter implements EmailInboxPort {
     const statMatch = statResp.match(/\+OK (\d+)/);
     const msgCount = statMatch ? parseInt(statMatch[1], 10) : 0;
 
-    for (let i = 1; i <= msgCount; i++) {
-      // Descarga solo headers primero (TOP n 0) para filtrar por asunto sin bajar el cuerpo
-      session.send(`TOP ${i} 0`);
-      const topResp = await session.readLine();
-      if (!topResp.startsWith('+OK')) continue;
+    // UIDL → lista estable de UIDs del servidor ordenada de más antiguo a más reciente
+    const uidlMap = await session.uidl();
+    const msgNumbers: number[] =
+      uidlMap.size > 0
+        ? [...uidlMap.keys()].sort((a, b) => a - b)
+        : Array.from({ length: msgCount }, (_, i) => i + 1);
 
-      const headerRaw = await session.readMultiLine();
+    // Partición en lotes de batchSize para procesamiento incremental con log por lote
+    const totalLotes = Math.max(1, Math.ceil(msgNumbers.length / batchSize));
 
-      const subjectLine = headerRaw.match(/^Subject:\s*(.+)$/im);
-      const subject = subjectLine ? decodeEncodedWord(subjectLine[1].trim()) : '';
+    this.appLogger.structured({
+      level: 'log',
+      context: 'Pop3InboxAdapter',
+      type: 'EMAIL_SYNC',
+      status: 'OK',
+      message: `Bandeja: ${msgNumbers.length} mensaje(s) en servidor. Procesando en ${totalLotes} lote(s) de ${batchSize}.`,
+      meta: { totalMensajes: msgNumbers.length, totalLotes, batchSize },
+    });
 
-      // Descartar NDRs / rebotes antes de comparar keywords
-      const fromLine = headerRaw.match(/^From:\s*(.+)$/im)?.[1]?.trim() ?? '';
-      if (
-        /^(undelivered|undeliverable)/i.test(subject) ||
-        /\b(postmaster|mailer-daemon|mail.?delivery.?system)\b/i.test(fromLine)
-      ) continue;
+    for (let loteIdx = 0; loteIdx < totalLotes; loteIdx++) {
+      const lote = msgNumbers.slice(loteIdx * batchSize, (loteIdx + 1) * batchSize);
+      let loteNuevos = 0;
+      let loteOmitidos = 0;
 
-      // La frase completa de la keyword debe aparecer en el asunto en el mismo orden (subcadena exacta normalizada)
-      const subjectNorm = normalizeText(subject);
-      const matchesKeyword = subjectKeywords.some((kw) =>
-        subjectNorm.includes(normalizeText(kw)),
-      );
-      if (!matchesKeyword) continue;
+      for (const i of lote) {
+        // Descarga solo headers (TOP n 0) para leer Message-ID y asunto sin bajar el cuerpo
+        session.send(`TOP ${i} 0`);
+        const topResp = await session.readLine();
+        if (!topResp.startsWith('+OK')) continue;
 
-      // Solo descarga el mensaje completo si el asunto coincide
-      session.send(`RETR ${i}`);
-      const retrResp = await session.readLine();
-      if (!retrResp.startsWith('+OK')) continue;
+        const headerRaw = await session.readMultiLine();
 
-      const rawMsg = await session.readMultiLine();
+        // Extraer Message-ID del header para verificar si ya está en BD
+        const msgIdLine = headerRaw.match(/^Message-ID:\s*(.+)$/im);
+        const msgIdHeader = msgIdLine
+          ? msgIdLine[1].trim().replace(/^<|>$/g, '').trim()
+          : '';
 
-      try {
-        const parsed: ParsedMail = await simpleParser(Buffer.from(rawMsg));
-
-        const bodyText = parsed.text ?? '';
-        const bodyHtml = typeof parsed.html === 'string' ? parsed.html : '';
-        const emailContent = bodyText || this.stripHtml(bodyHtml);
-
-        if (bodyMustContain && !emailContent.toLowerCase().includes(bodyMustContain.toLowerCase())) {
+        // Si ya existe en BD, omitir sin descargar el cuerpo
+        if (msgIdHeader && knownIds.has(msgIdHeader)) {
+          loteOmitidos++;
           continue;
         }
 
-        const pdfs = await extractMatchingPdfs(parsed.attachments ?? [], pdfAttachmentPatterns);
+        const subjectLine = headerRaw.match(/^Subject:\s*(.+)$/im);
+        const subject = subjectLine ? decodeEncodedWord(subjectLine[1].trim()) : '';
 
-        const from = parsed.from?.text?.trim() ?? '';
-        const to = Array.isArray(parsed.to)
-          ? parsed.to.map((a) => a.text).join('; ')
-          : (parsed.to?.text?.trim() ?? '');
-        const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
-        const messageId = parsed.messageId ?? '';
+        // Descartar NDRs / rebotes antes de comparar keywords
+        const fromLine = headerRaw.match(/^From:\s*(.+)$/im)?.[1]?.trim() ?? '';
+        if (
+          /^(undelivered|undeliverable)/i.test(subject) ||
+          /\b(postmaster|mailer-daemon|mail.?delivery.?system)\b/i.test(fromLine)
+        ) continue;
 
-        let parsedFields = parseEmailFields(emailContent, from);
-        for (const pdf of pdfs) {
-          parsedFields = mergeWithPdfFields(parsedFields, parsePdfActaReparto(pdf.text, pdf.filename));
+        // La frase completa de la keyword debe aparecer en el asunto en el mismo orden (subcadena exacta normalizada)
+        const subjectNorm = normalizeText(subject);
+        const matchesKeyword = subjectKeywords.some((kw) =>
+          subjectNorm.includes(normalizeText(kw)),
+        );
+        if (!matchesKeyword) continue;
+
+        // Solo descarga el mensaje completo si el asunto coincide y no estaba en BD
+        session.send(`RETR ${i}`);
+        const retrResp = await session.readLine();
+        if (!retrResp.startsWith('+OK')) continue;
+
+        const rawMsg = await session.readMultiLine();
+
+        try {
+          const parsed: ParsedMail = await simpleParser(Buffer.from(rawMsg));
+
+          const bodyText = parsed.text ?? '';
+          const bodyHtml = typeof parsed.html === 'string' ? parsed.html : '';
+          const emailContent = bodyText || this.stripHtml(bodyHtml);
+
+          if (bodyMustContain && !emailContent.toLowerCase().includes(bodyMustContain.toLowerCase())) {
+            continue;
+          }
+
+          const pdfs = await extractMatchingPdfs(parsed.attachments ?? [], pdfAttachmentPatterns);
+
+          const from = parsed.from?.text?.trim() ?? '';
+          const to = Array.isArray(parsed.to)
+            ? parsed.to.map((a) => a.text).join('; ')
+            : (parsed.to?.text?.trim() ?? '');
+          const dateReceived = parsed.date ? this.formatDateReceived(parsed.date) : '';
+          const messageId = parsed.messageId ?? '';
+
+          let parsedFields = parseEmailFields(emailContent, from, to);
+          for (const pdf of pdfs) {
+            parsedFields = mergeWithPdfFields(parsedFields, parsePdfActaReparto(pdf.text, pdf.filename));
+          }
+
+          results.push({
+            uid: String(i),
+            messageId,
+            from,
+            to,
+            subject: parsed.subject ?? subject,
+            dateReceived,
+            parsed: parsedFields,
+          });
+          loteNuevos++;
+        } catch {
+          // correo malformado, se omite
         }
+      } // fin for (const i of lote)
 
-        results.push({
-          uid: String(i),
-          messageId,
-          from,
-          to,
-          subject: parsed.subject ?? subject,
-          dateReceived,
-          parsed: parsedFields,
-        });
-      } catch {
-        // correo malformado, se omite
-      }
-    }
+      this.appLogger.structured({
+        level: 'log',
+        context: 'Pop3InboxAdapter',
+        type: 'EMAIL_SYNC',
+        status: 'OK',
+        message: `Lote ${loteIdx + 1}/${totalLotes} completado.`,
+        meta: {
+          lote: loteIdx + 1,
+          totalLotes,
+          mensajesEnLote: lote.length,
+          nuevos: loteNuevos,
+          omitidos: loteOmitidos,
+        },
+      });
+    } // fin for loteIdx
 
     session.send('QUIT');
     await session.readLine();

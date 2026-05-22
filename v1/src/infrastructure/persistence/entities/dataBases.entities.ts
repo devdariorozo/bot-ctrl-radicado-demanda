@@ -13,8 +13,8 @@ export class DataBasesEntity {
   @Column()
   db_portfolio_type_id: number;
 
-  @Column('json')
-  db_bases: Record<string, { generate_pdf_demand_service: { url: string; api_key: string } }>;
+  @Column({ type: 'json' })
+  db_bases: Record<string, { generate_pdf_demand_service?: { url: string; api_key: string } }>;
 
   @Column()
   db_detail: string;

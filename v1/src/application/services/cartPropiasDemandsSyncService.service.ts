@@ -111,6 +111,19 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
     });
 
     for (const baseName of Object.keys(dbRecord.db_bases)) {
+      const baseConfig = dbRecord.db_bases[baseName];
+      if (!baseConfig || Object.keys(baseConfig).length === 0) {
+        this.appLogger.structured({
+          level: 'warn',
+          context: CartPropiasDemandsSyncService.name,
+          type: 'CART_PROPIAS_SYNC',
+          status: 'WARN',
+          message: `Base "${baseName}" no tiene configuración de servicio, se omite del sync.`,
+          meta: { dataBasesId: dbRecord.db_id, baseName },
+        });
+        continue;
+      }
+
       try {
         const rows = await this.fetchPresentedLawsuits(baseName);
         this.appLogger.structured({
@@ -129,11 +142,12 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
           const clientId = Number(row.client_id);
           const lawsuitsFilingsId = Number(row.lawsuits_filings_id ?? 0);
 
-          const existing = await this.managementCtrlFiledDemandRepository.findActiveForDemand(
-            dbRecord.db_portfolio_type_id,
-            lawsuitId,
-            lawsuitsFilingsId,
-          );
+          const existing = await this.managementCtrlFiledDemandRepository.findActiveForDemand({
+            portfolio_type_id: dbRecord.db_portfolio_type_id,
+            name_data_base: baseName,
+            lawsuit_id: lawsuitId,
+            lawsuits_filings_id: lawsuitsFilingsId,
+          });
           if (existing) {
             this.appLogger.structured({
               level: 'debug',
@@ -157,6 +171,7 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
             mcfd_lawsuit_id: lawsuitId,
             mcfd_lawsuits_filings_id: lawsuitsFilingsId,
             mcfd_client_id: clientId,
+            mcfd_data_courts: row.court_id ? Number(row.court_id) : null,
             mcfd_filing_date: filingDate,
             mcfd_number_filed: filingNumber,
             mcfd_management_status: 'Abierto',
@@ -231,21 +246,25 @@ export class CartPropiasDemandsSyncService implements OnModuleInit, OnModuleDest
     }
 
     const sql = `
-      SELECT DISTINCT
+      SELECT
         l.id                          AS lawsuit_id,
         l.client_id,
         lf.id                         AS lawsuits_filings_id,
         lf.filing_date,
-        lf.filing_number
+        lf.filing_number,
+        MAX(lca.court_id)             AS court_id
       FROM \`${baseName}\`.lawsuits l
       INNER JOIN \`${baseName}\`.lawsuits_filings lf
         ON lf.lawsuit_id = l.id
+      LEFT JOIN \`${baseName}\`.lawsuit_court_assignments lca
+        ON lca.lawsuit_id = l.id
       WHERE l.lawsuit_status IN ('Presentada', 'Presentada por aplicativo', 'Sin presentar')
         AND l.deleted_at IS NULL
         AND (
           lf.filing_number IS NULL
           OR CHAR_LENGTH(lf.filing_number) < ${FILING_NUMBER_MIN_LENGTH}
         )${extraWhere}
+      GROUP BY l.id, l.client_id, lf.id, lf.filing_date, lf.filing_number
     `;
 
     return this.dataBasesRepository.runQueryOnBase(baseName, sql, params);

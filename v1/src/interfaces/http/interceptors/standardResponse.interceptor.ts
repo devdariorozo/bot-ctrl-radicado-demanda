@@ -44,6 +44,30 @@ function formatDateValue(value: unknown): unknown {
   return iso.replace('T', ' ').substring(0, 19);
 }
 
+// Campos nullable que deben mostrarse como '-' en la respuesta cuando no tienen valor.
+const NULL_PLACEHOLDER_FIELDS = new Set(['mcfd_automation_email_id']);
+
+function formatNullPlaceholdersDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((v) => formatNullPlaceholdersDeep(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const formatted: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (NULL_PLACEHOLDER_FIELDS.has(key) && (val === null || val === undefined)) {
+        formatted[key] = '-';
+      } else if (Array.isArray(val) || (val && typeof val === 'object')) {
+        formatted[key] = formatNullPlaceholdersDeep(val);
+      } else {
+        formatted[key] = val;
+      }
+    }
+    return formatted as T;
+  }
+  return value;
+}
+
 function formatDatesDeep<T>(value: T): T {
   if (Array.isArray(value)) {
     return value.map((v) => formatDatesDeep(v)) as unknown as T;
@@ -138,7 +162,7 @@ export class StandardResponseInterceptor implements NestInterceptor {
           'meta' in body
         ) {
           const rawData = (body as { data: any; meta: { total?: number; page?: number; limit?: number } }).data;
-          const data = formatDatesDeep(rawData);
+          const data = formatDatesDeep(formatNullPlaceholdersDeep(rawData));
           const meta = (body as { data: any; meta: { total?: number; page?: number; limit?: number } }).meta;
           const total =
             typeof meta?.total === 'number'
@@ -186,7 +210,7 @@ export class StandardResponseInterceptor implements NestInterceptor {
             type,
             title,
             message: bodyMessage ?? message,
-            data: formatDatesDeep(rawData),
+            data: formatDatesDeep(formatNullPlaceholdersDeep(rawData)),
           };
         }
 
@@ -209,12 +233,12 @@ export class StandardResponseInterceptor implements NestInterceptor {
             page,
             limit,
             total: body.length,
-            data: formatDatesDeep(body),
+            data: formatDatesDeep(formatNullPlaceholdersDeep(body)),
           };
         }
 
         // Cualquier otro caso (DTO simple, objeto, etc.)
-        const formattedBody = formatDatesDeep(body);
+        const formattedBody = formatDatesDeep(formatNullPlaceholdersDeep(body));
 
         if (method === 'GET') {
           const hasIdParam =

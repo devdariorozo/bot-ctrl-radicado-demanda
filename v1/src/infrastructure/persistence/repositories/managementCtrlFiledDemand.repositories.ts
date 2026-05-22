@@ -1,12 +1,14 @@
 // Responsabilidad: implementación TypeORM de ManagementCtrlFiledDemandRepository.
 
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
 import { ManagementCtrlFiledDemand } from '@domain/entities/managementCtrlFiledDemand.entities';
 import {
   CreateManagementCtrlFiledDemandInput,
+  FindActiveForDemandParams,
   FindAllManagementCtrlFiledDemandFilters,
   ManagementCtrlFiledDemandRepository,
 } from '@domain/ports/managementCtrlFiledDemand.ports';
@@ -18,8 +20,16 @@ import { TblPortfolioTypeEntity } from '../entities/portfolioType.entities';
 export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFiledDemandRepository {
   private readonly repo: Repository<ManagementCtrlFiledDemandEntity>;
 
-  constructor(@InjectDataSource() dataSource: DataSource) {
+  constructor(
+    @InjectDataSource() dataSource: DataSource,
+    private readonly configService: ConfigService,
+  ) {
     this.repo = dataSource.getRepository(ManagementCtrlFiledDemandEntity);
+  }
+
+  private getPortalRetryMs(): number {
+    const minutes = Number(this.configService.get<number>('PORTAL_RETRY_INTERVAL_MINUTES', 120));
+    return (Number.isFinite(minutes) && minutes > 0 ? minutes : 120) * 60 * 1000;
   }
 
   async create(input: CreateManagementCtrlFiledDemandInput): Promise<ManagementCtrlFiledDemand> {
@@ -30,6 +40,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       mcfd_lawsuit_id: input.mcfd_lawsuit_id,
       mcfd_lawsuits_filings_id: input.mcfd_lawsuits_filings_id,
       mcfd_client_id: input.mcfd_client_id,
+      mcfd_data_courts: input.mcfd_data_courts ?? null,
       mcfd_automation_email_id: null,
       mcfd_last_execution: now,
       mcfd_retries: 0,
@@ -59,6 +70,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       .addSelect('m.mcfd_lawsuit_id', 'mcfd_lawsuit_id')
       .addSelect('m.mcfd_lawsuits_filings_id', 'mcfd_lawsuits_filings_id')
       .addSelect('m.mcfd_client_id', 'mcfd_client_id')
+      .addSelect('m.mcfd_data_courts', 'mcfd_data_courts')
       .addSelect('m.mcfd_automation_email_id', 'mcfd_automation_email_id')
       .addSelect('m.mcfd_last_execution', 'mcfd_last_execution')
       .addSelect('m.mcfd_retries', 'mcfd_retries')
@@ -124,6 +136,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       .addSelect('m.mcfd_lawsuit_id', 'mcfd_lawsuit_id')
       .addSelect('m.mcfd_lawsuits_filings_id', 'mcfd_lawsuits_filings_id')
       .addSelect('m.mcfd_client_id', 'mcfd_client_id')
+      .addSelect('m.mcfd_data_courts', 'mcfd_data_courts')
       .addSelect('m.mcfd_automation_email_id', 'mcfd_automation_email_id')
       .addSelect('m.mcfd_last_execution', 'mcfd_last_execution')
       .addSelect('m.mcfd_retries', 'mcfd_retries')
@@ -159,15 +172,66 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
     return this.entityToDomain(found);
   }
 
-  async findActiveForDemand(portfolio_type_id: number, lawsuit_id: number, lawsuits_filings_id: number): Promise<ManagementCtrlFiledDemand | null> {
+  async findNextForPortalProcessing(portfolioTypeId: number): Promise<ManagementCtrlFiledDemand | null> {
+    const portalRetryCutoff = new Date(Date.now() - this.getPortalRetryMs());
+    const found = await this.repo
+      .createQueryBuilder('m')
+      .where('m.mcfd_portfolio_type_id = :portfolioTypeId', { portfolioTypeId })
+      .andWhere('m.mcfd_management_status IN (:...statuses)', {
+        statuses: ['Correo Automatizado', 'Novedad portal'],
+      })
+      .andWhere(
+        '(m.mcfd_management_status = :statusReady OR m.mcfd_last_execution IS NULL OR m.mcfd_last_execution <= :cutoff)',
+        { statusReady: 'Correo Automatizado', cutoff: portalRetryCutoff },
+      )
+      .orderBy('m.mcfd_id', 'ASC')
+      .getOne();
+    if (!found) return null;
+    return this.entityToDomain(found);
+  }
+
+  async findNextForManagement(portfolioTypeId: number): Promise<ManagementCtrlFiledDemand | null> {
+    const portalRetryCutoff = new Date(Date.now() - this.getPortalRetryMs());
+    const rows = await this.repo.query(
+      `SELECT m.*
+       FROM tbl_management_ctrl_filed_demand m
+       WHERE m.mcfd_portfolio_type_id = ?
+         AND m.mcfd_management_status IN (
+               'Abierto','Novedad correo','Novedad portal','Correo Automatizado','En proceso'
+             )
+         AND (
+           m.mcfd_management_status != 'Novedad portal'
+           OR m.mcfd_last_execution IS NULL
+           OR m.mcfd_last_execution <= ?
+         )
+       ORDER BY
+         CASE
+           WHEN m.mcfd_management_status IN ('Correo Automatizado','En proceso') THEN 0
+           WHEN m.mcfd_management_status = 'Novedad portal'                      THEN 1
+           WHEN m.mcfd_management_status = 'Abierto'                             THEN 2
+           WHEN m.mcfd_management_status = 'Novedad correo'                      THEN 3
+           ELSE 4
+         END ASC,
+         COALESCE(m.mcfd_last_execution, '1970-01-01') ASC,
+         m.mcfd_id ASC
+       LIMIT 1`,
+      [portfolioTypeId, portalRetryCutoff],
+    ) as Record<string, unknown>[];
+    if (!rows || rows.length === 0) return null;
+    return this.rowToDomain(rows[0]);
+  }
+
+  async findActiveForDemand(params: FindActiveForDemandParams): Promise<ManagementCtrlFiledDemand | null> {
     const found = await this.repo.findOne({
       where: {
-        mcfd_portfolio_type_id: portfolio_type_id,
-        mcfd_lawsuit_id: lawsuit_id,
-        mcfd_lawsuits_filings_id: lawsuits_filings_id,
+        mcfd_portfolio_type_id: params.portfolio_type_id,
+        mcfd_name_data_base: params.name_data_base,
+        mcfd_lawsuit_id: params.lawsuit_id,
+        mcfd_lawsuits_filings_id: params.lawsuits_filings_id,
+        mcfd_state_type_id: 1,
       },
     });
-    if (!found || found.mcfd_management_status === 'Para control manual') return null;
+    if (!found) return null;
     return this.entityToDomain(found);
   }
 
@@ -180,6 +244,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
         mcfd_lawsuit_id: data.mcfd_lawsuit_id,
         mcfd_lawsuits_filings_id: data.mcfd_lawsuits_filings_id,
         mcfd_client_id: data.mcfd_client_id,
+        mcfd_data_courts: data.mcfd_data_courts ?? null,
         mcfd_automation_email_id: data.mcfd_automation_email_id ?? null,
         mcfd_last_execution: data.mcfd_last_execution ?? null,
         mcfd_retries: data.mcfd_retries,
@@ -228,6 +293,10 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       mcfd_lawsuit_id: row.mcfd_lawsuit_id as number,
       mcfd_lawsuits_filings_id: row.mcfd_lawsuits_filings_id as number,
       mcfd_client_id: row.mcfd_client_id as number,
+      mcfd_data_courts: (row.mcfd_data_courts as number) ?? null,
+      court_department: (row.court_department as string) ?? null,
+      court_city: (row.court_city as string) ?? null,
+      court_name: (row.court_name as string) ?? null,
       mcfd_automation_email_id: (row.mcfd_automation_email_id as number) ?? null,
       mcfd_last_execution: row.mcfd_last_execution ? (row.mcfd_last_execution as Date) : null,
       mcfd_retries: (row.mcfd_retries as number) ?? 0,
@@ -252,6 +321,7 @@ export class ManagementCtrlFiledDemandRepositoryImpl implements ManagementCtrlFi
       mcfd_lawsuit_id: entity.mcfd_lawsuit_id,
       mcfd_lawsuits_filings_id: entity.mcfd_lawsuits_filings_id,
       mcfd_client_id: entity.mcfd_client_id,
+      mcfd_data_courts: entity.mcfd_data_courts ?? null,
       mcfd_automation_email_id: entity.mcfd_automation_email_id ?? null,
       mcfd_last_execution: entity.mcfd_last_execution ?? null,
       mcfd_retries: entity.mcfd_retries ?? 0,

@@ -8,6 +8,10 @@ export class ManagementCtrlFiledDemand {
   mcfd_lawsuit_id: number;
   mcfd_lawsuits_filings_id: number;
   mcfd_client_id: number;
+  mcfd_data_courts: number | null;
+  court_department?: string | null;
+  court_city?: string | null;
+  court_name?: string | null;
   mcfd_automation_email_id: number | null;
   mcfd_last_execution: Date | null;
   mcfd_retries: number;

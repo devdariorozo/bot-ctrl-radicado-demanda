@@ -11,8 +11,13 @@ export class AutomationEmail {
   autm_departament: string | null;
   autm_city: string | null;
   autm_locality: string | null;
+  autm_court_name: string | null;
   autm_specialty: string | null;
+  autm_office_name: string | null;
+  autm_year: string | null;
   autm_process_class: string | null;
+  autm_process_code: string | null;
+  autm_resource_process: string | null;
   autm_subject_demanding: string | null;
   autm_artificial_person: string | null;
   autm_document_type_1: string | null;

@@ -6,7 +6,9 @@ export interface ParsedEmailFields {
   departament: string | null;
   city: string | null;
   locality: string | null;
+  court_name: string | null;
   specialty: string | null;
+  office_name: string | null;
   process_class: string | null;
   subject_demanding: string | null;
   artificial_person: string | null;
@@ -40,12 +42,16 @@ export interface EmailInboxPort {
    * Busca correos cuyo asunto contenga alguna de las palabras clave
    * Y cuyo cuerpo contenga bodyMustContain.
    * pdfAttachmentPatterns: substrings a buscar en nombres de archivo PDF adjunto.
-   * Devuelve de más antiguo a más reciente.
+   * knownIds: Message-IDs ya persistidos en BD; el adaptador los omite sin descargar el cuerpo.
+   * batchSize: máximo de mensajes nuevos (no presentes en knownIds) a escanear por ciclo.
+   * Devuelve de más reciente a más antiguo dentro del lote procesado.
    */
   fetchMatchingEmails(
     subjectKeywords: string[],
     bodyMustContain: string,
     pdfAttachmentPatterns: string[],
+    knownIds?: Set<string>,
+    batchSize?: number,
   ): Promise<FetchedEmail[]>;
 
   markAsRead(uid: string): Promise<void>;
