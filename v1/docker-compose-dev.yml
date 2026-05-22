@@ -1,0 +1,33 @@
+# Archivo de configuración para el despliegue en Docker (entorno de desarrollo)
+#
+# Un solo entorno: toda la configuración sale del .env.
+#
+# - Dev: en .env pon NODE_ENV=dev, DB_CONFIG_HOST=localhost (y Redis localhost).
+# - QA/Pro: en .env pon NODE_ENV=qa o pro, DB_CONFIG_HOST=172.7.15.21 (o la IP del servidor).
+#
+# Levantar: docker compose up -d
+# Con network_mode: host, la API y Redis usan la red del host (localhost = tu máquina).
+
+services:
+  api:
+    build: .
+    image: ${PROJECT_NAME}-${VERSION_API}-api:latest
+    container_name: ${PROJECT_NAME}-${VERSION_API}-api
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./logs:/usr/src/app/logs
+    command: npm run ${ENV_API}
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME}-${VERSION_API}-redis
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TZ=America/Bogota
+    command: redis-server --port ${REDIS_PORT:-6379}

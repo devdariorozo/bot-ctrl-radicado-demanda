@@ -1,2 +1,3 @@
 # bot-ctrl-radicado-demanda
-Automatizacion sobre correo y portal unificado de consultas https://consultaprocesos.ramajudicial.gov.co/Procesos/Index
+
+Bot para controlar y actualizar el número de radicado de demandas a partir de fuentes operativas (correo) y del portal unificado de consultas de la Rama Judicial de Colombia (consultaprocesos). Orquesta la lectura de registros pendientes en management_ctrl_filed_demand, automatiza la consulta/validación del radicado en el portal, persiste el resultado y la trazabilidad (incluyendo novedades) y opera en horario laboral configurable, excluyendo fines de semana y dias feriados o no laborables.

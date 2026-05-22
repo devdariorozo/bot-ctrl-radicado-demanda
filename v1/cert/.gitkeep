@@ -1,0 +1,3 @@
+Contiene los certificados de la CA de la API de generación de PDF de demandas en línea.
+
+Se genera un .pem con los certificados.
