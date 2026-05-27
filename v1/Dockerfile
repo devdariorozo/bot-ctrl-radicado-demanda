@@ -14,7 +14,10 @@ FROM node:22-alpine AS runner
 
 WORKDIR /usr/src/app
 
-ENV NODE_ENV=production
+RUN apk add --no-cache tzdata
+
+ENV NODE_ENV=production \
+    TZ=America/Bogota
 
 COPY package*.json ./
 RUN npm ci --omit=dev

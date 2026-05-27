@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT_API}:${PORT_API}"
+    environment:
+      - TZ=America/Bogota
     env_file:
       - .env
     command: node dist/main
