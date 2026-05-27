@@ -15,10 +15,11 @@ services:
     container_name: ${PROJECT_NAME}-${VERSION_API}-api
     restart: unless-stopped
     network_mode: host
-    env_file:
-      - .env
     environment:
       - NODE_ENV=development
+      - TZ=America/Bogota
+    env_file:
+      - .env
     volumes:
       - ./logs:/usr/src/app/logs
     command: npm run ${ENV_API}
